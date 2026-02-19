@@ -1,0 +1,120 @@
+<div class="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestion des Utilisateurs</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1">Gérez les accès et les rôles pour la plateforme de supervision.</p>
+        </div>
+        <button class="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold shadow-sm shadow-primary/30 flex items-center gap-2 transition-all">
+            <span class="material-symbols-outlined text-[20px]">add</span>
+            Nouvel Utilisateur
+        </button>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center gap-4">
+        <div class="relative flex-1 w-full">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <span class="material-symbols-outlined text-[20px]">search</span>
+            </span>
+            <input type="text" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border-none rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-0" placeholder="Rechercher par nom ou email...">
+        </div>
+        
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="relative">
+                <select class="appearance-none pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border-none rounded-lg text-sm text-slate-600 dark:text-slate-300 font-medium focus:ring-0 cursor-pointer min-w-[140px]">
+                    <option>Rôle: Tous</option>
+                    <option>Admin</option>
+                    <option>Enseignant</option>
+                    <option>Superviseur</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
+                    <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                </div>
+            </div>
+
+            <div class="relative">
+                <select class="appearance-none pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border-none rounded-lg text-sm text-slate-600 dark:text-slate-300 font-medium focus:ring-0 cursor-pointer min-w-[140px]">
+                    <option>Statut: Tous</option>
+                    <option>Actif</option>
+                    <option>Inactif</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
+                    <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
+                    <tr>
+                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider">Utilisateur</th>
+                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider">Rôle</th>
+                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider">Statut</th>
+                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    <tr *ngFor="let user of users" class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <img [src]="user.avatar" [alt]="user.name" class="w-10 h-10 rounded-full object-cover border border-slate-100 dark:border-slate-700">
+                                <div>
+                                    <p class="font-bold text-slate-900 dark:text-white">{{ user.name }}</p>
+                                    <p class="text-xs text-slate-400">ID: {{ user.id }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400">{{ user.email }}</td>
+                        <td class="px-6 py-4">
+                            <span [ngClass]="getRoleBadgeClass(user.role)" class="px-3 py-1 rounded-full text-xs font-bold inline-block">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div [ngClass]="user.status === 'Actif' ? 'bg-green-500' : 'bg-slate-300'" class="w-2 h-2 rounded-full"></div>
+                                <span [ngClass]="user.status === 'Actif' ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-400'" class="text-sm">{{ user.status }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="p-2 text-slate-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                </button>
+                                <button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-slate-500 dark:text-slate-400">Affichage de 1 à 5 sur <span class="font-bold text-slate-900 dark:text-white">24</span> résultats</p>
+            
+            <div class="flex items-center gap-2">
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50">
+                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+                
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-50 border border-blue-200 text-primary font-bold text-sm">1</button>
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium">2</button>
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium">3</button>
+                <div class="w-9 h-9 flex items-center justify-center text-slate-400">...</div>
+                
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

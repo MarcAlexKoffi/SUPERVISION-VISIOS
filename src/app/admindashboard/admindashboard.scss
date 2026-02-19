@@ -1,0 +1,40 @@
+:host {
+    display: block; /* Let the flex container inside handle layout */
+    font-family: 'Public Sans', sans-serif;
+}
+
+/* Scrollbar Styling for Sidebar */
+.sidebar nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar nav::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 20px;
+}
+
+.sidebar nav:hover::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+}
+
+@media print {
+    /* Hide everything in admin dashboard wrapper except the router-outlet content which might have its own print styles */
+    :host > div {
+        display: block !important; /* Override flex */
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    aside, header {
+        display: none !important;
+    }
+    
+    main {
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+}

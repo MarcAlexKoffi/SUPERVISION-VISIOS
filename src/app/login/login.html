@@ -1,0 +1,85 @@
+<div class="login-container">
+    <!-- Hero Background with Overlay -->
+    <div class="hero-background">
+        <div class="bg-image"></div>
+        <div class="overlay"></div>
+        <!-- Additional gradient for depth -->
+        <div class="gradient-overlay"></div>
+    </div>
+    
+    <!-- Main Content Container -->
+    <div class="main-content">
+        <!-- Login Card -->
+        <div class="login-card">
+            <!-- Card Header -->
+            <div class="card-header">
+                <div class="icon-container">
+                    <span class="material-symbols-outlined">school</span>
+                </div>
+                <h1>University Supervision Portal</h1>
+                <p>Secure access for faculty and administrators</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form action="#" class="login-form" method="POST" onsubmit="event.preventDefault();">
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <div class="icon-wrapper">
+                            <span class="material-symbols-outlined">mail</span>
+                        </div>
+                        <input id="email" name="email" placeholder="name@university.edu" required="" type="email"/>
+                    </div>
+                </div>
+                
+                <!-- Password Field -->
+                <div class="form-group">
+                    <div class="flex items-center justify-between">
+                        <label for="password">Password</label>
+                    </div>
+                    <div class="input-wrapper">
+                        <div class="icon-wrapper">
+                            <span class="material-symbols-outlined">lock</span>
+                        </div>
+                        <input id="password" name="password" placeholder="••••••••" required="" type="password"/>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="actions-row">
+                    <div class="remember-me">
+                        <input id="remember-me" name="remember-me" type="checkbox"/>
+                        <label for="remember-me">Remember me</label>
+                    </div>
+                    <a class="forgot-password" href="#">Forgot password?</a>
+                </div>
+                
+                <!-- Submit Button -->
+                <button class="submit-btn group" type="submit">
+                    <span class="material-symbols-outlined">login</span>
+                    Secure Login
+                </button>
+            </form>
+            
+            <!-- Footer Links -->
+            <div class="card-footer">
+                <p>
+                    Need help accessing your account? <a href="#">Contact IT Support</a>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Branding Footer Outside Card -->
+        <div class="branding-footer">
+            <p class="copyright">
+                © 2024 University Supervision Portal. All rights reserved.
+            </p>
+            <div class="links">
+                <a href="#">Privacy Policy</a>
+                <span>•</span>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,261 @@
+
+<div class="p-6 mx-auto max-w-5xl">
+    <!-- Actions Bar -->
+    <div class="flex justify-end gap-3 mb-6 no-print">
+        <button (click)="printPage()" class="flex items-center gap-2 px-4 py-2 font-semibold text-white transition-all rounded-xl shadow-md bg-[#0f42a5] hover:bg-[#1e3a8a] focus:ring-2 focus:ring-blue-900/20">
+            <span class="material-symbols-outlined text-[20px]">print</span>
+            Imprimer / PDF
+        </button>
+        <button (click)="resetForm()" class="px-4 py-2 font-semibold transition-all bg-white border rounded-xl shadow-sm text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 focus:ring-2 focus:ring-slate-200">
+            Réinitialiser
+        </button>
+    </div>
+
+    <!-- Main Sheet -->
+    <div class="container-sheet relative mx-auto bg-white dark:bg-[#1e293b] shadow-xl border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden print:shadow-none print:border-none print:m-0 print:w-full print:max-w-full">
+        
+        <!-- Header -->
+        <header class="flex items-start justify-between p-8 border-b-2 bg-slate-50/50 dark:bg-slate-800/50 border-blue-900/10">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-[#0f42a5]">
+                    <span class="material-symbols-outlined text-4xl">school</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Fiche de Supervision</h1>
+                    <p class="font-medium text-slate-500 dark:text-slate-400">Séance de visioconférence / Classe virtuelle</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="inline-block px-3 py-1 mb-1 text-xs font-bold tracking-wide uppercase rounded bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300">Réf: SUP-VISIO-2024</div>
+                <div class="text-lg font-bold tracking-tight text-[#0f42a5] dark:text-blue-400">CAMPUS EN LIGNE</div>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-8">
+            <!-- General Info -->
+            <section class="p-6 border rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-700">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div class="space-y-5">
+                        <div class="group">
+                            <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Enseignant(e)</label>
+                            <input type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Nom Prénom">
+                        </div>
+                        <div class="group">
+                            <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Module / Matière</label>
+                            <input type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Ex: Marketing Digital">
+                        </div>
+                        <div class="group">
+                            <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Niveau / Promotion</label>
+                            <input type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Ex: Licence 2 - Groupe A">
+                        </div>
+                    </div>
+                    <div class="space-y-5">
+                        <div class="group">
+                            <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Date & Heure</label>
+                            <div class="flex items-center gap-3">
+                                <input type="date" class="w-1/2 px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
+                                <div class="flex items-center w-1/2 gap-2">
+                                    <input type="time" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
+                                    <span class="text-slate-400">-</span>
+                                    <input type="time" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Plateforme utilisée</label>
+                            <div class="relative">
+                                <select class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 appearance-none cursor-pointer text-slate-600 dark:text-slate-300">
+                                    <option>Zoom</option>
+                                    <option>Microsoft Teams</option>
+                                    <option>Google Meet</option>
+                                    <option>Autre</option>
+                                </select>
+                                <span class="absolute right-3 bottom-3 material-symbols-outlined pointer-events-none text-slate-400 text-[20px]">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="group">
+                            <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Effectif</label>
+                            <div class="flex items-center gap-3 text-sm">
+                                <span class="font-medium text-slate-600 dark:text-slate-400">Présents :</span>
+                                <input type="number" class="w-24 px-3 py-2.5 text-center font-bold bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600" placeholder="0">
+                                <span class="text-slate-400">/ Inscrits</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Evaluation Grid -->
+            <section class="space-y-8">
+                <!-- Technical -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-[#0f42a5]">
+                            <span class="material-symbols-outlined text-lg">settings_input_antenna</span>
+                        </div>
+                        <h3 class="text-sm font-bold tracking-wider uppercase text-slate-800 dark:text-white">1. Aspects Techniques & Logistiques</h3>
+                    </div>
+                    
+                    <div class="overflow-hidden border rounded-xl border-slate-200 dark:border-slate-700">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                                <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-500">
+                                    <th class="px-6 py-3 w-1/2">Critères</th>
+                                    <th class="px-4 py-3 text-center">Conforme</th>
+                                    <th class="px-4 py-3 text-center text-orange-600">À améliorer</th>
+                                    <th class="px-4 py-3 text-center text-red-600">Non Conforme</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Connexion internet (stabilité)</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech1" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech1" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech1" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Qualité audio et vidéo</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech2" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech2" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech2" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Ponctualité (démarrage/fin)</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech3" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech3" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech3" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pedagogical -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-[#0f42a5]">
+                            <span class="material-symbols-outlined text-lg">school</span>
+                        </div>
+                        <h3 class="text-sm font-bold tracking-wider uppercase text-slate-800 dark:text-white">2. Aspects Pédagogiques</h3>
+                    </div>
+                    
+                    <div class="overflow-hidden border rounded-xl border-slate-200 dark:border-slate-700">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                                <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-500">
+                                    <th class="px-6 py-3 w-1/2">Critères</th>
+                                    <th class="px-4 py-3 text-center text-green-600">Excellent</th>
+                                    <th class="px-4 py-3 text-center text-[#0f42a5]">Satisfaisant</th>
+                                    <th class="px-4 py-3 text-center text-red-600">Insuffisant</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Clarté des objectifs de la séance</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped1" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped1" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped1" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Maîtrise du contenu enseigné</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped2" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped2" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped2" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Interaction avec les étudiants (Q&A, Sondages)</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped3" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped3" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped3" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                    <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Utilisation des outils (Partage écran, chat)</td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped4" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped4" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped4" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Comments -->
+            <section>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-slate-400">rate_review</span>
+                    <h3 class="text-sm font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Observations & Recommandations du Superviseur</h3>
+                </div>
+                <div class="relative">
+                    <textarea class="w-full min-h-[140px] p-4 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all resize-y placeholder:text-slate-400 dark:text-white" placeholder="Noter ici les points forts, les incidents techniques ou les axes d'amélioration..."></textarea>
+                    <div class="absolute right-2 bottom-2 pointer-events-none text-slate-300">
+                        <span class="material-symbols-outlined text-xl">edit_note</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Signatures -->
+            <section class="pt-8 mt-8 border-t-2 border-slate-100 dark:border-slate-800">
+                <div class="grid grid-cols-1 gap-12 md:grid-cols-2">
+                    <!-- Supervisor Sig -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-bold text-slate-700 dark:text-slate-300">Nom du Superviseur</label>
+                            <input type="text" class="w-full py-1 text-sm bg-transparent border-b border-slate-300 outline-none dark:border-slate-700 dark:text-white" placeholder="Votre nom">
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="relative h-40 overflow-hidden bg-white border-2 border-dashed rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-900 cursor-crosshair hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <canvas #supervisorCanvas class="absolute inset-0 w-full h-full"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 dark:text-slate-600 opacity-50">
+                                    <span class="text-lg font-handwriting">Signer ici</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-2">
+                                <span class="text-xs text-slate-400">Signature Superviseur</span>
+                                <button (click)="clearCanvas('supervisor')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Sig -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-1 text-sm font-bold text-slate-700 dark:text-slate-300">Visa de l'Enseignant</label>
+                            <p class="mb-2 text-xs italic text-slate-500">Lu et pris connaissance.</p>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="relative h-40 overflow-hidden bg-white border-2 border-dashed rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-900 cursor-crosshair hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                <canvas #teacherCanvas class="absolute inset-0 w-full h-full"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-300 dark:text-slate-600 opacity-50">
+                                    <span class="text-lg font-handwriting">Signer ici</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-2">
+                                <span class="text-xs text-slate-400">Signature Enseignant</span>
+                                <button (click)="clearCanvas('teacher')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Save Action -->
+            <div class="flex justify-end pt-4 no-print">
+                <button (click)="saveForm()" class="flex items-center gap-3 px-8 py-3.5 text-sm font-bold text-white transition-all transform rounded-xl shadow-lg bg-gradient-to-r from-[#0f42a5] to-[#1e3a8a] hover:from-[#1e3a8a] hover:to-[#1e3a8a] hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900">
+                    <span class="material-symbols-outlined">save</span>
+                    Enregistrer la fiche
+                </button>
+            </div>
+        </div>
+
+        <!-- Sheet Footer -->
+        <footer class="px-8 py-4 text-center border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800">
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+                Document à usage interne - Confidentiel - Généré le {{ currentDate | date:'dd/MM/yyyy' }}
+            </p>
+        </footer>
+    </div>
+</div>
+

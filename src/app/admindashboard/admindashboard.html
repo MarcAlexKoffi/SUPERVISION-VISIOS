@@ -1,0 +1,118 @@
+
+<div class="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-display">
+    
+    <!-- Sidebar -->
+    <aside class="hidden lg:flex flex-col w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen sticky top-0 z-30 flex-shrink-0 shadow-sm">
+        <!-- Brand -->
+        <div class="h-20 px-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/50">
+            <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-lg shadow-primary/30 text-white">
+                <span class="material-symbols-outlined text-2xl">school</span>
+            </div>
+            <div class="flex flex-col">
+                <h1 class="text-base font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">UDMCI</h1>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">SUPERVISION</span>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+            <div class="px-4 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Menu Principal</div>
+            
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/dashboard" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla.isActive">grid_view</span>
+                Tableau de bord
+            </a>
+            
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/supervision-form" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla2="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla2.isActive">assignment</span>
+                Fiches de Supervision
+            </a>
+            
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/history" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">history</span>
+                Historique
+            </a>
+            
+            <!-- <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" href="#">
+                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">calendar_month</span>
+                Planning
+            </a> -->
+            
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/users" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">groups</span>
+                Utilisateurs
+            </a>
+            
+            <!-- <div class="px-4 mt-8 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Configuration</div>
+            
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" href="#">
+                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">settings</span>
+                Paramètres
+            </a>
+            
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" href="#">
+                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">help</span>
+                Aide & Support
+            </a> -->
+            <div class="pt-4 mt-auto">
+                <button class="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-all group">
+                    <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+                    Déconnexion
+                </button>
+            </div>        </nav>
+        
+        <!-- User Profile -->
+        <div class="p-4 border-t border-slate-100 dark:border-slate-700/50">
+            <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all group cursor-pointer">
+                <div class="relative">
+                    <img src="https://ui-avatars.com/api/?name=Albert+K&background=fed7aa&color=c2410c&bold=true" alt="Dr. Albert K." class="w-10 h-10 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700 shadow-sm group-hover:border-primary/20 transition-colors">
+                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-slate-900 dark:text-white truncate">Dr. Albert K.</p>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">Superviseur</p>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50/50 dark:bg-slate-900/50">
+        <!-- Header -->
+        <header class="h-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between px-8 z-20 sticky top-0 flex-shrink-0 shadow-sm/50">
+            <div class="flex items-center gap-4">
+                <button class="lg:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla.isActive">Tableau de bord</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla2.isActive">Fiche de Supervision</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla3.isActive">Gestion des Utilisateurs</h2>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex items-center gap-2 pl-4 pr-5 py-2 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700/50 dark:border-slate-600 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">history</span>
+                    <span>Dernière sauvegarde: Il y a 2 min</span>
+                </div>
+                
+                <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                <div class="flex items-center gap-3">
+                    <button class="relative p-2.5 rounded-full text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors group">
+                        <span class="material-symbols-outlined text-[22px]">notifications</span>
+                        <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 group-hover:scale-110 transition-transform"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Router Outlet Content -->
+        <main class="flex-1 overflow-y-auto w-full">
+             <router-outlet></router-outlet>
+        </main>
+    </div>
+</div>
+

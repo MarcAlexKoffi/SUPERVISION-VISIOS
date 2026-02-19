@@ -1,85 +1,70 @@
-<div class="login-container">
-    <!-- Hero Background with Overlay -->
-    <div class="hero-background">
-        <div class="bg-image"></div>
-        <div class="overlay"></div>
-        <!-- Additional gradient for depth -->
-        <div class="gradient-overlay"></div>
-    </div>
-    
-    <!-- Main Content Container -->
-    <div class="main-content">
-        <!-- Login Card -->
-        <div class="login-card">
-            <!-- Card Header -->
-            <div class="card-header">
-                <div class="icon-container">
-                    <span class="material-symbols-outlined">school</span>
-                </div>
-                <h1>University Supervision Portal</h1>
-                <p>Secure access for faculty and administrators</p>
-            </div>
-            
-            <!-- Login Form -->
-            <form action="#" class="login-form" method="POST" onsubmit="event.preventDefault();">
-                <!-- Email Field -->
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <div class="input-wrapper">
-                        <div class="icon-wrapper">
-                            <span class="material-symbols-outlined">mail</span>
-                        </div>
-                        <input id="email" name="email" placeholder="name@university.edu" required="" type="email"/>
-                    </div>
-                </div>
-                
-                <!-- Password Field -->
-                <div class="form-group">
-                    <div class="flex items-center justify-between">
-                        <label for="password">Password</label>
-                    </div>
-                    <div class="input-wrapper">
-                        <div class="icon-wrapper">
-                            <span class="material-symbols-outlined">lock</span>
-                        </div>
-                        <input id="password" name="password" placeholder="••••••••" required="" type="password"/>
-                    </div>
-                </div>
-                
-                <!-- Actions -->
-                <div class="actions-row">
-                    <div class="remember-me">
-                        <input id="remember-me" name="remember-me" type="checkbox"/>
-                        <label for="remember-me">Remember me</label>
-                    </div>
-                    <a class="forgot-password" href="#">Forgot password?</a>
-                </div>
-                
-                <!-- Submit Button -->
-                <button class="submit-btn group" type="submit">
-                    <span class="material-symbols-outlined">login</span>
-                    Secure Login
-                </button>
-            </form>
-            
-            <!-- Footer Links -->
-            <div class="card-footer">
-                <p>
-                    Need help accessing your account? <a href="#">Contact IT Support</a>
-                </p>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-[#0f42a5] relative">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
+
+    <!-- Login Card -->
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 md:p-10 mx-4">
+        <!-- Logo / Icon -->
+        <div class="flex justify-center mb-6">
+            <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center shadow-inner">
+                <span class="material-symbols-outlined text-4xl text-[#0f42a5]">school</span>
             </div>
         </div>
-        
-        <!-- Branding Footer Outside Card -->
-        <div class="branding-footer">
-            <p class="copyright">
-                © 2024 University Supervision Portal. All rights reserved.
-            </p>
-            <div class="links">
-                <a href="#">Privacy Policy</a>
-                <span>•</span>
-                <a href="#">Terms of Service</a>
+
+        <!-- Header Text -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-2">University Supervision Portal</h1>
+            <p class="text-slate-500 font-medium">Secure access for faculty and administrators</p>
+        </div>
+
+        <!-- Form -->
+        <form class="space-y-6" (ngSubmit)="login()">
+            <!-- Email -->
+            <div class="space-y-2">
+                <label for="email" class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Email Address</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#0f42a5] transition-colors">mail</span>
+                    </div>
+                    <input type="email" id="email" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="name@university.edu" required>
+                </div>
             </div>
+
+            <!-- Password -->
+            <div class="space-y-2">
+                <label for="password" class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Password</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#0f42a5] transition-colors">lock</span>
+                    </div>
+                    <input type="password" id="password" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <!-- Remember & Forgot -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-[#0f42a5] focus:ring-[#0f42a5] border-slate-300 rounded cursor-pointer">
+                    <label for="remember-me" class="ml-2 block text-sm text-slate-600 cursor-pointer">Remember me</label>
+                </div>
+                <div class="text-sm">
+                    <a href="#" class="font-bold text-[#0f42a5] hover:text-[#1e3a8a]">Forgot password?</a>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-900/20 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0f42a5] transition-all hover:-translate-y-0.5">
+                <span class="material-symbols-outlined text-[20px]">login</span>
+                Login
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-slate-500">
+                Need help accessing your account? 
+                <a href="#" class="font-bold text-slate-700 hover:text-[#0f42a5] transition-colors">Contact IT Support</a>
+            </p>
         </div>
     </div>
 </div>

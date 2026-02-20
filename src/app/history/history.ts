@@ -32,6 +32,7 @@ export class HistoryComponent implements OnInit {
 
   // Modal
   selectedSupervision: any = null;
+  filteredHistoryForUE: any[] = [];
   showModal = false;
 
   ngOnInit() {
@@ -124,13 +125,24 @@ export class HistoryComponent implements OnInit {
   }
 
   viewDetails(supervision: any) {
+    // 1. Find all supervisions for this specific UE/Course
+    this.filteredHistoryForUE = this.supervisions
+        .filter(s => s.course.name === supervision.course.name)
+        .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date desc (newest first)
+
+    // 2. Select the clicked one initially
     this.selectedSupervision = supervision;
     this.showModal = true;
+  }
+
+  selectSupervisionFromHistory(supervision: any) {
+      this.selectedSupervision = supervision;
   }
 
   closeModal() {
     this.showModal = false;
     this.selectedSupervision = null;
+    this.filteredHistoryForUE = [];
   }
 
   printSupervision(supervision: any) {

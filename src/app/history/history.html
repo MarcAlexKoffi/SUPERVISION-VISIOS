@@ -161,22 +161,55 @@
 
     <!-- View Details Modal -->
     <div *ngIf="showModal && selectedSupervision" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="w-full max-w-2xl bg-white shadow-2xl dark:bg-slate-800 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
-            <!-- Header -->
-            <div class="flex items-center justify-between p-6 border-b bg-slate-50/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-700">
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-[#0f42a5] dark:bg-blue-900/30 dark:text-blue-400">
-                        <span class="material-symbols-outlined text-2xl">description</span>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Détails de la Supervision</h3>
-                        <p class="text-xs text-slate-500">Réf: #{{ selectedSupervision.id }} - {{ selectedSupervision.date | date:'dd/MM/yyyy' }}</p>
+        <div class="w-full max-w-5xl bg-white shadow-2xl dark:bg-slate-800 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col md:flex-row">
+            
+            <!-- Left Sidebar: List of Supervisions -->
+            <div class="w-full md:w-1/3 bg-slate-50 dark:bg-slate-900/50 border-r border-slate-100 dark:border-slate-700 flex flex-col">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Historique Complet</h3>
+                    <div class="font-bold text-lg text-slate-900 dark:text-white truncate" title="{{ selectedSupervision.course.name }}">{{ selectedSupervision.course.name }}</div>
+                    <div class="text-xs text-slate-500">{{ filteredHistoryForUE.length }} enregistrement(s) trouvé(s)</div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <div *ngFor="let s of filteredHistoryForUE" 
+                         (click)="selectSupervisionFromHistory(s)"
+                         [class]="s.id === selectedSupervision.id ? 'bg-white dark:bg-slate-800 border-[#0f42a5] ring-1 ring-[#0f42a5]' : 'bg-white dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'"
+                         class="p-4 rounded-xl border shadow-sm cursor-pointer transition-all group relative overflow-hidden">
+                         
+                        <div *ngIf="s.id === selectedSupervision.id" class="absolute left-0 top-0 bottom-0 w-1 bg-[#0f42a5]"></div>
+                        
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-slate-500">{{ s.date | date:'dd MMM yyyy' }}</span>
+                            <span [class]="'px-2 py-0.5 rounded text-[10px] font-bold ' + s.statusColor">
+                                {{ s.status }}
+                            </span>
+                        </div>
+                        <div class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1">{{ s.teacher.name }}</div>
+                        <div class="flex items-center gap-2 text-xs text-slate-500">
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            {{ s.date | date:'HH:mm' }} - {{ s.endTime | date:'HH:mm' }}
+                        </div>
                     </div>
                 </div>
-                <button (click)="closeModal()" class="p-2 transition-colors rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-slate-700">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
             </div>
+
+            <!-- Right Content: Details -->
+            <div class="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-800">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700">
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-[#0f42a5] dark:bg-blue-900/30 dark:text-blue-400">
+                            <span class="material-symbols-outlined text-2xl">description</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Détails de la Supervision</h3>
+                            <p class="text-xs text-slate-500">Réf: #{{ selectedSupervision.id }} - {{ selectedSupervision.date | date:'dd/MM/yyyy' }}</p>
+                        </div>
+                    </div>
+                    <button (click)="closeModal()" class="p-2 transition-colors rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-slate-700">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
 
             <!-- Content -->
             <div class="flex-1 p-6 space-y-6 overflow-y-auto">
@@ -304,7 +337,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="p-6 border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 flex justify-end gap-3">
+            <div class="p-6 border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 flex justify-end gap-3 z-10">
                  <button (click)="closeModal()" class="px-5 py-2.5 font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
                     Fermer
                 </button>
@@ -317,5 +350,8 @@
                     Télécharger PDF
                 </button>
             </div>
+            
+            </div>
         </div>
     </div>
+</div>

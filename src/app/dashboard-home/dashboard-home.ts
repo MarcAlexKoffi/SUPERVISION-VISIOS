@@ -27,7 +27,7 @@ export class DashboardHome implements OnInit {
   stats = [
     { label: 'Total UE Actives', value: '0', icon: 'library_books', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
     { label: 'Étudiants Inscrits', value: '0', icon: 'groups', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' },
-    { label: 'Sessions en Cours', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' }
+    { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' }
   ];
 
   ues: any[] = [];
@@ -184,24 +184,27 @@ export class DashboardHome implements OnInit {
     localStorage.setItem('ues', JSON.stringify(this.ues));
   }
 
+  getDeptBadgeClass(dept: string): string {
+    const deptLower = (dept || '').toLowerCase();
+    if (deptLower.includes('informat')) return 'bg-blue-50 text-blue-700';
+    if (deptLower.includes('sci')) return 'bg-purple-50 text-purple-700';
+    if (deptLower.includes('gestion') || deptLower.includes('eco')) return 'bg-orange-50 text-orange-700';
+    if (deptLower.includes('audit')) return 'bg-emerald-50 text-emerald-700';
+    if (deptLower.includes('finance')) return 'bg-indigo-50 text-indigo-700';
+    if (deptLower.includes('grh')) return 'bg-pink-50 text-pink-700';
+    if (deptLower.includes('fiscalit')) return 'bg-cyan-50 text-cyan-700';
+    if (deptLower.includes('mark')) return 'bg-rose-50 text-rose-700';
+    if (deptLower.includes('admin')) return 'bg-slate-50 text-slate-700';
+    return 'bg-slate-50 text-slate-700';
+  }
+
   saveUE() {
     if (!this.newUE.code || !this.newUE.name || !this.newUE.dept) {
       alert('Veuillez remplir les champs obligatoires');
       return;
     }
 
-    // Determine color based on department (simple logic for demo)
-    let color = 'bg-slate-50 text-slate-700';
-    const deptLower = this.newUE.dept.toLowerCase();
-    if (deptLower.includes('informat')) color = 'bg-blue-50 text-blue-700';
-    else if (deptLower.includes('sci')) color = 'bg-purple-50 text-purple-700';
-    else if (deptLower.includes('gestion') || deptLower.includes('eco')) color = 'bg-orange-50 text-orange-700';
-    else if (deptLower.includes('audit')) color = 'bg-emerald-50 text-emerald-700';
-    else if (deptLower.includes('finance')) color = 'bg-indigo-50 text-indigo-700';
-    else if (deptLower.includes('grh')) color = 'bg-pink-50 text-pink-700';
-    else if (deptLower.includes('fiscalit')) color = 'bg-cyan-50 text-cyan-700';
-    else if (deptLower.includes('mark')) color = 'bg-rose-50 text-rose-700';
-    else if (deptLower.includes('admin')) color = 'bg-slate-50 text-slate-700';
+    const color = this.getDeptBadgeClass(this.newUE.dept);
     
     const ueToSave = {
       ...this.newUE,

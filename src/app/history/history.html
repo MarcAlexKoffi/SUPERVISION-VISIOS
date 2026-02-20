@@ -23,7 +23,7 @@
             <div class="space-y-1">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enseignant</label>
                 <div class="relative">
-                    <select [(ngModel)]="filters.teacher" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                    <select [(ngModel)]="filters.teacher" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
                         <option value="">Tous les enseignants</option>
                         <option *ngFor="let t of teachers" [value]="t">{{ t }}</option>
                     </select>
@@ -33,7 +33,7 @@
             <div class="space-y-1">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">UE / Cours</label>
                 <div class="relative">
-                    <select [(ngModel)]="filters.course" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                    <select [(ngModel)]="filters.course" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
                         <option value="">Tous les cours</option>
                         <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
                     </select>
@@ -130,7 +130,7 @@
         <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
             <div class="text-sm text-slate-500 flex items-center gap-2">
                 Affichage
-                <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1" class="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2 py-1 outline-none focus:border-[#0f42a5]">
+                <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1" class="bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold px-2 py-1 outline-none focus:border-[#0f42a5]">
                     <option [value]="5">5</option>
                     <option [value]="10">10</option>
                     <option [value]="20">20</option>

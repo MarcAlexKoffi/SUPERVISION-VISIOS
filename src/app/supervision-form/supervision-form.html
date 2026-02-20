@@ -46,15 +46,15 @@
                     <div class="space-y-6">
                         <div class="group">
                             <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Enseignant(e)</label>
-                            <input [(ngModel)]="formData.teacherName" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400" placeholder="Nom Prénom">
+                            <input [(ngModel)]="formData.teacherName" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400 text-slate-900" placeholder="Nom Prénom">
                         </div>
                         <div class="group">
                             <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Module / Matière</label>
-                            <input [(ngModel)]="formData.module" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400" placeholder="Ex: Marketing Digital">
+                            <input [(ngModel)]="formData.module" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400 text-slate-900" placeholder="Ex: Marketing Digital">
                         </div>
                         <div class="group">
                             <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Niveau / Promotion</label>
-                            <input [(ngModel)]="formData.level" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400" placeholder="Ex: Licence 2 - Groupe A">
+                            <input [(ngModel)]="formData.level" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400 text-slate-900" placeholder="Ex: Licence 2 - Groupe A">
                         </div>
                     </div>
                     <div class="space-y-6">
@@ -86,7 +86,7 @@
                             <div class="flex items-center gap-4 text-sm p-1">
                                 <div class="flex items-center gap-2">
                                     <span class="font-bold text-slate-500 uppercase text-xs">Présents</span>
-                                    <input [(ngModel)]="formData.presentCount" type="number" class="w-20 px-2 py-2 text-center font-bold bg-white border border-slate-200 rounded-lg focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all" placeholder="0">
+                                    <input [(ngModel)]="formData.presentCount" type="number" class="w-20 px-2 py-2 text-center font-bold bg-white border border-slate-200 rounded-lg focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-900" placeholder="0">
                                 </div>
                                 <span class="text-slate-300 text-xl font-light">/</span>
                                 <div class="flex items-center gap-2">
@@ -201,7 +201,7 @@
                     <h3 class="text-sm font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Observations & Recommandations du Superviseur</h3>
                 </div>
                 <div class="relative">
-                    <textarea [(ngModel)]="formData.observations" class="w-full min-h-[140px] p-4 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all resize-y placeholder:text-slate-400 dark:text-white" placeholder="Noter ici les points forts, les incidents techniques ou les axes d'amélioration..."></textarea>
+                    <textarea [(ngModel)]="formData.observations" class="w-full min-h-[140px] p-4 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all resize-y placeholder:text-slate-400 text-slate-900 dark:text-white" placeholder="Noter ici les points forts, les incidents techniques ou les axes d'amélioration..."></textarea>
                     <div class="absolute right-2 bottom-2 pointer-events-none text-slate-300">
                         <span class="material-symbols-outlined text-xl">edit_note</span>
                     </div>
@@ -215,7 +215,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block mb-2 text-sm font-bold text-slate-700 dark:text-slate-300">Nom du Superviseur</label>
-                            <input [(ngModel)]="formData.supervisorName" type="text" class="w-full py-1 text-sm bg-transparent border-b border-slate-300 outline-none dark:border-slate-700 dark:text-white" placeholder="Votre nom">
+                            <input [(ngModel)]="formData.supervisorName" type="text" class="w-full py-1 text-sm bg-transparent border-b border-slate-300 outline-none dark:border-slate-700 text-slate-900 dark:text-white" placeholder="Votre nom">
                         </div>
                         
                         <div class="relative">

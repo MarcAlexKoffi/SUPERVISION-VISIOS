@@ -41,22 +41,46 @@ export class HistoryComponent implements OnInit {
 
   loadHistory() {
     const historyStr = localStorage.getItem('supervisionHistory');
+    const uesStr = localStorage.getItem('ues');
+    let uesTeachers: string[] = [];
+    let uesCourses: string[] = [];
+
+    // Load available UEs to populate filters
+    if (uesStr) {
+      try {
+        const ues = JSON.parse(uesStr);
+        uesTeachers = ues.map((ue: any) => ue.responsible).filter((t: any) => t);
+        uesCourses = ues.map((ue: any) => ue.name).filter((c: any) => c);
+      } catch (e) {
+        console.error('Failed to load UEs', e);
+      }
+    }
+
     if (historyStr) {
       try {
         const rawHistory = JSON.parse(historyStr);
         this.supervisions = rawHistory.map((item: any) => this.mapToView(item));
         
-        // Extract unique teachers and courses for filter dropdowns
-        this.teachers = [...new Set(this.supervisions.map(s => s.teacher.name))].sort();
-        this.courses = [...new Set(this.supervisions.map(s => s.course.name))].sort(); // Using course name as filter
+        // Extract unique teachers and courses for filter dropdowns form both history and UEs definitions
+        const historyTeachers = this.supervisions.map(s => s.teacher.name);
+        const historyCourses = this.supervisions.map(s => s.course.name);
+
+        this.teachers = [...new Set([...historyTeachers, ...uesTeachers])].sort();
+        this.courses = [...new Set([...historyCourses, ...uesCourses])].sort();
         
         this.applyFilters();
       } catch (e) {
         console.error('Failed to load history', e);
         this.supervisions = [];
+        // Apply filters from UEs even if history load fails
+        this.teachers = [...new Set(uesTeachers)].sort();
+        this.courses = [...new Set(uesCourses)].sort();
       }
     } else {
         this.supervisions = [];
+        // If no history, still populate filters from UEs
+        this.teachers = [...new Set(uesTeachers)].sort();
+        this.courses = [...new Set(uesCourses)].sort();
     }
   }
 

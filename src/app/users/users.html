@@ -135,7 +135,7 @@
                 <div class="space-y-1.5">
                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nom complet</label>
                     <div class="relative">
-                        <input [(ngModel)]="newUser.name" type="text" placeholder="Entrez le nom complet" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <input [(ngModel)]="newUser.name" type="text" placeholder="Entrez le nom complet" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                         <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 text-[20px]">person</span>
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                 <div class="space-y-1.5">
                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Adresse courriel</label>
                     <div class="relative">
-                        <input [(ngModel)]="newUser.email" type="email" placeholder="exemple@universite.ca" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <input [(ngModel)]="newUser.email" type="email" placeholder="exemple@universite.ca" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                         <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 text-[20px]">mail</span>
                     </div>
                 </div>
@@ -153,7 +153,7 @@
                 <div class="space-y-1.5">
                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Rôle</label>
                     <div class="relative">
-                        <select [(ngModel)]="newUser.role" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-white cursor-pointer">
+                        <select [(ngModel)]="newUser.role" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none bg-white text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white cursor-pointer">
                             <option value="" disabled selected>Sélectionner un rôle</option>
                             <option value="Admin">Admin</option>
                             <option value="Enseignant">Enseignant</option>
@@ -167,7 +167,7 @@
                 <div class="space-y-1.5">
                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mot de passe</label>
                     <div class="relative">
-                        <input [(ngModel)]="newUser.password" type="password" placeholder="********" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <input [(ngModel)]="newUser.password" type="password" placeholder="********" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                         <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 cursor-pointer text-[20px]">visibility</span>
                     </div>
                     <p class="text-xs text-slate-500">Le mot de passe doit contenir au moins 8 caractères.</p>

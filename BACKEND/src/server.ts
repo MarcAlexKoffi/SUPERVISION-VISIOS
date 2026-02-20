@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool } from './config/db';
 import authRouter from './routes/authRoutes';
+import userRouter from './routes/userRoutes';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter); // Register user routes
 
 
 // Basic Route

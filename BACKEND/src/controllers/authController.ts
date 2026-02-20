@@ -26,14 +26,14 @@ export const register = async (req: Request, res: Response) => {
       return res.status(409).json({ message: 'Cet utilisateur existe déjà.' });
     }
 
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // AVANT (Avec hachage) : const hashedPassword = await bcrypt.hash(password, 10);
+    // MAINTENANT (Mot de passe en clair) :
     const userRole = role || 'user'; // Rôle par défaut 'user'
 
-    // Insérer le nouvel utilisateur
+    // Insérer le nouvel utilisateur (mot de passe en clair)
     const [result] = await pool.query<ResultSetHeader>(
       'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-      [username, hashedPassword, userRole]
+      [username, password, userRole]
     );
 
     const userId = result.insertId;
@@ -68,8 +68,10 @@ export const login = async (req: Request, res: Response) => {
 
     const user = rows[0];
 
-    // Vérifier le mot de passe
-    const isPasswordValid = await bcrypt.compare(password, user.password as string);
+    // Vérifier le mot de passe (Comparaison directe, sans hachage)
+    // AVANT : const isPasswordValid = await bcrypt.compare(password, user.password as string);
+    const isPasswordValid = (password === user.password);
+
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
     }

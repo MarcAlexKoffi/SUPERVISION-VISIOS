@@ -17,6 +17,7 @@ export class Login {
   errorMessage = '';
   isLoading = false;
   isLoginMode = true;
+  showPassword = false;
 
   constructor(
     private router: Router,
@@ -26,6 +27,10 @@ export class Login {
   onSwitchMode() {
     this.isLoginMode = !this.isLoginMode;
     this.errorMessage = '';
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit() {
@@ -39,14 +44,21 @@ export class Login {
     authObs.subscribe({
       next: (res) => {
         this.isLoading = false;
-        // Redirection en fonction du rôle (à adapter selon vos besoins)
-        // Lors de l'inscription, le rôle par défaut est 'user'
+        console.log('Login response:', res);
+        
+        // POUR L'INSTANT : Redirection forcée vers le tableau de bord Admin pour tout le monde
+        // (pour vous permettre de tester l'interface même avec un compte utilisateur)
+        this.router.navigate(['/admin/dashboard']);
+
+        /*
+        // Code original pour la séparation des rôles (à réactiver plus tard)
         const role = res.user?.role || 'user';
         if (role === 'admin') {
-            this.router.navigate(['/admindashboard']);
+            this.router.navigate(['/admin/dashboard']); 
         } else {
             this.router.navigate(['/user-dashboard']);
         }
+        */
       },
       error: (err) => {
         this.isLoading = false;

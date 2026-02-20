@@ -1,6 +1,7 @@
 import { createConnection } from 'mysql2/promise';
 import dotenv from 'dotenv';
 import path from 'path';
+import bcrypt from 'bcrypt';
 
 // Charge les variables d'environnement depuis le fichier .env
 dotenv.config();
@@ -34,6 +35,25 @@ async function initDB() {
     `;
     await connection.query(createUsersTable);
     console.log('Table "users" vérifiée/créée.');
+
+    // Ajouter ou mettre à jour un admin par défaut (mot de passe en clair)
+    const [rows] = await connection.query('SELECT * FROM users WHERE username = ?', ['admin']);
+    
+    if ((rows as any[]).length === 0) {
+        // Création (Mot de passe en clair 'admin123')
+        await connection.query(
+            'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
+            ['admin', 'admin123', 'admin']
+        );
+        console.log('Compte admin créé (non crypté) : admin / admin123');
+    } else {
+        // Mise à jour pour s'assurer que le mot de passe est en clair si on vient de changer la logique et le role est admin
+        await connection.query(
+            'UPDATE users SET password = ?, role = ? WHERE username = ?',
+            ['admin123', 'admin', 'admin']
+        );
+        console.log('Compte admin mis à jour (mot de passe en clair) : admin / admin123');
+    }
 
     console.log('Initialisation de la base de données terminée avec succès.');
   } catch (error) {

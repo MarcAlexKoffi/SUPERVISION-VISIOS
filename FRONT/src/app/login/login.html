@@ -42,7 +42,10 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#0f42a5] transition-colors">lock</span>
                     </div>
-                    <input type="password" id="password" name="password" [(ngModel)]="password" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="••••••••" required>
+                    <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="password" class="block w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="••••••••" required>
+                    <button type="button" (click)="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-slate-400 hover:text-[#0f42a5] transition-colors focus:outline-none">
+                        <span class="material-symbols-outlined text-[20px]">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                    </button>
                 </div>
             </div>
 

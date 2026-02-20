@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UserService, User } from '../services/user.service';
 
 @Component({
   selector: 'app-users',
@@ -13,119 +14,88 @@ export class UsersComponent implements OnInit {
   isModalOpen = false;
   showPassword = false;
 
-  newUser = {
-    name: '',
-    email: '',
-    role: '',
-    password: '',
-    status: true // true for Active, false for Inactive
+  newUser: any = {
+    username: '',
+    role: 'user',
+    password: ''
   };
 
-  users = [
-    {
-      id: '#89201',
-      name: 'Jean Dupont',
-      email: 'jean.d@udmci.edu',
-      role: 'Admin',
-      status: 'Actif',
-      avatar: 'https://ui-avatars.com/api/?name=Jean+Dupont&background=1e293b&color=fff'
-    },
-    {
-      id: '#89205',
-      name: 'Marie Curie',
-      email: 'm.curie@udmci.edu',
-      role: 'Enseignant',
-      status: 'Actif',
-      avatar: 'https://ui-avatars.com/api/?name=Marie+Curie&background=e0e7ff&color=4338ca'
-    },
-    {
-      id: '#89210',
-      name: 'Albert Einstein',
-      email: 'a.einstein@udmci.edu',
-      role: 'Superviseur',
-      status: 'Inactif',
-      avatar: 'https://ui-avatars.com/api/?name=Albert+Einstein&background=7c3aed&color=fff'
-    },
-    {
-      id: '#89212',
-      name: 'Niels Bohr',
-      email: 'n.bohr@udmci.edu',
-      role: 'Enseignant',
-      status: 'Actif',
-      avatar: 'https://ui-avatars.com/api/?name=Niels+Bohr&background=fce7f3&color=db2777'
-    },
-    {
-      id: '#89215',
-      name: 'Sarah Connor',
-      email: 's.connor@udmci.edu',
-      role: 'Superviseur',
-      status: 'Actif',
-      avatar: 'https://ui-avatars.com/api/?name=Sarah+Connor&background=0e7490&color=fff'
-    }
-  ];
+  users: User[] = [];
 
-  getRoleBadgeClass(role: string): string {
-    switch (role) {
-      case 'Admin':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'Enseignant':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'Superviseur':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-      default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
-    }
+  constructor(private userService: UserService) {}
+
+  ngOnInit() {
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.userService.getAll().subscribe({
+      next: (data) => {
+        this.users = data;
+      },
+      error: (err) => console.error('Erreur chargement utilisateurs', err)
+    });
   }
 
   openModal() {
+    this.newUser = { username: '', role: 'user', password: '' };
     this.isModalOpen = true;
-    this.showPassword = false;
-    // Reset form
-    this.newUser = {
-      name: '',
-      email: '',
-      role: '',
-      password: '',
-      status: true
-    };
-  }
-
-  togglePassword() {
-      this.showPassword = !this.showPassword;
   }
 
   closeModal() {
     this.isModalOpen = false;
   }
 
-  ngOnInit() {
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-      this.users = JSON.parse(storedUsers);
-    }
-  }
-
   saveUser() {
-    // Validate form (basic validation)
-    if (!this.newUser.name || !this.newUser.email || !this.newUser.role) {
-      alert('Veuillez remplir tous les champs obligatoires.');
+    if (!this.newUser.username || !this.newUser.password) {
+      alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    // Add new user to the list
-    const newId = `#${Math.floor(Math.random() * 10000) + 89000}`;
-    const initials = this.newUser.name.split(' ').map(n => n[0]).join('+');
-    
-    this.users.unshift({
-      id: newId,
-      name: this.newUser.name,
-      email: this.newUser.email,
-      role: this.newUser.role,
-      status: this.newUser.status ? 'Actif' : 'Inactif',
-      avatar: `https://ui-avatars.com/api/?name=${initials}&background=random&color=fff`
+    this.userService.create(this.newUser).subscribe({
+      next: () => {
+        this.loadUsers();
+        this.closeModal();
+      },
+      error: (err) => {
+        console.error('Erreur création', err);
+        alert('Erreur lors de la création de l\'utilisateur');
+      }
     });
+  }
 
-    localStorage.setItem('users', JSON.stringify(this.users));
-    this.closeModal();
+  deleteUser(id: number) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+      this.userService.delete(id).subscribe({
+        next: () => this.loadUsers(),
+        error: (err) => {
+            console.error(err);
+            alert('Erreur lors de la suppression');
+        }
+      });
+    }
+  }
+
+  getAvatar(name: string) {
+    return `https://ui-avatars.com/api/?name=${name}&background=random&color=fff`;
+  }
+  
+  togglePassword() {
+      this.showPassword = !this.showPassword;
+  }
+
+  getRoleBadgeClass(role: string): string {
+    switch (role) {
+      case 'admin':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'enseignant':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'superviseur':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+      case 'etudiant':
+        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+      default:
+        return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
+    }
   }
 }

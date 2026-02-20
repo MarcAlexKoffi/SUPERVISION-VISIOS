@@ -5,16 +5,21 @@ import { SupervisionForm } from './supervision-form/supervision-form';
 import { DashboardHome } from './dashboard-home/dashboard-home';
 import { UsersComponent } from './users/users';
 import { HistoryComponent } from './history/history';
+import { UserDashboard } from './user-dashboard/user-dashboard'; // Import UserDashboard
 
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: '/login',
+        redirectTo: '/login', // Redirect to login by default
         pathMatch: 'full'
     },
     {
         path: 'login',
         component: Login
+    },
+    {
+        path: 'user-dashboard', // Add route for user dashboard
+        component: UserDashboard
     },
     {
         path: 'admin',

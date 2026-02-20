@@ -18,15 +18,20 @@
         </div>
 
         <!-- Form -->
-        <form class="space-y-6" (ngSubmit)="login()">
-            <!-- Email -->
+        <form class="space-y-6" (ngSubmit)="onSubmit()">
+             <!-- Error Message -->
+             <div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ errorMessage }}</span>
+            </div>
+
+            <!-- Email/Username -->
             <div class="space-y-2">
-                <label for="email" class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Email Address</label>
+                <label for="email" class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Username / Email</label>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#0f42a5] transition-colors">mail</span>
+                        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#0f42a5] transition-colors">person</span>
                     </div>
-                    <input type="email" id="email" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="name@university.edu" required>
+                    <input type="text" id="email" name="username" [(ngModel)]="username" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="Username" required>
                 </div>
             </div>
 
@@ -37,12 +42,12 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <span class="material-symbols-outlined text-slate-400 group-focus-within:text-[#0f42a5] transition-colors">lock</span>
                     </div>
-                    <input type="password" id="password" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="••••••••" required>
+                    <input type="password" id="password" name="password" [(ngModel)]="password" class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm" placeholder="••••••••" required>
                 </div>
             </div>
 
             <!-- Remember & Forgot -->
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between" *ngIf="isLoginMode">
                 <div class="flex items-center">
                     <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-[#0f42a5] focus:ring-[#0f42a5] border-slate-300 rounded cursor-pointer">
                     <label for="remember-me" class="ml-2 block text-sm text-slate-600 cursor-pointer">Remember me</label>
@@ -53,17 +58,20 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-900/20 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0f42a5] transition-all hover:-translate-y-0.5">
-                <span class="material-symbols-outlined text-[20px]">login</span>
-                Login
+            <button type="submit" [disabled]="isLoading" class="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-900/20 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0f42a5] transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span *ngIf="!isLoading" class="material-symbols-outlined text-[20px]">{{ isLoginMode ? 'login' : 'person_add' }}</span>
+                <span *ngIf="isLoading" class="animate-spin h-5 w-5 mr-3 border-t-2 border-b-2 border-white rounded-full"></span>
+                {{ isLoading ? (isLoginMode ? 'Logging in...' : 'Registering...') : (isLoginMode ? 'Login' : 'Create Account') }}
             </button>
         </form>
 
         <!-- Footer -->
         <div class="mt-8 text-center">
             <p class="text-sm text-slate-500">
-                Need help accessing your account? 
-                <a href="#" class="font-bold text-slate-700 hover:text-[#0f42a5] transition-colors">Contact IT Support</a>
+                {{ isLoginMode ? 'Don\'t have an account?' : 'Already have an account?' }}
+                <button type="button" (click)="onSwitchMode()" class="font-bold text-slate-700 hover:text-[#0f42a5] transition-colors cursor-pointer">
+                    {{ isLoginMode ? 'Sign up here' : 'Login here' }}
+                </button>
             </p>
         </div>
     </div>

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool } from './config/db';
+import authRouter from './routes/authRoutes';
 
 dotenv.config();
 
@@ -12,6 +13,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use('/api/auth', authRouter);
+
+
 // Basic Route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Supervision Visios Backend API' });
@@ -20,8 +25,8 @@ app.get('/', (req, res) => {
 // Database Connection Test Route
 app.get('/db-test', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json(result.rows[0]);
+    const [rows] = await pool.query('SELECT NOW() as now');
+    res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).send('Database connection error');

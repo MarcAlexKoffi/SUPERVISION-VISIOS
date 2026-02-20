@@ -3,8 +3,8 @@ import { Login } from './login/login';
 import { Admindashboard } from './admindashboard/admindashboard';
 import { SupervisionForm } from './supervision-form/supervision-form';
 import { DashboardHome } from './dashboard-home/dashboard-home';
-import { Users } from './users/users';
-import { History } from './history/history';
+import { UsersComponent } from './users/users';
+import { HistoryComponent } from './history/history';
 
 export const routes: Routes = [
     {
@@ -22,8 +22,8 @@ export const routes: Routes = [
         children: [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardHome },
-            { path: 'users', component: Users },
-            { path: 'history', component: History },
+            { path: 'users', component: UsersComponent },
+            { path: 'history', component: HistoryComponent },
             { path: 'supervision-form', component: SupervisionForm }
         ]
     }

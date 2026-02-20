@@ -34,37 +34,49 @@
         <div class="p-8 space-y-8">
             <!-- General Info -->
             <section class="p-6 border rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-700">
+                <!-- UE Selection -->
+                <div class="mb-6 p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-xl">
+                    <label class="block mb-2 text-xs font-bold tracking-wider text-blue-700 dark:text-blue-400 uppercase">Sélectionner une Unité d'Enseignement (UE)</label>
+                    <div class="relative">
+                        <select [(ngModel)]="selectedUECode" (change)="onUEChange()" class="w-full pl-4 pr-10 py-2.5 text-sm font-bold text-slate-700 bg-white border border-blue-200 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 appearance-none cursor-pointer">
+                            <option value="" disabled selected>-- Choisir une UE --</option>
+                            <option *ngFor="let ue of ues" [value]="ue.code">{{ ue.code }} - {{ ue.name }}</option>
+                        </select>
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-blue-500 text-[24px]">expand_more</span>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div class="space-y-5">
                         <div class="group">
                             <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Enseignant(e)</label>
-                            <input type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Nom Prénom">
+                            <input [(ngModel)]="formData.teacherName" type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Nom Prénom">
                         </div>
                         <div class="group">
                             <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Module / Matière</label>
-                            <input type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Ex: Marketing Digital">
+                            <input [(ngModel)]="formData.module" type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Ex: Marketing Digital">
                         </div>
                         <div class="group">
                             <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Niveau / Promotion</label>
-                            <input type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Ex: Licence 2 - Groupe A">
+                            <input [(ngModel)]="formData.level" type="text" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 placeholder:text-slate-400" placeholder="Ex: Licence 2 - Groupe A">
                         </div>
                     </div>
                     <div class="space-y-5">
                         <div class="group">
                             <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Date & Heure</label>
                             <div class="flex items-center gap-3">
-                                <input type="date" class="w-1/2 px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
+                                <input [(ngModel)]="formData.date" type="date" class="w-1/2 px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
                                 <div class="flex items-center w-1/2 gap-2">
-                                    <input type="time" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
+                                    <input [(ngModel)]="formData.startTime" type="time" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
                                     <span class="text-slate-400">-</span>
-                                    <input type="time" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
+                                    <input [(ngModel)]="formData.endTime" type="time" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 text-slate-600">
                                 </div>
                             </div>
                         </div>
                         <div class="group">
                             <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Plateforme utilisée</label>
                             <div class="relative">
-                                <select class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 appearance-none cursor-pointer text-slate-600 dark:text-slate-300">
+                                <select [(ngModel)]="formData.platform" class="w-full px-3 py-2.5 text-sm font-medium bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600 appearance-none cursor-pointer text-slate-600 dark:text-slate-300">
                                     <option>Zoom</option>
                                     <option>Microsoft Teams</option>
                                     <option>Google Meet</option>
@@ -77,8 +89,10 @@
                             <label class="block mb-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">Effectif</label>
                             <div class="flex items-center gap-3 text-sm">
                                 <span class="font-medium text-slate-600 dark:text-slate-400">Présents :</span>
-                                <input type="number" class="w-24 px-3 py-2.5 text-center font-bold bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600" placeholder="0">
-                                <span class="text-slate-400">/ Inscrits</span>
+                                <input [(ngModel)]="formData.presentCount" type="number" class="w-24 px-3 py-2.5 text-center font-bold bg-white border border-slate-300 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all dark:bg-slate-800 dark:text-white dark:border-slate-600" placeholder="0">
+                                <span class="text-slate-400">/</span>
+                                <span class="font-medium text-slate-600 dark:text-slate-400">Inscrits :</span>
+                                <input [(ngModel)]="formData.totalStudents" type="number" class="w-24 px-3 py-2.5 text-center font-bold bg-slate-50 border border-slate-300 rounded-xl shadow-sm outline-none dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600" readonly>
                             </div>
                         </div>
                     </div>
@@ -109,21 +123,21 @@
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Connexion internet (stabilité)</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech1" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech1" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech1" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.internet" value="conforme" type="radio" name="tech1" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.internet" value="a_ameliorer" type="radio" name="tech1" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.internet" value="non_conforme" type="radio" name="tech1" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Qualité audio et vidéo</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech2" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech2" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech2" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.audioVideo" value="conforme" type="radio" name="tech2" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.audioVideo" value="a_ameliorer" type="radio" name="tech2" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.audioVideo" value="non_conforme" type="radio" name="tech2" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Ponctualité (démarrage/fin)</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech3" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech3" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="tech3" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.punctuality" value="conforme" type="radio" name="tech3" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.punctuality" value="a_ameliorer" type="radio" name="tech3" class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.technical.punctuality" value="non_conforme" type="radio" name="tech3" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -152,27 +166,27 @@
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Clarté des objectifs de la séance</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped1" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped1" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped1" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.objectives" value="excellent" type="radio" name="ped1" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.objectives" value="satisfaisant" type="radio" name="ped1" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.objectives" value="insuffisant" type="radio" name="ped1" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Maîtrise du contenu enseigné</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped2" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped2" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped2" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.contentMastery" value="excellent" type="radio" name="ped2" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.contentMastery" value="satisfaisant" type="radio" name="ped2" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.contentMastery" value="insuffisant" type="radio" name="ped2" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Interaction avec les étudiants (Q&A, Sondages)</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped3" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped3" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped3" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.interaction" value="excellent" type="radio" name="ped3" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.interaction" value="satisfaisant" type="radio" name="ped3" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.interaction" value="insuffisant" type="radio" name="ped3" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                     <td class="px-6 py-3 font-medium text-slate-700 dark:text-slate-300">Utilisation des outils (Partage écran, chat)</td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped4" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped4" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
-                                    <td class="px-4 py-3 text-center"><input type="radio" name="ped4" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.toolsUsage" value="excellent" type="radio" name="ped4" class="w-4 h-4 text-green-600 focus:ring-green-600 border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.toolsUsage" value="satisfaisant" type="radio" name="ped4" class="w-4 h-4 text-[#0f42a5] focus:ring-[#0f42a5] border-gray-300"></td>
+                                    <td class="px-4 py-3 text-center"><input [(ngModel)]="formData.pedagogical.toolsUsage" value="insuffisant" type="radio" name="ped4" class="w-4 h-4 text-red-600 focus:ring-red-600 border-gray-300"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -187,7 +201,7 @@
                     <h3 class="text-sm font-bold tracking-wider uppercase text-slate-700 dark:text-slate-300">Observations & Recommandations du Superviseur</h3>
                 </div>
                 <div class="relative">
-                    <textarea class="w-full min-h-[140px] p-4 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all resize-y placeholder:text-slate-400 dark:text-white" placeholder="Noter ici les points forts, les incidents techniques ou les axes d'amélioration..."></textarea>
+                    <textarea [(ngModel)]="formData.observations" class="w-full min-h-[140px] p-4 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all resize-y placeholder:text-slate-400 dark:text-white" placeholder="Noter ici les points forts, les incidents techniques ou les axes d'amélioration..."></textarea>
                     <div class="absolute right-2 bottom-2 pointer-events-none text-slate-300">
                         <span class="material-symbols-outlined text-xl">edit_note</span>
                     </div>
@@ -201,7 +215,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block mb-2 text-sm font-bold text-slate-700 dark:text-slate-300">Nom du Superviseur</label>
-                            <input type="text" class="w-full py-1 text-sm bg-transparent border-b border-slate-300 outline-none dark:border-slate-700 dark:text-white" placeholder="Votre nom">
+                            <input [(ngModel)]="formData.supervisorName" type="text" class="w-full py-1 text-sm bg-transparent border-b border-slate-300 outline-none dark:border-slate-700 dark:text-white" placeholder="Votre nom">
                         </div>
                         
                         <div class="relative">
@@ -256,6 +270,47 @@
                 Document à usage interne - Confidentiel - Généré le {{ currentDate | date:'dd/MM/yyyy' }}
             </p>
         </footer>
+    </div>
+
+    <!-- Save Confirmation Modal -->
+    <div *ngIf="showSaveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div class="w-full max-w-md p-6 bg-white shadow-2xl dark:bg-slate-800 rounded-2xl transform transition-all scale-100 opacity-100">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-3 mb-4 rounded-full bg-blue-50 text-[#0f42a5] dark:bg-blue-900/30 dark:text-blue-400">
+                    <span class="material-symbols-outlined text-3xl">save</span>
+                </div>
+                <h3 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">Confirmer l'enregistrement</h3>
+                <p class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+                    Êtes-vous sûr de vouloir enregistrer cette fiche de supervision ? <br>Les données seront sauvegardées localement.
+                </p>
+                <div class="flex gap-3 w-full">
+                    <button (click)="cancelSave()" class="w-1/2 px-4 py-2.5 font-semibold transition-colors bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
+                        Annuler
+                    </button>
+                    <button (click)="confirmSave()" class="w-1/2 px-4 py-2.5 font-semibold text-white transition-colors bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] focus:ring-2 focus:ring-blue-900/20">
+                        Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div *ngIf="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div class="w-full max-w-md p-6 bg-white shadow-2xl dark:bg-slate-800 rounded-2xl transform transition-all scale-100 opacity-100">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-3 mb-4 text-green-600 rounded-full bg-green-50 dark:bg-green-900/30 dark:text-green-400">
+                    <span class="material-symbols-outlined text-3xl">check_circle</span>
+                </div>
+                <h3 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">Enregistrement réussi !</h3>
+                <p class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+                    La fiche de supervision a été enregistrée avec succès. Le formulaire a été réinitialisé pour une nouvelle saisie.
+                </p>
+                <button (click)="closeSuccessModal()" class="w-full px-4 py-2.5 font-semibold text-white transition-colors bg-green-600 rounded-xl hover:bg-green-700 focus:ring-2 focus:ring-green-600/20">
+                    OK, Compris
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 

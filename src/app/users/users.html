@@ -5,7 +5,7 @@
             <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestion des Utilisateurs</h1>
             <p class="text-slate-500 dark:text-slate-400 mt-1">Gérez les accès et les rôles pour la plateforme de supervision.</p>
         </div>
-        <button class="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold shadow-sm shadow-primary/30 flex items-center gap-2 transition-all">
+        <button (click)="openModal()" class="flex items-center gap-2 px-4 py-2.5 font-semibold text-white transition-all rounded-xl bg-[#0f42a5] hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30">
             <span class="material-symbols-outlined text-[20px]">add</span>
             Nouvel Utilisateur
         </button>
@@ -113,6 +113,86 @@
                 
                 <button class="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                     <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-xl dark:bg-slate-800 overflow-hidden transform transition-all">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700 shrink-0">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Créer un utilisateur</h3>
+                <button (click)="closeModal()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors dark:hover:bg-slate-700">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 space-y-4 overflow-y-auto">
+                <!-- Name -->
+                <div class="space-y-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nom complet</label>
+                    <div class="relative">
+                        <input [(ngModel)]="newUser.name" type="text" placeholder="Entrez le nom complet" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 text-[20px]">person</span>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Adresse courriel</label>
+                    <div class="relative">
+                        <input [(ngModel)]="newUser.email" type="email" placeholder="exemple@universite.ca" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 text-[20px]">mail</span>
+                    </div>
+                </div>
+
+                <!-- Role -->
+                <div class="space-y-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Rôle</label>
+                    <div class="relative">
+                        <select [(ngModel)]="newUser.role" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-white dark:bg-slate-900 dark:border-slate-600 dark:text-white cursor-pointer">
+                            <option value="" disabled selected>Sélectionner un rôle</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Enseignant">Enseignant</option>
+                            <option value="Superviseur">Superviseur</option>
+                        </select>
+                        <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 pointer-events-none text-[20px]">expand_more</span>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="space-y-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mot de passe</label>
+                    <div class="relative">
+                        <input [(ngModel)]="newUser.password" type="password" placeholder="********" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 cursor-pointer text-[20px]">visibility</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Le mot de passe doit contenir au moins 8 caractères.</p>
+                </div>
+
+                <!-- Status Toggle -->
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold text-sm text-slate-900 dark:text-white">Statut du compte</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Activer ou désactiver l'accès à ce compte</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" [(ngModel)]="newUser.status" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#0f42a5]"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50 shrink-0">
+                <button (click)="closeModal()" class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700">
+                    Annuler
+                </button>
+                <button (click)="saveUser()" class="px-5 py-2.5 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] focus:ring-2 focus:ring-blue-500/20 shadow-lg shadow-blue-500/30">
+                    Enregistrer
                 </button>
             </div>
         </div>

@@ -1,14 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
-export class Users {
+export class UsersComponent implements OnInit {
+  isModalOpen = false;
+  showPassword = false;
+
+  newUser = {
+    name: '',
+    email: '',
+    role: '',
+    password: '',
+    status: true // true for Active, false for Inactive
+  };
+
   users = [
     {
       id: '#89201',
@@ -63,5 +75,57 @@ export class Users {
       default:
         return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
     }
+  }
+
+  openModal() {
+    this.isModalOpen = true;
+    this.showPassword = false;
+    // Reset form
+    this.newUser = {
+      name: '',
+      email: '',
+      role: '',
+      password: '',
+      status: true
+    };
+  }
+
+  togglePassword() {
+      this.showPassword = !this.showPassword;
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+  }
+
+  ngOnInit() {
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+      this.users = JSON.parse(storedUsers);
+    }
+  }
+
+  saveUser() {
+    // Validate form (basic validation)
+    if (!this.newUser.name || !this.newUser.email || !this.newUser.role) {
+      alert('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+
+    // Add new user to the list
+    const newId = `#${Math.floor(Math.random() * 10000) + 89000}`;
+    const initials = this.newUser.name.split(' ').map(n => n[0]).join('+');
+    
+    this.users.unshift({
+      id: newId,
+      name: this.newUser.name,
+      email: this.newUser.email,
+      role: this.newUser.role,
+      status: this.newUser.status ? 'Actif' : 'Inactif',
+      avatar: `https://ui-avatars.com/api/?name=${initials}&background=random&color=fff`
+    });
+
+    localStorage.setItem('users', JSON.stringify(this.users));
+    this.closeModal();
   }
 }

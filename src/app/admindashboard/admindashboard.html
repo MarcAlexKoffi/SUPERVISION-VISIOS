@@ -38,7 +38,7 @@
                 Planning
             </a> -->
             
-            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/users" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
+            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/users" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla4="routerLinkActive">
                 <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">groups</span>
                 Utilisateurs
             </a>
@@ -89,14 +89,15 @@
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla.isActive">Tableau de bord</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla2.isActive">Fiche de Supervision</h2>
-                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla3.isActive">Gestion des Utilisateurs</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla3.isActive">Historique</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla4.isActive">Gestion des Utilisateurs</h2>
             </div>
             
             <div class="flex items-center gap-6">
-                <div class="hidden md:flex items-center gap-2 pl-4 pr-5 py-2 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700/50 dark:border-slate-600 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm">
+                <!-- <div class="hidden md:flex items-center gap-2 pl-4 pr-5 py-2 rounded-full bg-slate-50 border border-slate-100 dark:bg-slate-700/50 dark:border-slate-600 text-xs font-semibold text-slate-500 dark:text-slate-400 shadow-sm">
                     <span class="material-symbols-outlined text-[18px]">history</span>
                     <span>Dernière sauvegarde: Il y a 2 min</span>
-                </div>
+                </div> -->
                 
                 <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
 

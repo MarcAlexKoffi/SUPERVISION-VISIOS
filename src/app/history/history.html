@@ -6,11 +6,11 @@
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Consultez les rapports de supervision passés et les journaux.</p>
         </div>
         <div class="flex items-center gap-3">
-            <button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
+            <button (click)="exportCSV()" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
                 <span class="material-symbols-outlined text-[20px]">file_download</span>
                 Exporter CSV
             </button>
-            <button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20">
+            <button routerLink="/admin/supervision-form" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20">
                 <span class="material-symbols-outlined text-[20px]">add</span>
                 Nouveau Rapport
             </button>
@@ -23,8 +23,9 @@
             <div class="space-y-1">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enseignant</label>
                 <div class="relative">
-                    <select class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
-                        <option>Tous les enseignants</option>
+                    <select [(ngModel)]="filters.teacher" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                        <option value="">Tous les enseignants</option>
+                        <option *ngFor="let t of teachers" [value]="t">{{ t }}</option>
                     </select>
                     <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 pointer-events-none text-[20px]">expand_more</span>
                 </div>
@@ -32,8 +33,9 @@
             <div class="space-y-1">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">UE / Cours</label>
                 <div class="relative">
-                    <select class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
-                        <option>Tous les cours</option>
+                    <select [(ngModel)]="filters.course" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                        <option value="">Tous les cours</option>
+                        <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
                     </select>
                     <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 pointer-events-none text-[20px]">expand_more</span>
                 </div>
@@ -42,11 +44,11 @@
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Période</label>
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
-                        <input type="date" class="w-full pl-3 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-600">
+                        <input [(ngModel)]="filters.startDate" (change)="applyFilters()" type="date" class="w-full pl-3 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-600">
                     </div>
                     <span class="text-slate-400">-</span>
                     <div class="relative flex-1">
-                        <input type="date" class="w-full pl-3 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-600">
+                        <input [(ngModel)]="filters.endDate" (change)="applyFilters()" type="date" class="w-full pl-3 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-600">
                     </div>
                 </div>
             </div>
@@ -71,7 +73,10 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                    <tr *ngFor="let s of supervisions" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+                    <tr *ngIf="paginatedSupervisions.length === 0">
+                        <td colspan="7" class="p-8 text-center text-slate-500">Aucune supervision trouvée pour ces critères.</td>
+                    </tr>
+                    <tr *ngFor="let s of paginatedSupervisions" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td class="p-4 text-center">
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
                         </td>
@@ -110,13 +115,9 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] transition-colors focus:ring-2 focus:ring-slate-100">
+                                <button (click)="viewDetails(s)" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] transition-colors focus:ring-2 focus:ring-slate-100">
                                     <span class="material-symbols-outlined text-[16px]">visibility</span>
                                     Voir
-                                </button>
-                                <button class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors focus:ring-2 focus:ring-slate-100">
-                                    <span class="material-symbols-outlined text-[16px]">print</span>
-                                    Imprimer
                                 </button>
                             </div>
                         </td>
@@ -129,26 +130,192 @@
         <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
             <div class="text-sm text-slate-500 flex items-center gap-2">
                 Affichage
-                <select class="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2 py-1 outline-none focus:border-[#0f42a5]">
-                    <option>10</option>
-                    <option>20</option>
-                    <option>50</option>
+                <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1" class="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2 py-1 outline-none focus:border-[#0f42a5]">
+                    <option [value]="5">5</option>
+                    <option [value]="10">10</option>
+                    <option [value]="20">20</option>
+                    <option [value]="50">50</option>
                 </select>
-                sur 124 résultats
+                sur {{ filteredSupervisions.length }} résultats
             </div>
-            <div class="flex items-center gap-1">
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all disabled:opacity-50">
+            <div class="flex items-center gap-1" *ngIf="totalPages > 1">
+                <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:shadow-none">
                     <span class="material-symbols-outlined text-[18px]">chevron_left</span>
                 </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0f42a5] text-white shadow-sm shadow-blue-500/30 font-bold text-sm">1</button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm transition-all font-medium text-sm">2</button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm transition-all font-medium text-sm">3</button>
-                <span class="w-8 h-8 flex items-center justify-center text-slate-400">...</span>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm transition-all font-medium text-sm">12</button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all disabled:opacity-50">
+                
+                <button *ngFor="let p of [].constructor(totalPages); let i = index" 
+                        (click)="onPageChange(i + 1)"
+                        [class.bg-[#0f42a5]]="currentPage === i + 1"
+                        [class.text-white]="currentPage === i + 1"
+                        [class.text-slate-500]="currentPage !== i + 1"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm hover:bg-white hover:text-slate-700 hover:shadow-sm transition-all font-medium text-sm">
+                    {{ i + 1 }}
+                </button>
+
+                <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:shadow-none">
                     <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                 </button>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- View Details Modal -->
+    <div *ngIf="showModal && selectedSupervision" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="w-full max-w-2xl bg-white shadow-2xl dark:bg-slate-800 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-6 border-b bg-slate-50/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-700">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-[#0f42a5] dark:bg-blue-900/30 dark:text-blue-400">
+                        <span class="material-symbols-outlined text-2xl">description</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Détails de la Supervision</h3>
+                        <p class="text-xs text-slate-500">Réf: #{{ selectedSupervision.id }} - {{ selectedSupervision.date | date:'dd/MM/yyyy' }}</p>
+                    </div>
+                </div>
+                <button (click)="closeModal()" class="p-2 transition-colors rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-slate-700">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 p-6 space-y-6 overflow-y-auto">
+                <div class="grid grid-cols-2 gap-6">
+                   <!-- Info Block -->
+                   <div class="space-y-4">
+                       <div>
+                           <div class="text-xs font-bold text-slate-500 uppercase">Enseignant</div>
+                           <div class="font-medium text-slate-900 dark:text-white">{{ selectedSupervision.teacher.name }}</div>
+                           <div class="text-xs text-slate-500 mt-1">{{ selectedSupervision.teacher.department }} - {{ selectedSupervision.teacher.initials }}</div>
+                       </div>
+                       <div>
+                           <div class="text-xs font-bold text-slate-500 uppercase">Module / Matière</div>
+                           <div class="font-medium text-slate-900 dark:text-white">{{ selectedSupervision.course.name }}</div>
+                       </div>
+                       <div>
+                           <div class="text-xs font-bold text-slate-500 uppercase">Plateforme</div>
+                           <div class="flex items-center gap-2 font-medium text-slate-900 dark:text-white">
+                               <span class="material-symbols-outlined text-[18px]" [class]="'text-' + selectedSupervision.platformColor.split(' ')[1]">{{ selectedSupervision.platformIcon }}</span>
+                               {{ selectedSupervision.platform }}
+                           </div>
+                       </div>
+                   </div>
+                   <!-- Info Block -->
+                   <div class="space-y-4">
+                       <div>
+                           <div class="text-xs font-bold text-slate-500 uppercase">Heure</div>
+                           <div class="font-medium text-slate-900 dark:text-white">
+                               {{ selectedSupervision.date | date:'HH:mm' }} - {{ selectedSupervision.endTime | date:'HH:mm' }}
+                           </div>
+                       </div>
+                       <!-- Participation -->
+                        <div>
+                           <div class="text-xs font-bold text-slate-500 uppercase">Participation</div>
+                           <div class="font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px] text-slate-400">groups</span>
+                                {{ selectedSupervision.presentCount || 0 }} Présents sur {{ selectedSupervision.totalStudents || 0 }} Inscrits
+                           </div>
+                           <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                               <div class="bg-[#0f42a5] h-1.5 rounded-full" [style.width.%]="(selectedSupervision.presentCount / (selectedSupervision.totalStudents || 1)) * 100"></div>
+                           </div>
+                       </div>
+                       <div>
+                           <div class="text-xs font-bold text-slate-500 uppercase">Superviseur</div>
+                           <div class="font-medium text-slate-900 dark:text-white">{{ selectedSupervision.supervisorName || 'Non signé' }}</div>
+                       </div>
+                   </div>
+                </div>
+
+                <!-- Technical & Pedagogical Evaluation Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-green-600">settings_suggest</span>
+                            Aspects Techniques
+                        </h4>
+                        <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                            <li class="flex justify-between">
+                                <span>Connexion Internet:</span>
+                                <span class="font-medium">{{ selectedSupervision.technical?.internet || 'N/A' }}</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span>Qualité Audio/Vidéo:</span>
+                                <span class="font-medium">{{ selectedSupervision.technical?.audioVideo || 'N/A' }}</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span>Ponctualité:</span>
+                                <span class="font-medium">{{ selectedSupervision.technical?.punctuality || 'N/A' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                             <span class="material-symbols-outlined text-blue-600">psychology</span>
+                            Aspects Pédagogiques
+                        </h4>
+                         <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                            <li class="flex justify-between">
+                                <span>Objectifs Clairs:</span>
+                                <span class="font-medium">{{ selectedSupervision.pedagogical?.objectives || 'N/A' }}</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span>Maîtrise Contenu:</span>
+                                <span class="font-medium">{{ selectedSupervision.pedagogical?.contentMastery || 'N/A' }}</span>
+                            </li>
+                             <li class="flex justify-between">
+                                <span>Interaction:</span>
+                                <span class="font-medium">{{ selectedSupervision.pedagogical?.interaction || 'N/A' }}</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span>Usage Outils:</span>
+                                <span class="font-medium">{{ selectedSupervision.pedagogical?.toolsUsage || 'N/A' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Observations -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-2">Observations & Remarques</h4>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 italic">
+                        {{ selectedSupervision.observations || "Aucune observation particulière n'a été notée." }}
+                    </p>
+                </div>
+                
+                <!-- Signatures -->
+                 <div class="pt-6 border-t border-slate-100 dark:border-slate-700">
+                     <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 text-center flex flex-col items-center justify-center">
+                            <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature Superviseur</span>
+                             <div class="h-16 w-full flex items-center justify-center">
+                                 <img *ngIf="selectedSupervision.signatures?.supervisor" [src]="selectedSupervision.signatures.supervisor" class="max-h-full max-w-full object-contain" alt="Signature Superviseur">
+                                 <div *ngIf="!selectedSupervision.signatures?.supervisor" class="text-slate-300 italic">Non Signé</div>
+                             </div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 text-center flex flex-col items-center justify-center">
+                            <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature Enseignant</span>
+                            <div class="h-16 w-full flex items-center justify-center">
+                                 <img *ngIf="selectedSupervision.signatures?.teacher" [src]="selectedSupervision.signatures.teacher" class="max-h-full max-w-full object-contain" alt="Signature Enseignant">
+                                 <div *ngIf="!selectedSupervision.signatures?.teacher" class="text-slate-300 italic">Non Signé</div>
+                            </div>
+                        </div>
+                     </div>
+                 </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-6 border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 flex justify-end gap-3">
+                 <button (click)="closeModal()" class="px-5 py-2.5 font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
+                    Fermer
+                </button>
+                <button (click)="printSupervision(selectedSupervision)" class="px-5 py-2.5 font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm">
+                    <span class="material-symbols-outlined text-[18px] mr-2 align-middle">print</span>
+                    Imprimer
+                </button>
+                <button (click)="printSupervision(selectedSupervision)" class="px-5 py-2.5 font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a]">
+                    <span class="material-symbols-outlined text-[18px] mr-2 align-middle">download</span>
+                    Télécharger PDF
+                </button>
+            </div>
+        </div>
+    </div>

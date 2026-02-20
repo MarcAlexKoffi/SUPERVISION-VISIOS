@@ -12,13 +12,16 @@ import { FormsModule } from '@angular/forms';
 export class DashboardHome implements OnInit {
   isModalOpen = false;
 
-  newUE = {
+  newUE: any = {
     code: '',
     name: '',
     dept: '',
     responsible: '',
     students: 0,
-    modules: 0
+    modules: 0,
+    level: '',
+    semester: null,
+    phase: null
   };
 
   stats = [
@@ -190,11 +193,15 @@ export class DashboardHome implements OnInit {
     // Determine color based on department (simple logic for demo)
     let color = 'bg-slate-50 text-slate-700';
     const deptLower = this.newUE.dept.toLowerCase();
-    if (deptLower.includes('info')) color = 'bg-blue-50 text-blue-700';
+    if (deptLower.includes('informat')) color = 'bg-blue-50 text-blue-700';
     else if (deptLower.includes('sci')) color = 'bg-purple-50 text-purple-700';
     else if (deptLower.includes('gestion') || deptLower.includes('eco')) color = 'bg-orange-50 text-orange-700';
-    else if (deptLower.includes('droit')) color = 'bg-red-50 text-red-700';
-    else if (deptLower.includes('lang')) color = 'bg-yellow-50 text-yellow-700';
+    else if (deptLower.includes('audit')) color = 'bg-emerald-50 text-emerald-700';
+    else if (deptLower.includes('finance')) color = 'bg-indigo-50 text-indigo-700';
+    else if (deptLower.includes('grh')) color = 'bg-pink-50 text-pink-700';
+    else if (deptLower.includes('fiscalit')) color = 'bg-cyan-50 text-cyan-700';
+    else if (deptLower.includes('mark')) color = 'bg-rose-50 text-rose-700';
+    else if (deptLower.includes('admin')) color = 'bg-slate-50 text-slate-700';
     
     const ueToSave = {
       ...this.newUE,

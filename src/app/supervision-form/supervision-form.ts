@@ -81,7 +81,15 @@ export class SupervisionForm implements AfterViewInit, OnInit {
       this.formData.teacherName = selectedUE.responsible || '';
       // Assuming 'students' from UE is the total number of enrolled students
       this.formData.totalStudents = selectedUE.students ? parseInt(selectedUE.students) : 0;
-      // We could also infer department if needed, but it's not in the form data structure yet
+      
+      // Auto-fill Level information if available
+      if (selectedUE.level) {
+          const parts = [];
+          if (selectedUE.level) parts.push(selectedUE.level);
+          if (selectedUE.semester) parts.push(`S${selectedUE.semester}`);
+          if (selectedUE.phase) parts.push(`Phase ${selectedUE.phase}`);
+          this.formData.level = parts.join(' - ');
+      }
     }
   }
 

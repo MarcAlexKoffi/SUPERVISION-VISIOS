@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild, AfterViewInit, OnInit } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupervisionService } from '../services/supervision.service';
+import { UeService } from '../services/ue.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -58,6 +59,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
 
   constructor(
     private supervisionService: SupervisionService,
+    private ueService: UeService,
     private authService: AuthService,
     private router: Router
   ) {}
@@ -79,36 +81,32 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   }
 
   loadUEs() {
-    const storedUEs = localStorage.getItem('ues');
-    if (storedUEs) {
-      try {
-        this.ues = JSON.parse(storedUEs);
-      } catch (e) {
-        console.error('Error loading UEs', e);
-      }
-    }
+    this.ueService.getAll().subscribe({
+      next: (data) => {
+        this.ues = data;
+      },
+      error: (err) => console.error('Error loading UEs', err)
+    });
   }
 
   onUEChange() {
     const selectedUE = this.ues.find(ue => ue.code === this.selectedUECode);
     if (selectedUE) {
       this.formData.module = selectedUE.name || '';
+      // We fill the responsible as the default teacher, but allow editing
       this.formData.teacherName = selectedUE.responsible || '';
-      // Assuming 'students' from UE is the total number of enrolled students
-      this.formData.totalStudents = selectedUE.students ? parseInt(selectedUE.students) : 0;
+      this.formData.totalStudents = selectedUE.students_count ? parseInt(selectedUE.students_count) : 0;
       
-      // Auto-fill Level information if available
-      if (selectedUE.level) {
-          const parts = [];
-          if (selectedUE.level) parts.push(selectedUE.level);
-          if (selectedUE.semester) parts.push(`S${selectedUE.semester}`);
-          if (selectedUE.phase) parts.push(`Phase ${selectedUE.phase}`);
-          this.formData.level = parts.join(' - ');
-      }
+      // Auto-fill Level/Semester/Phase
+      const parts = [];
+      if (selectedUE.level) parts.push(selectedUE.level);
+      if (selectedUE.semester) parts.push(`S${selectedUE.semester}`);
+      if (selectedUE.phase) parts.push(`Phase ${selectedUE.phase}`);
+      this.formData.level = parts.join(' - ');
     }
   }
 
-  private loadSavedData() {
+  loadSavedData() {
     const saved = localStorage.getItem('supervisionFormData');
     if (saved) {
       try {
@@ -140,7 +138,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     img.src = dataUrl;
   }
 
-  private setupCanvas(canvas: HTMLCanvasElement, type: string) {
+  setupCanvas(canvas: HTMLCanvasElement, type: string) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     

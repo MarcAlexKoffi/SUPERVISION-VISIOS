@@ -35,6 +35,10 @@ export class HistoryComponent implements OnInit {
   selectedSupervision: any = null;
   filteredHistoryForUE: any[] = [];
   showModal = false;
+  
+  // Delete Modal
+  showDeleteModal = false;
+  supervisionToDelete: any = null;
 
   constructor(private supervisionService: SupervisionService) {} // Inject Service
 
@@ -175,6 +179,38 @@ export class HistoryComponent implements OnInit {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
+  }
+
+  deleteSupervision(supervision: any) {
+    this.supervisionToDelete = supervision;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete() {
+    if (!this.supervisionToDelete) return;
+    
+    this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
+      next: () => {
+        this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
+        this.updateFilters();
+        this.applyFilters();
+        this.cancelDelete();
+      },
+      error: (err) => {
+        console.error('Error deleting supervision', err);
+        if (err.status === 403) {
+          alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
+        } else {
+            alert('Erreur lors de la suppression');
+        }
+        this.cancelDelete();
+      }
+    });
+  }
+
+  cancelDelete() {
+    this.showDeleteModal = false;
+    this.supervisionToDelete = null;
   }
 
   exportCSV() {

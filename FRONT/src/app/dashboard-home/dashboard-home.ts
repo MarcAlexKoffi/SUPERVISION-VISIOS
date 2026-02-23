@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UeService } from '../services/ue.service';
+import { SupervisionService } from '../services/supervision.service';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -12,16 +14,25 @@ import { FormsModule } from '@angular/forms';
 export class DashboardHome implements OnInit {
   isModalOpen = false;
 
+  // DB Fields: code, name, responsible, students_count, level, semester, phase
+  // UI Fields mapping:
+  // code -> code
+  // name -> name
+  // dept -> level
+  // responsible -> responsible
+  // students -> students_count
+  // modules -> (ignored/calculated?)
+
   newUE: any = {
     code: '',
     name: '',
-    dept: '',
+    level: '', // Mapped to 'dept' in UI for now
     responsible: '',
-    students: 0,
-    modules: 0,
-    level: '',
-    semester: null,
-    phase: null
+    students_count: 0,
+    modules_count: 0,
+    semester: '',
+    phase: '',
+    department: ''
   };
 
   stats = [
@@ -34,12 +45,16 @@ export class DashboardHome implements OnInit {
   searchTerm: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   isDeleteModalOpen = false;
-  ueToDeleteIndex: number | null = null;
+  ueToDelete: any | null = null;
   isEditMode = false;
-  editingIndex: number | null = null;
   
   currentPage = 1;
   itemsPerPage = 10;
+
+  constructor(
+    private ueService: UeService,
+    private supervisionService: SupervisionService
+  ) {}
 
   get displayedUEs() {
     let result = [...this.ues];
@@ -48,10 +63,10 @@ export class DashboardHome implements OnInit {
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       result = result.filter(ue => 
-        ue.code.toLowerCase().includes(term) || 
-        ue.name.toLowerCase().includes(term) ||
-        ue.dept.toLowerCase().includes(term) ||
-        ue.responsible.toLowerCase().includes(term)
+        (ue.code || '').toLowerCase().includes(term) || 
+        (ue.name || '').toLowerCase().includes(term) ||
+        (ue.level || '').toLowerCase().includes(term) ||
+        (ue.responsible || '').toLowerCase().includes(term)
       );
     }
 
@@ -98,20 +113,22 @@ export class DashboardHome implements OnInit {
   }
 
   loadData() {
-    // 1. Load UEs
-    const storedUEs = localStorage.getItem('ues');
-    if (storedUEs) {
-      this.ues = JSON.parse(storedUEs);
-    } else {
-      // Initialize with default if empty
-      this.ues = [
-        { code: 'INF101', name: 'Introduction à l\'Algorithmique', responsible: 'Dr. K. Sow', dept: 'Informatique', deptColor: 'bg-blue-50 text-blue-700', students: 120, modules: 4 },
-        { code: 'MAT200', name: 'Statistiques Appliquées', responsible: 'Prof. A. Benali', dept: 'Sciences', deptColor: 'bg-purple-50 text-purple-700', students: 85, modules: 3 },
-        { code: 'ECO305', name: 'Microéconomie Avancée', responsible: 'Dr. S. Diallo', dept: 'Gestion', deptColor: 'bg-orange-50 text-orange-700', students: 45, modules: 2 },
-      ];
-      localStorage.setItem('ues', JSON.stringify(this.ues));
-    }
-    this.updateStats();
+    // 1. Load UEs from API
+    this.ueService.getAll().subscribe({
+        next: (data) => {
+            this.ues = data;
+            this.updateStats();
+        },
+        error: (err) => console.error('Error loading UEs', err)
+    });
+
+    // 2. Load Supervision Stats
+    this.supervisionService.getAll().subscribe({
+        next: (data) => {
+             this.stats[2].value = data.length.toString();
+        },
+        error: (err) => console.error('Error loading supervisions', err)
+    });
   }
 
   updateStats() {
@@ -119,38 +136,27 @@ export class DashboardHome implements OnInit {
     this.stats[0].value = this.ues.length.toString();
 
     // 2. Count Total Students (Sum of students in all UEs)
-    const totalStudents = this.ues.reduce((sum, ue) => sum + (parseInt(ue.students) || 0), 0);
+    const totalStudents = this.ues.reduce((sum, ue) => sum + (parseInt(ue.students_count) || 0), 0);
     this.stats[1].value = totalStudents.toLocaleString('fr-FR');
-
-    // 3. Count Sessions (Supervisions)
-    const storedHistory = localStorage.getItem('supervisionHistory');
-    if (storedHistory) {
-      const history = JSON.parse(storedHistory);
-      this.stats[2].value = history.length.toString();
-    } else {
-      this.stats[2].value = '0';
-    }
   }
-
-  editingUE: any = null;
-  ueToDelete: any = null;
 
   openModal(ue: any = null) {
     this.isModalOpen = true;
     if (ue) {
       this.isEditMode = true;
-      this.editingUE = ue;
       this.newUE = { ...ue }; // Clone to avoid direct mutation
     } else {
       this.isEditMode = false;
-      this.editingUE = null;
       this.newUE = {
         code: '',
         name: '',
-        dept: '',
+        level: '',
         responsible: '',
-        students: 0,
-        modules: 1
+        students_count: 0,
+        modules_count: 0,
+        semester: '',
+        phase: '',
+        department: ''
       };
     }
   }
@@ -158,7 +164,6 @@ export class DashboardHome implements OnInit {
   closeModal() {
     this.isModalOpen = false;
     this.isEditMode = false;
-    this.editingUE = null;
   }
 
   openDeleteModal(ue: any) {
@@ -173,15 +178,14 @@ export class DashboardHome implements OnInit {
 
   confirmDelete() {
     if (this.ueToDelete) {
-      this.ues = this.ues.filter(u => u !== this.ueToDelete);
-      this.saveToLocalStorage();
-      this.updateStats();
-      this.closeDeleteModal();
+        this.ueService.delete(this.ueToDelete.id).subscribe({
+            next: () => {
+                this.loadData(); // Reload to refresh list and stats
+                this.closeDeleteModal();
+            },
+            error: (err) => console.error('Error deleting UE', err)
+        });
     }
-  }
-
-  saveToLocalStorage() {
-    localStorage.setItem('ues', JSON.stringify(this.ues));
   }
 
   getDeptBadgeClass(dept: string): string {
@@ -199,31 +203,28 @@ export class DashboardHome implements OnInit {
   }
 
   saveUE() {
-    if (!this.newUE.code || !this.newUE.name || !this.newUE.dept) {
-      alert('Veuillez remplir les champs obligatoires');
+    if (!this.newUE.code || !this.newUE.name) {
+      alert('Veuillez remplir le code et le nom de l\'UE');
       return;
     }
 
-    const color = this.getDeptBadgeClass(this.newUE.dept);
-    
-    const ueToSave = {
-      ...this.newUE,
-      deptColor: color
-    };
-
-    if (this.isEditMode && this.editingUE) {
-      const index = this.ues.indexOf(this.editingUE);
-      if (index !== -1) {
-        this.ues[index] = ueToSave;
-      }
+    if (this.isEditMode && this.newUE.id) {
+        this.ueService.update(this.newUE.id, this.newUE).subscribe({
+            next: () => {
+                this.loadData();
+                this.closeModal();
+            },
+            error: (err) => alert('Erreur lors de la mise à jour')
+        });
     } else {
-      this.ues.unshift(ueToSave);
+        this.ueService.create(this.newUE).subscribe({
+            next: () => {
+                this.loadData();
+                this.closeModal();
+            },
+            error: (err) => alert('Erreur lors de la création')
+        });
     }
-
-    this.saveToLocalStorage();
-    this.updateStats();
-
-    this.closeModal();
   }
 }
 

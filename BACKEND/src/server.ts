@@ -5,6 +5,7 @@ import { pool } from './config/db';
 import authRouter from './routes/authRoutes';
 import userRouter from './routes/userRoutes';
 import supervisionRouter from './routes/supervisionRoutes';
+import ueRouter from './routes/ueRoutes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json({ limit: '50mb' })); // Augmenter llimite pour les signatur
 app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter); 
 app.use('/api/supervisions', supervisionRouter);
+app.use('/api/ues', ueRouter);
 
 
 // Basic Route

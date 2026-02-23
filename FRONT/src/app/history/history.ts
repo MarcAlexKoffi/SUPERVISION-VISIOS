@@ -174,6 +174,19 @@ export class HistoryComponent implements OnInit {
   get totalPages() {
     return Math.ceil(this.filteredSupervisions.length / this.itemsPerPage);
   }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get startItem() {
+    if (this.filteredSupervisions.length === 0) return 0;
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  get endItem() {
+    return Math.min(this.currentPage * this.itemsPerPage, this.filteredSupervisions.length);
+  }
   
   onPageChange(page: number) {
     if (page >= 1 && page <= this.totalPages) {

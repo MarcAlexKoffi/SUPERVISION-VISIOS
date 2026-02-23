@@ -129,33 +129,22 @@
         </div>
         
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
-            <div class="text-sm text-slate-500 flex items-center gap-2">
-                Affichage
-                <select [(ngModel)]="itemsPerPage" (change)="currentPage = 1" class="bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold px-2 py-1 outline-none focus:border-[#0f42a5]">
-                    <option [value]="5">5</option>
-                    <option [value]="10">10</option>
-                    <option [value]="20">20</option>
-                    <option [value]="50">50</option>
-                </select>
-                sur {{ filteredSupervisions.length }} résultats
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-800">
+            <div class="text-sm font-bold text-[#0f42a5] uppercase tracking-wider">
+                PAGE {{ currentPage }} SUR {{ totalPages }}
             </div>
-            <div class="flex items-center gap-1" *ngIf="totalPages > 1">
-                <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:shadow-none">
-                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-                </button>
-                
-                <button *ngFor="let p of [].constructor(totalPages); let i = index" 
-                        (click)="onPageChange(i + 1)"
-                        [class.bg-[#0f42a5]]="currentPage === i + 1"
-                        [class.text-white]="currentPage === i + 1"
-                        [class.text-slate-500]="currentPage !== i + 1"
-                        class="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm hover:bg-white hover:text-slate-700 hover:shadow-sm transition-all font-medium text-sm">
-                    {{ i + 1 }}
+
+            <div class="flex items-center gap-2">
+                <button (click)="onPageChange(currentPage - 1)" 
+                        [disabled]="currentPage === 1" 
+                        class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-400 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
                 </button>
 
-                <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-white hover:text-slate-600 hover:shadow-sm transition-all disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:shadow-none">
-                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                <button (click)="onPageChange(currentPage + 1)" 
+                        [disabled]="currentPage === totalPages" 
+                        class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-900 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
                 </button>
             </div>
         </div>

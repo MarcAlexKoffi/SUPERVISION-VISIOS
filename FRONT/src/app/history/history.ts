@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { SupervisionService } from '../services/supervision.service'; // Import Service
 
 @Component({
   selector: 'app-history',
@@ -35,53 +36,31 @@ export class HistoryComponent implements OnInit {
   filteredHistoryForUE: any[] = [];
   showModal = false;
 
+  constructor(private supervisionService: SupervisionService) {} // Inject Service
+
   ngOnInit() {
     this.loadHistory();
   }
 
   loadHistory() {
-    const historyStr = localStorage.getItem('supervisionHistory');
-    const uesStr = localStorage.getItem('ues');
-    let uesTeachers: string[] = [];
-    let uesCourses: string[] = [];
+    // Call API instead of localStorage
+    this.supervisionService.getAll().subscribe({
+        next: (data) => {
+            this.supervisions = data.map((item: any) => this.mapToView(item));
+            this.updateFilters();
+            this.applyFilters();
+        },
+        error: (err) => console.error('Failed to load history', err)
+    });
+  }
 
-    // Load available UEs to populate filters
-    if (uesStr) {
-      try {
-        const ues = JSON.parse(uesStr);
-        uesTeachers = ues.map((ue: any) => ue.responsible).filter((t: any) => t);
-        uesCourses = ues.map((ue: any) => ue.name).filter((c: any) => c);
-      } catch (e) {
-        console.error('Failed to load UEs', e);
-      }
-    }
-
-    if (historyStr) {
-      try {
-        const rawHistory = JSON.parse(historyStr);
-        this.supervisions = rawHistory.map((item: any) => this.mapToView(item));
-        
-        // Extract unique teachers and courses for filter dropdowns form both history and UEs definitions
-        const historyTeachers = this.supervisions.map(s => s.teacher.name);
-        const historyCourses = this.supervisions.map(s => s.course.name);
-
-        this.teachers = [...new Set([...historyTeachers, ...uesTeachers])].sort();
-        this.courses = [...new Set([...historyCourses, ...uesCourses])].sort();
-        
-        this.applyFilters();
-      } catch (e) {
-        console.error('Failed to load history', e);
-        this.supervisions = [];
-        // Apply filters from UEs even if history load fails
-        this.teachers = [...new Set(uesTeachers)].sort();
-        this.courses = [...new Set(uesCourses)].sort();
-      }
-    } else {
-        this.supervisions = [];
-        // If no history, still populate filters from UEs
-        this.teachers = [...new Set(uesTeachers)].sort();
-        this.courses = [...new Set(uesCourses)].sort();
-    }
+  updateFilters() {
+      // Extract unique teachers and courses for filter dropdowns
+      const historyTeachers = this.supervisions.map(s => s.teacher.name).filter(Boolean);
+      const historyCourses = this.supervisions.map(s => s.course.name).filter(Boolean);
+      
+      this.teachers = [...new Set(historyTeachers)].sort();
+      this.courses = [...new Set(historyCourses)].sort();
   }
 
   applyFilters() {
@@ -97,13 +76,90 @@ export class HistoryComponent implements OnInit {
         // Add one day to include the end date fully
         const end = new Date(this.filters.endDate);
         end.setHours(23, 59, 59, 999);
-        matchDate = matchDate && new Date(s.date) <= end;
+        matchDate = matchDate && s.date <= end;
       }
 
       return matchTeacher && matchCourse && matchDate;
     });
     
     this.currentPage = 1; // Reset to page 1 on filter change
+  }
+
+
+
+  private mapToView(data: any): any {
+    // Map API/DB structure to View structure
+    // DB: teacher_name, module, visit_date, etc.
+    // View Expects: teacher.name, course.name, date (Date obj), etc.
+    
+    // Check if data comes from DB (snake_case) or legacy/local (camelCase)
+    const teacherName = data.teacher_name || data.teacherName || 'Non spécifié';
+    const moduleName = data.module || 'Non spécifié';
+    const dateStr = data.visit_date || data.date;
+    const startTimeStr = data.start_time || data.startTime || '00:00';
+    const endTimeStr = data.end_time || data.endTime || '00:00';
+    
+    // Handle time format if it comes as HH:MM:SS from mysql
+    const formatTime = (t: string) => t && t.length > 5 ? t.substring(0, 5) : t;
+
+    const startDateTime = new Date(dateStr);
+    // Note: Creating date objects for time is tricky if only time string provided, using base date
+    startDateTime.setHours(parseInt(startTimeStr.split(':')[0]), parseInt(startTimeStr.split(':')[1]));
+
+    const endDateTime = new Date(dateStr);
+    endDateTime.setHours(parseInt(endTimeStr.split(':')[0]), parseInt(endTimeStr.split(':')[1]));
+
+    const signatures = {
+        supervisor: data.supervisor_signature || (data.signatures && data.signatures.supervisor),
+        teacher: data.teacher_signature || (data.signatures && data.signatures.teacher)
+    };
+
+    const technical = {
+        internet: data.tech_internet || (data.technical && data.technical.internet),
+        audioVideo: data.tech_audio_video || (data.technical && data.technical.audioVideo),
+        punctuality: data.tech_punctuality || (data.technical && data.technical.punctuality)
+    };
+
+    const pedagogical = {
+        objectives: data.ped_objectives || (data.pedagogical && data.pedagogical.objectives),
+        contentMastery: data.ped_content_mastery || (data.pedagogical && data.pedagogical.contentMastery),
+        interaction: data.ped_interaction || (data.pedagogical && data.pedagogical.interaction),
+        toolsUsage: data.ped_tools_usage || (data.pedagogical && data.pedagogical.toolsUsage)
+    };
+
+    return {
+      id: data.id,
+      originalData: data, 
+      date: new Date(dateStr), // Keep just the date part for filtering/sorting if needed, or full datetime
+      endTime: endDateTime, // Used for display duration/end time
+      startTimeStr: formatTime(startTimeStr),
+      endTimeStr: formatTime(endTimeStr),
+      teacher: {
+        name: teacherName,
+        department: data.level || 'Niveau non spécifié',
+        initials: this.getInitials(teacherName),
+        color: this.getRandomColor(teacherName)
+      },
+      course: {
+        code: 'UE', 
+        name: moduleName
+      },
+      platform: data.platform || 'Autre',
+      platformIcon: this.getPlatformIcon(data.platform),
+      platformColor: this.getPlatformColor(data.platform),
+      status: 'Terminé',
+      statusColor: 'bg-green-100 text-green-700',
+      
+      presentCount: data.present_count || data.presentCount || 0,
+      totalStudents: data.total_students || data.totalStudents || 0,
+      
+      technical: technical,
+      pedagogical: pedagogical,
+      
+      observations: data.observations || '',
+      supervisorName: data.supervisor_name || data.supervisorName || '',
+      signatures: signatures
+    };
   }
 
   get paginatedSupervisions() {
@@ -307,45 +363,7 @@ export class HistoryComponent implements OnInit {
     printWindow.document.close();
   }
 
-  private mapToView(data: any): any {
-    // Construct Date objects
-    const dateStr = data.date;
-    const startDateTime = new Date(`${dateStr}T${data.startTime || '00:00'}`);
-    const endDateTime = new Date(`${dateStr}T${data.endTime || '00:00'}`);
 
-    return {
-      id: data.id || Math.floor(Math.random() * 10000), // Random ID if missing
-      originalData: data, // Keep the full original object reference
-      date: startDateTime,
-      endTime: endDateTime,
-      startTimeStr: data.startTime,
-      endTimeStr: data.endTime,
-      teacher: {
-        name: data.teacherName || 'Non spécifié',
-        department: data.level || 'Niveau non spécifié',
-        initials: this.getInitials(data.teacherName),
-        color: this.getRandomColor(data.teacherName)
-      },
-      course: {
-        code: 'UE', 
-        name: data.module || 'Non spécifié'
-      },
-      platform: data.platform || 'Autre',
-      platformIcon: this.getPlatformIcon(data.platform),
-      platformColor: this.getPlatformColor(data.platform),
-      status: 'Terminé',
-      statusColor: 'bg-green-100 text-green-700',
-      
-      // Extended fields for details view
-      presentCount: data.presentCount || 0,
-      totalStudents: data.totalStudents || 0,
-      technical: data.technical || {},
-      pedagogical: data.pedagogical || {},
-      observations: data.observations || '',
-      supervisorName: data.supervisorName || '',
-      signatures: data.signatures || {}
-    };
-  }
 
   private getInitials(name: string): string {
     if (!name) return '??';

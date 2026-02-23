@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { pool } from './config/db';
 import authRouter from './routes/authRoutes';
 import userRouter from './routes/userRoutes';
+import supervisionRouter from './routes/supervisionRoutes';
 
 dotenv.config();
 
@@ -12,11 +13,12 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Augmenter llimite pour les signatures base64
 
 // Routes
 app.use('/api/auth', authRouter);
-app.use('/api/users', userRouter); // Register user routes
+app.use('/api/users', userRouter); 
+app.use('/api/supervisions', supervisionRouter);
 
 
 // Basic Route

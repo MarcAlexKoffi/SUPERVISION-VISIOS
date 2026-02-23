@@ -1,6 +1,9 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SupervisionService } from '../services/supervision.service';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-supervision-form',
@@ -53,8 +56,20 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   private lastX = 0;
   private lastY = 0;
 
+  constructor(
+    private supervisionService: SupervisionService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
   ngOnInit() {
     this.loadUEs();
+    
+    // Auto-fill supervisor name if logged in
+    const user = this.authService.currentUserValue;
+    if (user && user.username) {
+        this.formData.supervisorName = user.username;
+    }
   }
 
   ngAfterViewInit() {
@@ -226,53 +241,31 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     this.isSaving = true;
     this.saveMessage = 'Sauvegarde...';
     
-    // Convert canvases to base64 if needed
+    // Convert canvases to base64
     const supervisorSig = this.supervisorCanvas.nativeElement?.toDataURL() || '';
     const teacherSig = this.teacherCanvas.nativeElement?.toDataURL() || '';
-    
-    const completeData = {
-      ...this.formData,
-      signatures: {
-        supervisor: supervisorSig,
-        teacher: teacherSig
-      }
+
+    const payload = {
+        ...this.formData,
+        supervisorSignature: supervisorSig,
+        teacherSignature: teacherSig
     };
 
-    try {
-      // 1. Save current draft (optional, or maybe clear it?) - keeping it for now or clearing it on success
-      localStorage.setItem('supervisionFormData', JSON.stringify(completeData));
-      
-      // 2. Add to History
-      const historyStr = localStorage.getItem('supervisionHistory');
-      let history = historyStr ? JSON.parse(historyStr) : [];
-      if (!Array.isArray(history)) history = [];
-      
-      // Add ID and timestamp
-      const historyItem = {
-        ...completeData,
-        id: Date.now(),
-        savedAt: new Date().toISOString()
-      };
-      
-      history.unshift(historyItem); // Add to beginning
-      localStorage.setItem('supervisionHistory', JSON.stringify(history));
-
-      console.log('Data saved to localStorage history:', historyItem);
-    } catch (e) {
-      console.error('Error saving to localStorage', e);
-    }
-
-    // Simulate API call
-    setTimeout(() => {
-      this.isSaving = false;
-      this.saveMessage = 'Enregistré !';
-      this.showSuccessModal = true;
-      this.resetForm(false);
-      
-      setTimeout(() => {
-        this.saveMessage = 'Enregistrer la fiche';
-      }, 2000);
-    }, 1500);
+    this.supervisionService.create(payload).subscribe({
+        next: (res) => {
+            this.isSaving = false;
+            this.showSuccessModal = true;
+            this.saveMessage = 'Enregistrer la fiche';
+            // Clear localStorage draft if any
+            localStorage.removeItem('supervisionFormData');
+        },
+        error: (err) => {
+            console.error('Erreur sauvegarde', err);
+            this.isSaving = false;
+            this.saveMessage = 'Enregistrer la fiche';
+            alert('Erreur lors de la sauvegarde: ' + (err.error?.message || err.statusText));
+        }
+    });
   }
 
   cancelSave() {

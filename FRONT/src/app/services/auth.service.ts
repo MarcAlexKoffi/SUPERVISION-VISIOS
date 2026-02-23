@@ -16,8 +16,9 @@ export class AuthService {
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
+
   public get currentUserValue(): any {
-    return this.currentUserSubject.value;
+    return this.currentUserSubject.value; // Access value directly
   }
 
   login(username: string, password: string):Observable<any> {

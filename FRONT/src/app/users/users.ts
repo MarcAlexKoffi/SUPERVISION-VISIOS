@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../services/user.service';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-users',
@@ -12,7 +14,9 @@ import { UserService, User } from '../services/user.service';
 })
 export class UsersComponent implements OnInit {
   isModalOpen = false;
+  isDeleteModalOpen = false;
   showPassword = false;
+  isEditMode = false;
 
   newUser: any = {
     username: '',
@@ -20,11 +24,24 @@ export class UsersComponent implements OnInit {
     password: ''
   };
 
+  userToDelete: User | null = null;
   users: User[] = [];
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
+    const currentUser = this.authService.currentUserValue;
+    // Check both potential locations for role to be safe
+    const role = currentUser?.user?.role || currentUser?.role;
+
+    if (role !== 'admin') {
+      this.router.navigate(['/']); // Redirect if not admin
+      return;
+    }
     this.loadUsers();
   }
 
@@ -37,37 +54,76 @@ export class UsersComponent implements OnInit {
     });
   }
 
-  openModal() {
-    this.newUser = { username: '', role: 'user', password: '' };
+  openModal(user?: User) {
+    if (user) {
+      this.isEditMode = true;
+      this.newUser = { ...user, password: '' }; // Don't fill password on edit
+    } else {
+      this.isEditMode = false;
+      this.newUser = { username: '', role: 'user', password: '' };
+    }
     this.isModalOpen = true;
   }
 
   closeModal() {
     this.isModalOpen = false;
+    this.isEditMode = false;
+    this.newUser = { username: '', role: 'user', password: '' };
+  }
+
+  openDeleteModal(user: User) {
+    this.userToDelete = user;
+    this.isDeleteModalOpen = true;
+  }
+
+  closeDeleteModal() {
+    this.isDeleteModalOpen = false;
+    this.userToDelete = null;
   }
 
   saveUser() {
-    if (!this.newUser.username || !this.newUser.password) {
-      alert('Veuillez remplir tous les champs obligatoires');
+    if (!this.newUser.username) {
+      alert('Le nom d\'utilisateur est obligatoire');
+      return;
+    }
+    
+    if (!this.isEditMode && !this.newUser.password) {
+      alert('Le mot de passe est obligatoire pour la création');
       return;
     }
 
-    this.userService.create(this.newUser).subscribe({
-      next: () => {
-        this.loadUsers();
-        this.closeModal();
-      },
-      error: (err) => {
-        console.error('Erreur création', err);
-        alert('Erreur lors de la création de l\'utilisateur');
-      }
-    });
+    if (this.isEditMode) {
+      this.userService.update(this.newUser.id, this.newUser).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error('Erreur modification', err);
+          alert('Erreur lors de la modification de l\'utilisateur');
+        }
+      });
+    } else {
+      this.userService.create(this.newUser).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error('Erreur création', err);
+          alert('Erreur lors de la création de l\'utilisateur');
+        }
+      });
+    }
   }
 
-  deleteUser(id: number) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-      this.userService.delete(id).subscribe({
-        next: () => this.loadUsers(),
+  confirmDelete() {
+    if (this.userToDelete) {
+      this.userService.delete(this.userToDelete.id).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.closeDeleteModal();
+        },
         error: (err) => {
             console.error(err);
             alert('Erreur lors de la suppression');

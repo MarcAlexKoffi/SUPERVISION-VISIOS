@@ -46,19 +46,13 @@ export class Login {
         this.isLoading = false;
         console.log('Login response:', res);
         
-        // POUR L'INSTANT : Redirection forcée vers le tableau de bord Admin pour tout le monde
-        // (pour vous permettre de tester l'interface même avec un compte utilisateur)
-        this.router.navigate(['/admin/dashboard']);
-
-        /*
-        // Code original pour la séparation des rôles (à réactiver plus tard)
-        const role = res.user?.role || 'user';
-        if (role === 'admin') {
-            this.router.navigate(['/admin/dashboard']); 
+        if (res.user && (res.user.role === 'admin' || res.role === 'admin')) {
+            this.router.navigate(['/admin/dashboard']);
         } else {
             this.router.navigate(['/user-dashboard']);
         }
-        */
+
+
       },
       error: (err) => {
         this.isLoading = false;

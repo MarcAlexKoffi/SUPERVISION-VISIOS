@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
@@ -11,18 +11,42 @@ import { CommonModule } from '@angular/common';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login {
+export class Login implements OnInit {
   username = '';
   password = '';
   errorMessage = '';
   isLoading = false;
   isLoginMode = true;
   showPassword = false;
+  returnUrl: string | null = null;
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService
   ) {}
+
+  ngOnInit() {
+      // get return url from route parameters or default to '/'
+      this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || null;
+
+      // redirect to home if already logged in (optional UX choice)
+      if (this.authService.currentUserValue) {
+          // If returnUrl is present, go there, else check role
+          if (this.returnUrl) {
+             this.router.navigateByUrl(this.returnUrl);
+          } else {
+             // Let the regular flow decide based on role? Or just stay put?
+             // Usually redirection is better
+             const user = this.authService.currentUserValue;
+             if (user.user?.role === 'admin' || user.role === 'admin') {
+                 this.router.navigate(['/admin/dashboard']);
+             } else {
+                 this.router.navigate(['/user-dashboard']);
+             }
+          }
+      }
+  }
 
   onSwitchMode() {
     this.isLoginMode = !this.isLoginMode;
@@ -46,6 +70,12 @@ export class Login {
         this.isLoading = false;
         console.log('Login response:', res);
         
+        // Use returnUrl if available
+        if (this.returnUrl) {
+            this.router.navigateByUrl(this.returnUrl);
+            return;
+        }
+
         if (res.user && (res.user.role === 'admin' || res.role === 'admin')) {
             this.router.navigate(['/admin/dashboard']);
         } else {

@@ -6,6 +6,7 @@ import { DashboardHome } from './dashboard-home/dashboard-home';
 import { UsersComponent } from './users/users';
 import { HistoryComponent } from './history/history';
 import { UserDashboard } from './user-dashboard/user-dashboard'; // Import UserDashboard
+import { authGuard } from './guards/auth.guard'; // Import AuthGuard
 
 export const routes: Routes = [
     {
@@ -19,11 +20,13 @@ export const routes: Routes = [
     },
     {
         path: 'user-dashboard', // Add route for user dashboard
-        component: UserDashboard
+        component: UserDashboard,
+        canActivate: [authGuard] // Protect this route
     },
     {
         path: 'admin',
         component: Admindashboard,
+        canActivate: [authGuard], // Protect this route and its children
         children: [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardHome },
@@ -33,3 +36,5 @@ export const routes: Routes = [
         ]
     }
 ];
+
+

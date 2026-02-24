@@ -9,7 +9,7 @@
                 <span class="material-symbols-outlined text-sm">add</span>
                 Nouvelle Supervision
             </a>
-            <button (click)="logout()" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
+            <button (click)="openLogoutModal()" class="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">logout</span>
                 Déconnexion
             </button>
@@ -123,4 +123,18 @@
         </div>
     </div>
 </div>
+
+<!-- Logout Confirmation Modal -->
+<app-confirmation-modal
+    *ngIf="showLogoutModal"
+    [isOpen]="true"
+    title="Déconnexion"
+    message="Êtes-vous sûr de vouloir vous déconnecter ?"
+    confirmText="Se déconnecter"
+    cancelText="Annuler"
+    type="danger"
+    (confirm)="confirmLogout()"
+    (cancel)="cancelLogout()">
+</app-confirmation-modal>
+
 

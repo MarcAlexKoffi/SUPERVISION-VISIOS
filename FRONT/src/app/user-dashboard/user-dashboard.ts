@@ -3,11 +3,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { SupervisionService } from '../services/supervision.service';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe],
+  imports: [CommonModule, RouterModule, DatePipe, ConfirmationModalComponent],
   templateUrl: './user-dashboard.html',
   styleUrl: './user-dashboard.scss',
 })
@@ -15,6 +16,7 @@ export class UserDashboard implements OnInit {
     currentUser: any;
     mySupervisions: any[] = [];
     isLoading = true;
+    showLogoutModal = false;
 
     constructor(
         private authService: AuthService, 
@@ -54,7 +56,16 @@ export class UserDashboard implements OnInit {
         return this.mySupervisions.slice(0, 5); // Show last 5
     }
 
-    logout() {
+    openLogoutModal() {
+        this.showLogoutModal = true;
+    }
+
+    cancelLogout() {
+        this.showLogoutModal = false;
+    }
+
+    confirmLogout() {
         this.authService.logout();
+        this.showLogoutModal = false;
     }
 }

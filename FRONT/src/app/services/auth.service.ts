@@ -13,7 +13,7 @@ export class AuthService {
   public currentUser: Observable<any>;
 
   constructor(private http: HttpClient, private router: Router) {
-    this.currentUserSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('currentUser') || '{}'));
+    this.currentUserSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('currentUser') || 'null'));
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
@@ -47,10 +47,16 @@ export class AuthService {
   }
 
 
-  logout() {
+  logout(returnUrl?: string) {
     // Supprimer l'utilisateur du local storage lors de la déconnexion
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    
+    // Redirect to login. If returnUrl is provided, include it.
+    if (returnUrl) {
+        this.router.navigate(['/login'], { queryParams: { returnUrl: returnUrl }});
+    } else {
+        this.router.navigate(['/login']);
+    }
   }
 }

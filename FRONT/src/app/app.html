@@ -1,1 +1,9 @@
+<app-toast></app-toast>
 <router-outlet></router-outlet>
+
+<div *ngIf="isLoading" class="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+    <div class="flex flex-col items-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+        <p class="mt-4 text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">Chargement...</p>
+    </div>
+</div>

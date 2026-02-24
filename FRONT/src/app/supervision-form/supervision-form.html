@@ -11,23 +11,23 @@
     <div class="container-sheet relative mx-auto bg-white dark:bg-[#1e293b] shadow-xl border border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden print:shadow-none print:border-none print:m-0 print:w-full print:max-w-full">
         
         <!-- Header -->
-        <header class="flex items-start justify-between p-8 border-b border-slate-100 bg-white">
+        <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:p-8 border-b border-slate-100 bg-white gap-4">
             <div class="flex items-center gap-5">
-                <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-[#0f42a5]">
+                <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-[#0f42a5] flex-shrink-0">
                     <span class="material-symbols-outlined text-4xl">school</span>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 uppercase">Fiche de Supervision</h1>
-                    <p class="font-medium text-slate-500">Séance de visioconférence / Classe virtuelle</p>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 uppercase">Fiche de Supervision</h1>
+                    <p class="font-medium text-slate-500 text-sm sm:text-base">Séance de visioconférence / Classe virtuelle</p>
                 </div>
             </div>
-            <div class="text-right">
+            <div class="text-left sm:text-right w-full sm:w-auto">
                 <div class="inline-block px-3 py-1 mb-1 text-xs font-bold tracking-wide uppercase rounded bg-slate-100 text-slate-500">Réf: SUP-VISIO-2024</div>
                 <div class="text-lg font-bold tracking-tight text-[#0f42a5] uppercase">Campus en Ligne</div>
             </div>
         </header>
 
-        <div class="p-8 space-y-8">
+        <div class="p-6 sm:p-8 space-y-8">
             <!-- General Info -->
             <section class="p-0 border-0">
                 <!-- UE Selection -->
@@ -110,8 +110,8 @@
                         <h3 class="text-sm font-bold tracking-wider uppercase text-slate-800 dark:text-white">1. Aspects Techniques & Logistiques</h3>
                     </div>
                     
-                    <div class="overflow-hidden border rounded-xl border-slate-200 dark:border-slate-700">
-                        <table class="w-full text-sm">
+                    <div class="overflow-x-auto border rounded-xl border-slate-200 dark:border-slate-700">
+                        <table class="w-full text-sm min-w-[600px]">
                             <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                                 <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-500">
                                     <th class="px-6 py-3 w-1/2">Critères</th>
@@ -153,8 +153,8 @@
                         <h3 class="text-sm font-bold tracking-wider uppercase text-slate-800 dark:text-white">2. Aspects Pédagogiques</h3>
                     </div>
                     
-                    <div class="overflow-hidden border rounded-xl border-slate-200 dark:border-slate-700">
-                        <table class="w-full text-sm">
+                    <div class="overflow-x-auto border rounded-xl border-slate-200 dark:border-slate-700">
+                        <table class="w-full text-sm min-w-[600px]">
                             <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                                 <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-500">
                                     <th class="px-6 py-3 w-1/2">Critères</th>

@@ -1,8 +1,18 @@
 
 <div class="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-display">
     
+    <!-- Mobile Sidebar Backdrop -->
+    <div 
+        *ngIf="isSidebarOpen"
+        (click)="closeSidebar()"
+        class="fixed inset-0 z-20 bg-slate-900/50 backdrop-blur-sm lg:hidden transition-opacity">
+    </div>
+
     <!-- Sidebar -->
-    <aside class="hidden lg:flex flex-col w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen sticky top-0 z-30 flex-shrink-0 shadow-sm">
+    <aside 
+        [class.translate-x-0]="isSidebarOpen"
+        [class.-translate-x-full]="!isSidebarOpen"
+        class="fixed inset-y-0 left-0 z-30 flex flex-col w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex shadow-2xl lg:shadow-sm">
         <!-- Brand -->
         <div class="h-20 px-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/50">
             <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-lg shadow-primary/30 text-white">
@@ -18,17 +28,17 @@
         <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
             <div class="px-4 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Menu Principal</div>
             
-            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/dashboard" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla="routerLinkActive">
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/dashboard" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla="routerLinkActive">
                 <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla.isActive">grid_view</span>
                 Tableau de bord
             </a>
             
-            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/supervision-form" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla2="routerLinkActive">
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/supervision-form" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla2="routerLinkActive">
                 <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla2.isActive">assignment</span>
                 Fiches de Supervision
             </a>
             
-            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/history" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/history" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
                 <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">history</span>
                 Historique
             </a>
@@ -38,7 +48,7 @@
                 Planning
             </a> -->
             
-            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
                [class.hidden]="!isAdmin"
                routerLink="/admin/users" 
                routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" 
@@ -87,9 +97,9 @@
     <!-- Main Content Wrapper -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50/50 dark:bg-slate-900/50">
         <!-- Header -->
-        <header class="h-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between px-8 z-20 sticky top-0 flex-shrink-0 shadow-sm/50">
+        <header class="h-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between px-4 lg:px-8 z-20 sticky top-0 flex-shrink-0 shadow-sm/50">
             <div class="flex items-center gap-4">
-                <button class="lg:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors">
+                <button (click)="toggleSidebar()" class="lg:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300 transition-colors">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla.isActive">Tableau de bord</h2>

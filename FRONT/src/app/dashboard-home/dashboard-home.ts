@@ -48,6 +48,11 @@ export class DashboardHome implements OnInit {
   ueToDelete: any | null = null;
   isEditMode = false;
   
+  // View Modal
+  isViewModalOpen = false;
+  selectedUE: any = null;
+  ueSupervisions: any[] = []; // To store supervisions related to the selected UE
+
   currentPage = 1;
   itemsPerPage = 10;
 
@@ -102,6 +107,30 @@ export class DashboardHome implements OnInit {
       this.currentPage = page;
     }
   }
+
+  // --- View Modal Logic ---
+
+  openViewModal(ue: any) {
+    this.selectedUE = ue;
+    this.isViewModalOpen = true;
+    
+    // Fetch supervisions for this UE if needed
+    // Assuming supervisions have a 'ueCode' or similar field
+    // For now, let's just show UE details. If you have an endpoint, uncomment:
+    /*
+    this.supervisionService.getAll().subscribe(supervisions => {
+        this.ueSupervisions = supervisions.filter(s => s.ue_id === ue.id || s.ue_code === ue.code);
+    });
+    */
+  }
+
+  closeViewModal() {
+    this.isViewModalOpen = false;
+    this.selectedUE = null;
+    this.ueSupervisions = [];
+  }
+  
+  // --- Create / Edit Modal Logic ---
 
   toggleSort() {
     this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';

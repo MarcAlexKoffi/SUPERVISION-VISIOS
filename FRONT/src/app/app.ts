@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoadingService } from './services/loading.service';
+import { AutoLogoutService } from './services/auto-logout.service';
 import { ToastComponent } from './shared/toast/toast.component';
 import { delay } from 'rxjs';
 
@@ -15,6 +16,7 @@ export class App implements OnInit {
   isLoading = false;
   private router = inject(Router);
   private loadingService = inject(LoadingService);
+  private autoLogoutService = inject(AutoLogoutService); // Initialize auto-logout monitoring
 
   ngOnInit() {
     this.loadingService.loading$.pipe(delay(0)).subscribe((loading) => {

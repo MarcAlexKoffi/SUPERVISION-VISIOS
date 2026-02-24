@@ -38,7 +38,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div *ngFor="let stat of stats"
             class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between group hover:shadow-md transition-shadow">
             <div>
@@ -99,7 +99,7 @@
                                     sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
                             </div>
                         </th>
-                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider">Département</th>
+                        <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider">Niveau</th>
                         <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider text-center">
                             Inscrits</th>
                         <th class="px-6 py-4 font-bold text-xs text-slate-400 uppercase tracking-wider text-center">
@@ -143,12 +143,13 @@
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                             <div
                                 class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
+                                <button (click)="openViewModal(ue)"
                                     class="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                                     <span class="material-symbols-outlined text-[18px]">visibility</span>
                                 </button>
                                 <button (click)="openModal(ue)"
                                     class="p-1.5 rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
                                 <button (click)="openDeleteModal(ue)"
@@ -190,7 +191,99 @@
     </div>
 </div>
     
+
+
+<!-- Modal Voir UE -->
+<div *ngIf="isViewModalOpen && selectedUE" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" (click)="closeViewModal()"></div>
+
+    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-100 dark:border-slate-700">
+            <!-- Header -->
+            <div class="relative h-32 bg-gradient-to-r from-blue-600 to-indigo-700 p-6 flex flex-col justify-end">
+                <button (click)="closeViewModal()" class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-1">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="flex items-end gap-4">
+                    <div class="h-16 w-16 rounded-xl bg-white shadow-lg flex items-center justify-center text-blue-600 transform translate-y-8 border-4 border-white dark:border-slate-800">
+                        <span class="material-symbols-outlined text-3xl">school</span>
+                    </div>
+                    <div class="pb-1 text-white">
+                        <h3 class="text-2xl font-bold truncate max-w-md">{{ selectedUE.name }}</h3>
+                        <div class="flex items-center gap-2 mt-1 opacity-90">
+                            <span class="text-sm font-medium bg-white/20 px-2 py-0.5 rounded backdrop-blur-sm border border-white/20">{{ selectedUE.code }}</span>
+                            <span class="text-sm font-medium bg-white/20 px-2 py-0.5 rounded backdrop-blur-sm border border-white/20">{{ selectedUE.level }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="px-8 pt-12 pb-8 space-y-8">
+                <!-- Info Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div class="group">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">person</span>
+                            Responsable
+                        </h4>
+                        <div class="text-slate-900 dark:text-white font-medium pl-6 border-l-2 border-slate-200 dark:border-slate-700">
+                            {{ selectedUE.responsible || 'Non assigné' }}
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">domain</span>
+                            Niveau
+                        </h4>
+                        <div class="text-slate-900 dark:text-white font-medium pl-6 border-l-2 border-slate-200 dark:border-slate-700">
+                            {{ selectedUE.level }}
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">groups</span>
+                            Étudiants Inscrits
+                        </h4>
+                        <div class="flex items-center gap-3 pl-6 border-l-2 border-slate-200 dark:border-slate-700">
+                            <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ selectedUE.students_count || 0 }}</span>
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">view_module</span>
+                            Modules / Chapitres
+                        </h4>
+                        <div class="flex items-center gap-3 pl-6 border-l-2 border-slate-200 dark:border-slate-700">
+                             <span class="text-2xl font-bold text-slate-900 dark:text-white">{{ selectedUE.modules_count || 0 }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer with Actions -->
+                <div class="pt-6 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 mt-4">
+                     <button (click)="isViewModalOpen = false; openModal(selectedUE)" 
+                        class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">edit</span>
+                        Modifier
+                    </button>
+                    <button (click)="closeViewModal()" 
+                        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/30 transition-all">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Ajout UE -->
+
+
 <div *ngIf="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
     aria-modal="true">
     <!-- Backdrop -->
@@ -221,7 +314,7 @@
 
             <!-- Body -->
             <div class="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Code UE -->
                     <div class="col-span-1">
                         <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Code
@@ -252,6 +345,7 @@
                                 <option value="GRH">Gestion des Ressources Humaines</option>
                                 <option value="Fiscalité">Fiscalité Droit des Affaires</option>
                                 <option value="Markrting">Markrting</option>
+                                <option value="Transversale">Transversale</option>
                             </select>
                             <span
                                 class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
@@ -304,7 +398,7 @@
                 </div>
 
                 <!-- Semestre & Phase -->
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="col-span-1">
                         <label
                             class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Semestre</label>
@@ -328,7 +422,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Nombre étudiants -->
                     <div class="col-span-1">
                         <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Effectif
@@ -358,13 +452,13 @@
 
             <!-- Footer -->
             <div
-                class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3">
+                class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row justify-end gap-3">
                 <button (click)="closeModal()"
-                    class="px-5 h-11 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+                    class="w-full sm:w-auto px-5 h-11 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
                     Annuler
                 </button>
                 <button (click)="saveUE()"
-                    class="px-5 h-11 rounded-xl bg-[#0f42a5] hover:bg-[#0f42a5]/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 flex items-center gap-2">
+                    class="w-full sm:w-auto px-5 h-11 rounded-xl bg-[#0f42a5] hover:bg-[#0f42a5]/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-[20px]">{{ isEditMode ? 'edit' : 'check' }}</span>
                     <span>{{ isEditMode ? "Modifier l'UE" : "Enregistrer l'UE" }}</span>
                 </button>

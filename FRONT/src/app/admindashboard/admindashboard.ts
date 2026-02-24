@@ -13,8 +13,17 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 })
 export class Admindashboard {
   showLogoutModal = false;
+  isSidebarOpen = false;
 
   constructor(private authService: AuthService) {}
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  closeSidebar() {
+    this.isSidebarOpen = false;
+  }
 
   get user(): any {
     return this.authService.currentUserValue?.user;

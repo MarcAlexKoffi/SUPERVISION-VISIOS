@@ -12,7 +12,7 @@ async function initDB() {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     port: parseInt(process.env.DB_PORT || '3306'),
-    ssl: {
+    ssl: process.env.DB_HOST === 'localhost' ? undefined : {
       rejectUnauthorized: false
     }
   });

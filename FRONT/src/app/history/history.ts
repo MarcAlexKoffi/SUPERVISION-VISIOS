@@ -40,10 +40,71 @@ export class HistoryComponent implements OnInit {
   showDeleteModal = false;
   supervisionToDelete: any = null;
 
+  isPrinting = false;
+  currentDate = Date.now();
+
   constructor(private supervisionService: SupervisionService) {} // Inject Service
 
   ngOnInit() {
     this.loadHistory();
+  }
+
+  printHistory() {
+    this.isPrinting = true;
+    setTimeout(() => {
+      window.print();
+      this.isPrinting = false;
+    }, 100);
+  }
+
+  get printSupervisions(): any[] {
+    // Return filtered supervisions sorted by date ASC for printing
+    return [...this.filteredSupervisions].sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+  }
+
+  get totalDuration(): string {
+    let totalMinutes = 0;
+    this.filteredSupervisions.forEach(s => {
+      const start = this.parseTime(s.startTimeStr);
+      const end = this.parseTime(s.endTimeStr);
+      let diff = end - start;
+      // Handle overnight or simply ensure positive duration
+      if (diff < 0) diff += 24 * 60;
+      
+      // Only count if diff makes sense (e.g. > 0)
+      if (diff > 0) {
+        totalMinutes += diff;
+      }
+    });
+    
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes.toString().padStart(2, '0')}`;
+  }
+
+  getDuration(s: any): string {
+    const start = this.parseTime(s.startTimeStr);
+    const end = this.parseTime(s.endTimeStr);
+    if (start === null || end === null) return '0h';
+    let diff = end - start;
+    if (diff < 0) diff += 24 * 60;
+    const hours = Math.floor(diff / 60);
+    const minutes = diff % 60;
+    // Return format like "2h 30" or just "2.5h" depending on preference.
+    // The previous template used number pipe which gives decimal hours.
+    // Let's stick to decimal hours for payment calculation ease?
+    // Actually, usually hours and minutes are preferred for display, but for payment, decimal is better.
+    // The prompt asked for "list... for payment".
+    // I will return decimal string for consistency with my template usage, or update template to call this.
+    return (diff / 60).toFixed(2) + 'h';
+  }
+
+  parseTime(timeStr: string): number {
+    if (!timeStr) return 0;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return (hours || 0) * 60 + (minutes || 0);
   }
 
   loadHistory() {

@@ -56,10 +56,80 @@ export class DashboardHome implements OnInit {
   currentPage = 1;
   itemsPerPage = 10;
 
+  localUEsCount = 0;
+  localUEsData: any[] = [];
+  isRestoring = false;
+
   constructor(
     private ueService: UeService,
     private supervisionService: SupervisionService
   ) {}
+
+  checkLocalStorage() {
+    // Check common keys for previous data
+    const keys = ['ues', 'courses', 'modules', 'teaching_units'];
+    for (const key of keys) {
+      const data = localStorage.getItem(key);
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log(`Found ${parsed.length} items in localStorage key "${key}"`);
+            this.localUEsData = parsed;
+            this.localUEsCount = parsed.length;
+            return; // Stop after first match
+          }
+        } catch (e) {
+          console.error(`Error parsing localStorage key "${key}"`, e);
+        }
+      }
+    }
+  }
+
+  restoreLocalUEs() {
+    if (!this.localUEsData.length || this.isRestoring) return;
+    
+    this.isRestoring = true;
+    let successCount = 0;
+    let failCount = 0;
+    const total = this.localUEsData.length;
+
+    this.localUEsData.forEach(ue => {
+        // Map old structure to new if necessary
+        // Adjust fields if necessary (e.g. old had 'teacher' instead of 'responsible')
+        const newUE = {
+            ...ue,
+            responsible: ue.responsible || ue.teacher || ue.teacherName || '',
+            level: ue.level || ue.dept || ''
+        };
+        
+        // Remove ID to let DB generate new one
+        delete newUE.id; 
+        
+        this.ueService.create(newUE).subscribe({
+            next: () => {
+                successCount++;
+                this.checkCompletion(successCount, failCount, total);
+            },
+            error: (err) => {
+                console.error('Failed to restore UE', ue, err);
+                failCount++;
+                this.checkCompletion(successCount, failCount, total);
+            }
+        });
+    });
+  }
+
+  checkCompletion(success: number, fail: number, total: number) {
+      if (success + fail === total) {
+          this.isRestoring = false;
+          alert(`Restauration terminée : ${success} UEs importées, ${fail} échecs.`);
+          this.loadData();
+          // Optional: clear local storage key
+          // localStorage.removeItem('ues'); 
+          this.localUEsCount = 0; // Hide button
+      }
+  }
 
   get displayedUEs() {
     let result = [...this.ues];
@@ -138,6 +208,7 @@ export class DashboardHome implements OnInit {
   }
 
   ngOnInit() {
+    this.checkLocalStorage();
     this.loadData();
   }
 
@@ -145,10 +216,17 @@ export class DashboardHome implements OnInit {
     // 1. Load UEs from API
     this.ueService.getAll().subscribe({
         next: (data) => {
+            console.log('UEs loaded:', data);
             this.ues = data;
             this.updateStats();
         },
-        error: (err) => console.error('Error loading UEs', err)
+        error: (err) => {
+            console.error('Error loading UEs', err);
+            if (err.status === 401 || err.status === 403) {
+                 // Token might be invalid after DB reset
+                 alert('Session expirée ou invalide. Veuillez vous reconnecter.');
+            }
+        }
     });
 
     // 2. Load Supervision Stats

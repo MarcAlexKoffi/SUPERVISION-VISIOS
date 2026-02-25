@@ -5,10 +5,12 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 export const getAllUEs = async (req: Request, res: Response) => {
   try {
+    console.log('Fetching all UEs...');
     const [rows] = await pool.query('SELECT * FROM ues ORDER BY created_at DESC');
+    console.log(`Found ${Array.isArray(rows) ? rows.length : 0} UEs`);
     res.json(rows);
   } catch (error) {
-    console.error(error);
+    console.error('Error in getAllUEs:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des UEs' });
   }
 };

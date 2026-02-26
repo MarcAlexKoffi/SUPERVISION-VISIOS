@@ -128,6 +128,11 @@ export class HistoryComponent implements OnInit {
       this.courses = [...new Set(historyCourses)].sort();
   }
 
+  onTeacherChange() {
+    this.filters.course = '';
+    this.applyFilters();
+  }
+
   applyFilters() {
     this.filteredSupervisions = this.supervisions.filter(s => {
       const matchTeacher = !this.filters.teacher || s.teacher.name === this.filters.teacher;

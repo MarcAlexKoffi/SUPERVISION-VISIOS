@@ -8,7 +8,7 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const {
-      teacherName, module, level, date, startTime, endTime, platform,
+      teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
       presentCount, totalStudents,
       technical, pedagogical,
       observations, supervisorName,
@@ -22,17 +22,17 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
 
     const query = `
       INSERT INTO supervision_forms (
-        user_id, teacher_name, module, level, visit_date, start_time, end_time, platform,
+        user_id, teacher_name, module, level, session_number, visit_date, start_time, end_time, platform,
         present_count, total_students,
         tech_internet, tech_audio_video, tech_punctuality,
         ped_objectives, ped_content_mastery, ped_interaction, ped_tools_usage,
         observations, supervisor_name,
         supervisor_signature, teacher_signature
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
-      userId, teacherName, module, level, date, startTime, endTime, platform,
+      userId, teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
       presentCount, totalStudents,
       technical?.internet, technical?.audioVideo, technical?.punctuality,
       pedagogical?.objectives, pedagogical?.contentMastery, pedagogical?.interaction, pedagogical?.toolsUsage,

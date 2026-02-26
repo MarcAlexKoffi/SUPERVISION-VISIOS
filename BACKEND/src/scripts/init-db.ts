@@ -12,9 +12,7 @@ async function initDB() {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     port: parseInt(process.env.DB_PORT || '3306'),
-    ssl: process.env.DB_HOST === 'localhost' ? undefined : {
-      rejectUnauthorized: false
-    }
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
   });
 
   try {
@@ -48,6 +46,7 @@ async function initDB() {
         teacher_name VARCHAR(255) NOT NULL,
         module VARCHAR(255) NOT NULL,
         level VARCHAR(100),
+        session_number VARCHAR(50),
         visit_date DATE NOT NULL,
         start_time TIME,
         end_time TIME,

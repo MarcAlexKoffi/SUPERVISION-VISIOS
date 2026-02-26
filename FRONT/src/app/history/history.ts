@@ -210,6 +210,7 @@ export class HistoryComponent implements OnInit {
         initials: this.getInitials(teacherName),
         color: this.getRandomColor(teacherName)
       },
+      sessionNumber: data.session_number || data.sessionNumber || '',
       course: {
         code: 'UE', 
         name: moduleName
@@ -386,7 +387,7 @@ export class HistoryComponent implements OnInit {
       </head>
       <body>
         <h1>Rapport de Supervision</h1>
-        <h2>Université Virtuelle - Réf: #${s.id.toString().substring(0, 8)}</h2>
+        <h2>Université Virtuelle - Réf: #${s.id.toString().substring(0, 8)} ${s.sessionNumber ? '- ' + s.sessionNumber : ''}</h2>
 
         <div class="section">
           <div class="section-header">Informations Générales</div>
@@ -417,6 +418,12 @@ export class HistoryComponent implements OnInit {
                  <div class="value">${s.presentCount} Présents / ${s.totalStudents} Inscrits</div>
               </div>
             </div>
+            
+            ${s.sessionNumber ? `
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #e2e8f0; text-align: center;">
+                <span style="font-size: 16px; font-weight: bold; color: #0f42a5; text-transform: uppercase;">${s.sessionNumber}</span>
+            </div>
+            ` : ''}
           </div>
         </div>
 

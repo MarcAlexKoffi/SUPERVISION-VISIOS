@@ -33,6 +33,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     teacherName: '',
     module: '',
     level: '',
+    sessionNumber: '',
     date: new Date().toISOString().split('T')[0],
     startTime: '',
     endTime: '',

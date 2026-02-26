@@ -227,7 +227,11 @@
                             </div>
                             <div class="flex justify-between mt-2">
                                 <span class="text-xs text-slate-400">Signature Superviseur</span>
-                                <button (click)="clearCanvas('supervisor')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
+                                <div class="flex gap-2">
+                                    <input #supervisorFile type="file" accept="image/*" class="hidden" (change)="handleImageImport($event, 'supervisor')">
+                                    <button (click)="supervisorFile.click()" class="text-xs font-medium text-blue-500 hover:text-blue-600 hover:underline">Importer</button>
+                                    <button (click)="clearCanvas('supervisor')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -248,7 +252,11 @@
                             </div>
                             <div class="flex justify-between mt-2">
                                 <span class="text-xs text-slate-500">Signature Enseignant</span>
-                                <button (click)="clearCanvas('teacher')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
+                                <div class="flex gap-2">
+                                    <input #teacherFile type="file" accept="image/*" class="hidden" (change)="handleImageImport($event, 'teacher')">
+                                    <button (click)="teacherFile.click()" class="text-xs font-medium text-blue-500 hover:text-blue-600 hover:underline">Importer</button>
+                                    <button (click)="clearCanvas('teacher')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -308,6 +316,24 @@
                 </p>
                 <button (click)="closeSuccessModal()" class="w-full px-4 py-2.5 font-semibold text-white transition-colors bg-green-600 rounded-xl hover:bg-green-700 focus:ring-2 focus:ring-green-600/20">
                     OK, Compris
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div *ngIf="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div class="w-full max-w-md p-6 bg-white shadow-2xl dark:bg-slate-800 rounded-2xl transform transition-all scale-100 opacity-100">
+            <div class="flex flex-col items-center text-center">
+                <div class="p-3 mb-4 text-red-600 rounded-full bg-red-50 dark:bg-red-900/30 dark:text-red-400">
+                    <span class="material-symbols-outlined text-3xl">error</span>
+                </div>
+                <h3 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">Erreur d'enregistrement</h3>
+                <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
+                    {{ errorMessage || "Une erreur est survenue lors de l'enregistrement." }}
+                </p>
+                <button (click)="closeErrorModal()" class="w-full px-4 py-2.5 font-semibold text-white transition-colors bg-red-600 rounded-xl hover:bg-red-700 focus:ring-2 focus:ring-red-600/20">
+                    Fermer
                 </button>
             </div>
         </div>

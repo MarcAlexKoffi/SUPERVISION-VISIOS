@@ -23,6 +23,8 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   
   showSaveModal = false;
   showSuccessModal = false;
+  showErrorModal = false;
+  errorMessage = '';
 
   ues: any[] = [];
   selectedUECode: string = '';
@@ -226,6 +228,37 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     }
   }
 
+  handleImageImport(event: any, type: 'supervisor' | 'teacher') {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = type === 'supervisor' ? this.supervisorCanvas.nativeElement : this.teacherCanvas.nativeElement;
+          const ctx = this.contexts[type] || canvas.getContext('2d');
+          if (ctx) {
+            // Clear current canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate scale to fit image within canvas while maintaining aspect ratio
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            const x = (canvas.width - w) / 2;
+            const y = (canvas.height - h) / 2;
+            
+            ctx.drawImage(img, x, y, w, h);
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      // Reset input value to allow selecting same file again
+      event.target.value = '';
+    }
+  }
+
   printPage() {
     window.print();
   }
@@ -262,7 +295,8 @@ export class SupervisionForm implements AfterViewInit, OnInit {
             console.error('Erreur sauvegarde', err);
             this.isSaving = false;
             this.saveMessage = 'Enregistrer la fiche';
-            alert('Erreur lors de la sauvegarde: ' + (err.error?.message || err.statusText));
+            this.errorMessage = err.error?.message || err.statusText || 'Une erreur inconnue est survenue.';
+            this.showErrorModal = true;
         }
     });
   }
@@ -273,6 +307,10 @@ export class SupervisionForm implements AfterViewInit, OnInit {
 
   closeSuccessModal() {
     this.showSuccessModal = false;
+  }
+  
+  closeErrorModal() {
+    this.showErrorModal = false;
   }
 
   resetForm(askConfirmation: boolean = true) {

@@ -28,7 +28,7 @@ export class UserDashboard implements OnInit {
 
     ngOnInit() {
         if (!this.currentUser) {
-            this.router.navigate(['/login']);
+            this.authService.logout();
             return;
         }
 

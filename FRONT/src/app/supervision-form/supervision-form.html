@@ -1,5 +1,5 @@
 
-<div class="p-6 mx-auto max-w-5xl">
+<div class="p-6 w-full">
     <!-- Actions Bar -->
     <div class="flex justify-end gap-3 mb-6 no-print">
         <button (click)="resetForm()" class="px-4 py-2 font-semibold transition-all bg-white border rounded-xl shadow-sm text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 focus:ring-2 focus:ring-slate-200">
@@ -18,11 +18,11 @@
                 </div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 uppercase">Fiche de Supervision</h1>
-                    <p class="font-medium text-slate-500 text-sm sm:text-base">Séance de visioconférence / Classe virtuelle</p>
+                    <p class="font-medium text-slate-600 text-sm sm:text-base">Séance de visioconférence / Classe virtuelle</p>
                 </div>
             </div>
             <div class="text-left sm:text-right w-full sm:w-auto">
-                <div class="inline-block px-3 py-1 mb-1 text-xs font-bold tracking-wide uppercase rounded bg-slate-100 text-slate-500">Réf: SUP-VISIO-2024</div>
+                <div class="inline-block px-3 py-1 mb-1 text-xs font-bold tracking-wide uppercase rounded bg-slate-100 text-slate-600">Réf: SUP-VISIO-2024</div>
                 <div class="text-lg font-bold tracking-tight text-[#0f42a5] uppercase">Campus en Ligne</div>
             </div>
         </header>
@@ -45,53 +45,53 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     <div class="space-y-6">
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Enseignant(e)</label>
-                            <input [(ngModel)]="formData.teacherName" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400 text-slate-900" placeholder="Nom Prénom">
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Enseignant(e)</label>
+                            <input [(ngModel)]="formData.teacherName" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-500 text-slate-900" placeholder="Nom Prénom">
                         </div>
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Module / Matière</label>
-                            <input [(ngModel)]="formData.module" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400 text-slate-900" placeholder="Ex: Marketing Digital">
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Module / Matière</label>
+                            <input [(ngModel)]="formData.module" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-500 text-slate-900" placeholder="Ex: Marketing Digital">
                         </div>
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Niveau / Promotion</label>
-                            <input [(ngModel)]="formData.level" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-400 text-slate-900" placeholder="Ex: Licence 2 - Groupe A">
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Niveau / Promotion</label>
+                            <input [(ngModel)]="formData.level" type="text" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-500 text-slate-900" placeholder="Ex: Licence 2 - Groupe A">
                         </div>
                     </div>
                     <div class="space-y-6">
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Date & Heure</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Date & Heure</label>
                             <div class="flex items-center gap-3">
-                                <input [(ngModel)]="formData.date" type="date" class="w-1/2 px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-600">
+                                <input [(ngModel)]="formData.date" type="date" class="w-1/2 px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
                                 <div class="flex items-center w-1/2 gap-2">
-                                    <input [(ngModel)]="formData.startTime" type="time" class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-600">
-                                    <span class="text-slate-300 font-bold">-</span>
-                                    <input [(ngModel)]="formData.endTime" type="time" class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-600">
+                                    <input [(ngModel)]="formData.startTime" type="time" class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
+                                    <span class="text-slate-400 font-bold">-</span>
+                                    <input [(ngModel)]="formData.endTime" type="time" class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
                                 </div>
                             </div>
                         </div>
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Plateforme utilisée</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Plateforme utilisée</label>
                             <div class="relative">
-                                <select [(ngModel)]="formData.platform" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-600">
+                                <select [(ngModel)]="formData.platform" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-700">
                                     <option>Zoom</option>
                                     <option>Microsoft Teams</option>
                                     <option>Google Meet</option>
                                     <option>Autre</option>
                                 </select>
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-slate-400 text-[20px]">expand_more</span>
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-slate-500 text-[20px]">expand_more</span>
                             </div>
                         </div>
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase ml-1">Effectif</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Effectif</label>
                             <div class="flex items-center gap-4 text-sm p-1">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-slate-500 uppercase text-xs">Présents</span>
+                                    <span class="font-bold text-slate-600 uppercase text-xs">Présents</span>
                                     <input [(ngModel)]="formData.presentCount" type="number" class="w-20 px-2 py-2 text-center font-bold bg-white border border-slate-200 rounded-lg focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-900" placeholder="0">
                                 </div>
-                                <span class="text-slate-300 text-xl font-light">/</span>
+                                <span class="text-slate-400 text-xl font-light">/</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-slate-500 uppercase text-xs">Inscrits</span>
-                                    <input [(ngModel)]="formData.totalStudents" type="number" class="w-20 px-2 py-2 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg text-slate-500 outline-none" readonly>
+                                    <span class="font-bold text-slate-600 uppercase text-xs">Inscrits</span>
+                                    <input [(ngModel)]="formData.totalStudents" type="number" class="w-20 px-2 py-2 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg text-slate-600 outline-none" readonly>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
                     <div class="overflow-x-auto border rounded-xl border-slate-200 dark:border-slate-700">
                         <table class="w-full text-sm min-w-[600px]">
                             <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                                <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-500">
+                                <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-700">
                                     <th class="px-6 py-3 w-1/2">Critères</th>
                                     <th class="px-4 py-3 text-center">Conforme</th>
                                     <th class="px-4 py-3 text-center text-orange-600">À améliorer</th>
@@ -156,7 +156,7 @@
                     <div class="overflow-x-auto border rounded-xl border-slate-200 dark:border-slate-700">
                         <table class="w-full text-sm min-w-[600px]">
                             <thead class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                                <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-500">
+                                <tr class="text-xs font-bold tracking-wider text-left uppercase text-slate-700">
                                     <th class="px-6 py-3 w-1/2">Critères</th>
                                     <th class="px-4 py-3 text-center text-green-600">Excellent</th>
                                     <th class="px-4 py-3 text-center text-[#0f42a5]">Satisfaisant</th>
@@ -247,7 +247,7 @@
                                 </div>
                             </div>
                             <div class="flex justify-between mt-2">
-                                <span class="text-xs text-slate-400">Signature Enseignant</span>
+                                <span class="text-xs text-slate-500">Signature Enseignant</span>
                                 <button (click)="clearCanvas('teacher')" class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline">Effacer</button>
                             </div>
                         </div>
@@ -266,7 +266,7 @@
 
         <!-- Sheet Footer -->
         <footer class="px-8 py-4 text-center border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800">
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
                 Document à usage interne - Confidentiel - Généré le {{ currentDate | date:'dd/MM/yyyy' }}
             </p>
         </footer>
@@ -280,11 +280,11 @@
                     <span class="material-symbols-outlined text-3xl">save</span>
                 </div>
                 <h3 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">Confirmer l'enregistrement</h3>
-                <p class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+                <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
                     Êtes-vous sûr de vouloir enregistrer cette fiche de supervision ? <br>Les données seront sauvegardées localement.
                 </p>
                 <div class="flex gap-3 w-full">
-                    <button (click)="cancelSave()" class="w-1/2 px-4 py-2.5 font-semibold transition-colors bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
+                    <button (click)="cancelSave()" class="w-1/2 px-4 py-2.5 font-semibold transition-colors bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
                         Annuler
                     </button>
                     <button (click)="confirmSave()" class="w-1/2 px-4 py-2.5 font-semibold text-white transition-colors bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] focus:ring-2 focus:ring-blue-900/20">
@@ -303,7 +303,7 @@
                     <span class="material-symbols-outlined text-3xl">check_circle</span>
                 </div>
                 <h3 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">Enregistrement réussi !</h3>
-                <p class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+                <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
                     La fiche de supervision a été enregistrée avec succès. Le formulaire a été réinitialisé pour une nouvelle saisie.
                 </p>
                 <button (click)="closeSuccessModal()" class="w-full px-4 py-2.5 font-semibold text-white transition-colors bg-green-600 rounded-xl hover:bg-green-700 focus:ring-2 focus:ring-green-600/20">

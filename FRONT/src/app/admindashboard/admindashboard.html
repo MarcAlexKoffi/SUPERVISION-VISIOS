@@ -26,20 +26,20 @@
         
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
-            <div class="px-4 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Menu Principal</div>
+            <div class="px-4 mb-3 text-[11px] lg:text-xs font-bold text-slate-500 uppercase tracking-widest">Menu Principal</div>
             
-            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/dashboard" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla="routerLinkActive">
-                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla.isActive">grid_view</span>
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/dashboard" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla.isActive">grid_view</span>
                 Tableau de bord
             </a>
             
-            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/supervision-form" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla2="routerLinkActive">
-                <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla2.isActive">assignment</span>
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/supervision-form" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla2="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla2.isActive">assignment</span>
                 Fiches de Supervision
             </a>
             
-            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/history" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
-                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">history</span>
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/history" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">history</span>
                 Historique
             </a>
             
@@ -48,19 +48,19 @@
                 Planning
             </a> -->
             
-            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
                [class.hidden]="!isAdmin"
                routerLink="/admin/users" 
                routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" 
                #rla4="routerLinkActive">
-                <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" 
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" 
                       [class.!text-[#0f42a5]]="rla4.isActive">groups</span>
                 Utilisateurs
             </a>
             
-            <!-- <div class="px-4 mt-8 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Configuration</div>
+            <!-- <div class="px-4 mt-8 mb-3 text-[11px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest">Configuration</div>
             
-            <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" href="#">
+            <a class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" href="#">
                 <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">settings</span>
                 Paramètres
             </a>
@@ -70,8 +70,8 @@
                 Aide & Support
             </a> -->
             <div class="pt-4 mt-auto">
-                <button (click)="openLogoutModal()" class="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-all group">
-                    <span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">logout</span>
+                <button (click)="openLogoutModal()" class="flex w-full items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-all group">
+                    <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform">logout</span>
                     Déconnexion
                 </button>
             </div>        </nav>
@@ -80,15 +80,15 @@
         <div class="p-4 border-t border-slate-100 dark:border-slate-700/50">
             <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all group cursor-pointer">
                 <div class="relative">
-                    <img [src]="'https://ui-avatars.com/api/?name=' + (user?.username || 'User') + '&background=fed7aa&color=c2410c&bold=true'" [alt]="user?.username" class="w-10 h-10 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700 shadow-sm group-hover:border-primary/20 transition-colors">
+                    <img [src]="'https://ui-avatars.com/api/?name=' + (user?.username || 'User') + '&background=fed7aa&color=c2410c&bold=true'" [alt]="user?.username" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700 shadow-sm group-hover:border-primary/20 transition-colors">
                     <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ user?.username }}</p>
-                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{{ user?.role | titlecase }}</p>
+                    <p class="text-sm lg:text-base font-bold text-slate-900 dark:text-white truncate">{{ user?.username }}</p>
+                    <p class="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{{ user?.role | titlecase }}</p>
                 </div>
-                <button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                <button class="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                    <span class="material-symbols-outlined text-[20px] lg:text-[24px]">more_vert</span>
                 </button>
             </div>
         </div>

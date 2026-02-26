@@ -23,32 +23,32 @@
     </div>
 
     <!-- Print Table -->
-    <table class="w-full text-left border-collapse text-sm mb-8">
+    <table class="w-full text-left border-collapse text-sm mb-8 border border-black">
         <thead>
-            <tr class="bg-gray-100 border-y border-black font-bold uppercase text-xs tracking-wider">
-                <th class="py-3 px-2 border-r border-gray-300">Date</th>
-                <th class="py-3 px-2 border-r border-gray-300" *ngIf="!filters.teacher">Enseignant</th>
-                <th class="py-3 px-2 border-r border-gray-300">Module</th>
-                <th class="py-3 px-2 border-r border-gray-300 text-center">Niveau/Dept</th>
-                <th class="py-3 px-2 border-r border-gray-300 text-center">Début</th>
-                <th class="py-3 px-2 border-r border-gray-300 text-center">Fin</th>
+            <tr class="bg-gray-100 border-b border-black font-bold uppercase text-xs tracking-wider">
+                <th class="py-3 px-2 border-r border-black">Date</th>
+                <th class="py-3 px-2 border-r border-black" *ngIf="!filters.teacher">Enseignant</th>
+                <th class="py-3 px-2 border-r border-black">Module</th>
+                <th class="py-3 px-2 border-r border-black text-center">Niveau/Dept</th>
+                <th class="py-3 px-2 border-r border-black text-center">Début</th>
+                <th class="py-3 px-2 border-r border-black text-center">Fin</th>
                 <th class="py-3 px-2 text-right">Durée</th>
             </tr>
         </thead>
         <tbody class="text-gray-800">
-            <tr *ngFor="let s of printSupervisions; let i = index" [class.bg-gray-50]="i % 2 !== 0" class="border-b border-gray-200">
-                <td class="py-2 px-2 border-r border-gray-200 font-medium">{{ s.date | date:'dd/MM/yyyy' }}</td>
-                <td class="py-2 px-2 border-r border-gray-200 uppercase text-xs" *ngIf="!filters.teacher">{{ s.teacher.name }}</td>
-                <td class="py-2 px-2 border-r border-gray-200 font-bold text-xs">{{ s.course.name }}</td>
-                <td class="py-2 px-2 border-r border-gray-200 text-center text-xs">{{ s.teacher.department }}</td>
-                <td class="py-2 px-2 border-r border-gray-200 text-center font-mono text-xs">{{ s.startTimeStr }}</td>
-                <td class="py-2 px-2 border-r border-gray-200 text-center font-mono text-xs">{{ s.endTimeStr }}</td>
+            <tr *ngFor="let s of printSupervisions; let i = index" [class.bg-gray-50]="i % 2 !== 0" class="border-b border-black">
+                <td class="py-2 px-2 border-r border-black font-medium">{{ s.date | date:'dd/MM/yyyy' }}</td>
+                <td class="py-2 px-2 border-r border-black uppercase text-xs" *ngIf="!filters.teacher">{{ s.teacher.name }}</td>
+                <td class="py-2 px-2 border-r border-black font-bold text-xs">{{ s.course.name }}</td>
+                <td class="py-2 px-2 border-r border-black text-center text-xs">{{ s.teacher.department }}</td>
+                <td class="py-2 px-2 border-r border-black text-center font-mono text-xs">{{ s.startTimeStr }}</td>
+                <td class="py-2 px-2 border-r border-black text-center font-mono text-xs">{{ s.endTimeStr }}</td>
                 <td class="py-2 px-2 text-right font-bold text-xs">
                     {{ getDuration(s) }}
                 </td>
             </tr>
             <tr *ngIf="printSupervisions.length === 0">
-                <td colspan="7" class="p-8 text-center text-gray-500 italic">Aucune supervision ne correspond aux critères sélectionnés.</td>
+                <td [attr.colspan]="!filters.teacher ? 7 : 6" class="p-8 text-center text-gray-500 italic border-l border-r border-black">Aucune supervision ne correspond aux critères sélectionnés.</td>
             </tr>
         </tbody>
         <tfoot class="border-t-2 border-black bg-gray-50 font-bold">

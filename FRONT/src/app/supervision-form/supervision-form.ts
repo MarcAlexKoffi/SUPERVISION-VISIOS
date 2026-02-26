@@ -256,6 +256,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
             this.saveMessage = 'Enregistrer la fiche';
             // Clear localStorage draft if any
             localStorage.removeItem('supervisionFormData');
+            this.resetForm(false);
         },
         error: (err) => {
             console.error('Erreur sauvegarde', err);
@@ -306,9 +307,14 @@ export class SupervisionForm implements AfterViewInit, OnInit {
         observations: '',
         supervisorName: ''
       };
+
+      // Restore supervisor name
+      const user = this.authService.currentUserValue;
+      if (user && user.username) {
+          this.formData.supervisorName = user.username;
+      }
       
       this.clearCanvas('supervisor');
       this.clearCanvas('teacher');
-    // } (removed closing brace)
   }
 }

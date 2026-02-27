@@ -245,11 +245,13 @@ export class DashboardHome implements OnInit {
       this.currentUser = user?.user;
       this.isAdmin = this.currentUser?.role === 'admin';
 
-      this.checkLocalStorage();
+      this.checkLocalStorage(); // Check for any local backups
 
-      if (this.isAdmin) {
-          this.loadData();
-      } else {
+      // Always load UEs list for everyone (Admins and Users)
+      this.loadData();
+
+      // Additional user-specific data
+      if (!this.isAdmin) {
           this.loadUserData();
       }
   }

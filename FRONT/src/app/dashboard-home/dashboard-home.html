@@ -1,4 +1,6 @@
 <div class="p-6 md:p-8 space-y-6 w-full">
+    <!-- ADMIN VIEW -->
+    <ng-container *ngIf="isAdmin">
     <!-- Hero Banner -->
     <div
         class="relative overflow-hidden bg-gradient-to-br from-[#0f42a5] to-[#1e3a8a] text-white rounded-3xl p-8 shadow-xl">
@@ -209,11 +211,88 @@
             </div>
         </div>
     </div>
+    </ng-container>
+
+    <!-- USER VIEW -->
+    <ng-container *ngIf="!isAdmin">
+        <!-- Hero Banner User -->
+         <div
+            class="relative overflow-hidden bg-gradient-to-br from-[#10b981] to-[#059669] text-white rounded-3xl p-8 shadow-xl">
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div class="space-y-2 max-w-2xl">
+                    <div class="flex items-center gap-2 text-green-200 text-xs lg:text-sm font-bold uppercase tracking-widest mb-1">
+                        <span class="material-symbols-outlined text-sm lg:text-base">person</span>
+                        Espace Enseignant / Personnel
+                    </div>
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+                        Bienvenue, {{ currentUser?.name || 'Utilisateur' }}
+                    </h1>
+                    <p class="text-green-100 text-sm md:text-base lg:text-lg opacity-90 leading-relaxed max-w-xl">
+                        Consultez vos statistiques et gérez vos supervisions en toute simplicité.
+                    </p>
+                </div>
+                 <div class="flex items-center gap-3 w-full md:w-auto h-full">
+                     <a routerLink="/admin/supervision-form"
+                        class="h-12 px-6 rounded-xl bg-white hover:bg-slate-50 text-[#059669] font-bold shadow-sm shadow-black/5 hover:shadow-md transition-all flex items-center justify-center gap-2 text-sm lg:text-base w-full md:w-auto whitesapce-nowrap cursor-pointer decoration-none">
+                        <span
+                            class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform">add_task</span>
+                        <span>Nouvelle Supervision</span>
+                    </a>
+                </div>
+            </div>
+            <!-- Decorative bg elements -->
+            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-green-500/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <!-- Stats Cards User -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div *ngFor="let stat of userStats"
+                class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between group hover:shadow-md transition-shadow">
+                <div>
+                    <p class="text-sm lg:text-base font-bold text-slate-600 dark:text-slate-400 mb-1">{{ stat.label }}</p>
+                    <h3
+                        class="text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                        {{ stat.value }}</h3>
+                </div>
+                <div [class]="'w-12 h-12 lg:w-16 lg:h-16 rounded-xl flex items-center justify-center ' + stat.iconBg">
+                    <span class="material-symbols-outlined text-2xl lg:text-4xl">{{ stat.icon }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Supervisions List (Simple) -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+            <h3 class="text-lg lg:text-xl font-bold text-slate-900 dark:text-white mb-4">Vos dernières supervisions</h3>
+            
+            <div *ngIf="recentSupervisions.length === 0" class="text-center py-8 text-slate-500">
+                Aucune supervision récente.
+            </div>
+
+            <div class="space-y-3">
+                <div *ngFor="let sup of recentSupervisions" class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined">description</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900">{{ sup.ue_code || 'N/A' }}</div>
+                            <div class="text-xs text-slate-500">{{ sup.visit_date | date:'dd/MM/yyyy' }}</div>
+                        </div>
+                    </div>
+                    <div class="text-sm font-semibold text-slate-700">
+                        {{ sup.start_time }} - {{ sup.end_time }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                 <a routerLink="/admin/history" class="text-blue-600 font-semibold hover:underline text-sm">Voir tout l'historique</a>
+            </div>
+        </div>
+    </ng-container>
 </div>
-    
 
-
-<!-- Modal Voir UE -->
 <div *ngIf="isViewModalOpen && selectedUE" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" (click)="closeViewModal()"></div>

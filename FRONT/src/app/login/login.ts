@@ -39,11 +39,7 @@ export class Login implements OnInit {
              // Let the regular flow decide based on role? Or just stay put?
              // Usually redirection is better
              const user = this.authService.currentUserValue;
-             if (user.user?.role === 'admin' || user.role === 'admin') {
-                 this.router.navigate(['/admin/dashboard']);
-             } else {
-                 this.router.navigate(['/user-dashboard']);
-             }
+             this.router.navigate(['/admin/dashboard']);
           }
       }
   }
@@ -76,11 +72,7 @@ export class Login implements OnInit {
             return;
         }
 
-        if (res.user && (res.user.role === 'admin' || res.role === 'admin')) {
-            this.router.navigate(['/admin/dashboard']);
-        } else {
-            this.router.navigate(['/user-dashboard']);
-        }
+        this.router.navigate(['/admin/dashboard']);
 
 
       },

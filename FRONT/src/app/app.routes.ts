@@ -19,21 +19,22 @@ export const routes: Routes = [
         component: Login
     },
     {
-        path: 'user-dashboard', // Add route for user dashboard
-        component: UserDashboard,
-        canActivate: [authGuard] // Protect this route
-    },
-    {
         path: 'admin',
         component: Admindashboard,
         canActivate: [authGuard], // Protect this route and its children
         children: [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardHome },
-            { path: 'users', component: UsersComponent },
+            { path: 'users', component: UsersComponent }, // Ideally protect this with RoleGuard
             { path: 'history', component: HistoryComponent },
             { path: 'supervision-form', component: SupervisionForm }
         ]
+    },
+    // Redirect old user-dashboard to admin dashboard for unified layout
+    {
+        path: 'user-dashboard',
+        redirectTo: '/admin/dashboard',
+        pathMatch: 'full'
     }
 ];
 

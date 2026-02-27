@@ -3,16 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { SupervisionService } from '../services/supervision.service';
+import { AuthService } from '../services/auth.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })
 export class DashboardHome implements OnInit {
   isModalOpen = false;
+  isAdmin = false;
+  currentUser: any = null;
 
   // DB Fields: code, name, responsible, students_count, level, semester, phase
   // UI Fields mapping:
@@ -35,11 +39,18 @@ export class DashboardHome implements OnInit {
     department: ''
   };
 
-  stats = [
+  stats: any[] = [
     { label: 'Total UE Actives', value: '0', icon: 'library_books', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
     { label: 'Étudiants Inscrits', value: '0', icon: 'groups', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' },
     { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' }
   ];
+  
+  // User Stats
+  userStats = [
+      { label: 'Mes Supervisions', value: '0', icon: 'assignment', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
+      { label: 'Dernière Activité', value: '-', icon: 'history', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' },
+  ];
+  recentSupervisions: any[] = [];
 
   ues: any[] = [];
   searchTerm: string = '';
@@ -62,8 +73,30 @@ export class DashboardHome implements OnInit {
 
   constructor(
     private ueService: UeService,
-    private supervisionService: SupervisionService
+    private supervisionService: SupervisionService,
+    private authService: AuthService
   ) {}
+
+  loadUserData() {
+      // Load user specific stats
+      this.supervisionService.getAll().subscribe({
+          next: (data) => {
+              // The backend filters by userId for non-admins already in getAllSupervisions
+              const mySupervisions = data; 
+              this.userStats[0].value = mySupervisions.length.toString();
+              
+              if (mySupervisions.length > 0) {
+                  // Sort by date desc
+                  mySupervisions.sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime());
+                  const lastSup = mySupervisions[0];
+                  this.userStats[1].value = new Date(lastSup.visit_date || lastSup.date).toLocaleDateString();
+                  
+                  this.recentSupervisions = mySupervisions.slice(0, 5);
+              }
+          },
+          error: (err) => console.error('Error loading user data', err)
+      });
+  }
 
   checkLocalStorage() {
     // Check common keys for previous data
@@ -208,8 +241,17 @@ export class DashboardHome implements OnInit {
   }
 
   ngOnInit() {
-    this.checkLocalStorage();
-    this.loadData();
+      const user = this.authService.currentUserValue;
+      this.currentUser = user?.user;
+      this.isAdmin = this.currentUser?.role === 'admin';
+
+      this.checkLocalStorage();
+
+      if (this.isAdmin) {
+          this.loadData();
+      } else {
+          this.loadUserData();
+      }
   }
 
   loadData() {

@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service'; // Import Service
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-history',
@@ -43,9 +44,17 @@ export class HistoryComponent implements OnInit {
   isPrinting = false;
   currentDate = Date.now();
 
-  constructor(private supervisionService: SupervisionService) {} // Inject Service
+  isAdmin = false;
+  currentUser: any = null;
+
+  constructor(
+    private supervisionService: SupervisionService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
+    this.isAdmin = this.authService.isAdmin;
+    this.currentUser = this.authService.currentUser;
     this.loadHistory();
   }
 
@@ -111,6 +120,10 @@ export class HistoryComponent implements OnInit {
     // Call API instead of localStorage
     this.supervisionService.getAll().subscribe({
         next: (data) => {
+            // Backend handles filtering, but we enforce it here proactively just in case or for immediate UI feedback
+            if (!this.isAdmin && this.currentUser) {
+                 data = data.filter((item: any) => item.user_id === this.currentUser.id);
+            }
             this.supervisions = data.map((item: any) => this.mapToView(item));
             this.updateFilters();
             this.applyFilters();

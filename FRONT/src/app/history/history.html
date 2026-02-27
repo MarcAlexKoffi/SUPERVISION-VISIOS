@@ -93,7 +93,7 @@
     <!-- Filters -->
     <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="space-y-1">
+            <div class="space-y-1" *ngIf="isAdmin">
                 <label class="text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">Enseignant</label>
                 <div class="relative">
                     <select [(ngModel)]="filters.teacher" (change)="onTeacherChange()" class="w-full pl-3 pr-10 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">

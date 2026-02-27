@@ -215,79 +215,119 @@
 
     <!-- USER VIEW -->
     <ng-container *ngIf="!isAdmin">
-        <!-- Hero Banner User -->
-         <div
-            class="relative overflow-hidden bg-gradient-to-br from-[#10b981] to-[#059669] text-white rounded-3xl p-8 shadow-xl">
-            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                <div class="space-y-2 max-w-2xl">
-                    <div class="flex items-center gap-2 text-green-200 text-xs lg:text-sm font-bold uppercase tracking-widest mb-1">
-                        <span class="material-symbols-outlined text-sm lg:text-base">person</span>
-                        Espace Enseignant / Personnel
+        <!-- Hero Banner User - More Refined -->
+         <div class="relative overflow-hidden bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-700">
+            <!-- Background Decoration -->
+            <div class="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-blue-50 dark:bg-blue-900/20 rounded-full blur-3xl opacity-50"></div>
+            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-3xl opacity-50"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="space-y-4 max-w-2xl text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
+                        <span class="material-symbols-outlined text-[16px]">verified_user</span>
+                        Espace Enseignant
                     </div>
-                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
-                        Bienvenue, {{ currentUser?.name || 'Utilisateur' }}
-                    </h1>
-                    <p class="text-green-100 text-sm md:text-base lg:text-lg opacity-90 leading-relaxed max-w-xl">
-                        Consultez vos statistiques et gérez vos supervisions en toute simplicité.
-                    </p>
+                    <div>
+                        <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Bonjour, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{{ currentUser?.name || currentUser?.username || 'Utilisateur' }}</span>
+                        </h1>
+                        <p class="text-slate-500 dark:text-slate-400 text-lg mt-2 leading-relaxed">
+                            Ravi de vous revoir. Voici un aperçu de vos activités de supervision récentes.
+                        </p>
+                    </div>
                 </div>
-                 <div class="flex items-center gap-3 w-full md:w-auto h-full">
+
+                <div class="flex-shrink-0">
                      <a routerLink="/admin/supervision-form"
-                        class="h-12 px-6 rounded-xl bg-white hover:bg-slate-50 text-[#059669] font-bold shadow-sm shadow-black/5 hover:shadow-md transition-all flex items-center justify-center gap-2 text-sm lg:text-base w-full md:w-auto whitesapce-nowrap cursor-pointer decoration-none">
-                        <span
-                            class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform">add_task</span>
-                        <span>Nouvelle Supervision</span>
+                        class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-blue-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 decoration-none">
+                        <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
+                        <span class="relative flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                            Nouvelle Supervision
+                        </span>
                     </a>
                 </div>
             </div>
-            <!-- Decorative bg elements -->
-            <div class="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-green-500/20 rounded-full blur-3xl"></div>
         </div>
 
-        <!-- Stats Cards User -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div *ngFor="let stat of userStats"
-                class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between group hover:shadow-md transition-shadow">
-                <div>
-                    <p class="text-sm lg:text-base font-bold text-slate-600 dark:text-slate-400 mb-1">{{ stat.label }}</p>
-                    <h3
-                        class="text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
-                        {{ stat.value }}</h3>
+        <!-- Stats Cards User - More Modern -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div *ngFor="let stat of userStats" class="relative group bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-all duration-300">
+                <div class="flex items-center justify-between relative z-10">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">{{ stat.label }}</p>
+                        <h3 class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight group-hover:text-blue-600 transition-colors">
+                            {{ stat.value }}
+                        </h3>
+                    </div>
+                    <div [class]="'w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm ' + stat.iconBg">
+                        <span class="material-symbols-outlined text-3xl">{{ stat.icon }}</span>
+                    </div>
                 </div>
-                <div [class]="'w-12 h-12 lg:w-16 lg:h-16 rounded-xl flex items-center justify-center ' + stat.iconBg">
-                    <span class="material-symbols-outlined text-2xl lg:text-4xl">{{ stat.icon }}</span>
-                </div>
+                <!-- Decorative background icon -->
+                <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-slate-50 dark:text-slate-800/50 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rotate-12">{{ stat.icon }}</span>
             </div>
         </div>
 
-        <!-- Recent Supervisions List (Simple) -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-            <h3 class="text-lg lg:text-xl font-bold text-slate-900 dark:text-white mb-4">Vos dernières supervisions</h3>
+        <!-- Recent Supervisions List - Cleaner Card Style -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-500">history</span>
+                    Activités Récentes
+                </h3>
+                <a routerLink="/admin/history" class="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 decoration-none">
+                    Voir tout
+                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </a>
+            </div>
             
-            <div *ngIf="recentSupervisions.length === 0" class="text-center py-8 text-slate-500">
-                Aucune supervision récente.
+            <div *ngIf="recentSupervisions.length === 0" class="text-center py-12">
+                <div class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                    <span class="material-symbols-outlined text-3xl">assignment_off</span>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 font-medium">Aucune supervision enregistrée récemment.</p>
             </div>
 
-            <div class="space-y-3">
-                <div *ngFor="let sup of recentSupervisions" class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                            <span class="material-symbols-outlined">description</span>
+            <div class="divide-y divide-slate-100 dark:divide-slate-700">
+                <div *ngFor="let sup of recentSupervisions" class="p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-default">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-start gap-4">
+                            <!-- Date Box -->
+                            <div class="flex-shrink-0 w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30">
+                                <span class="text-xs font-bold uppercase">{{ sup.visit_date | date:'MMM' }}</span>
+                                <span class="text-xl font-extrabold leading-none">{{ sup.visit_date | date:'dd' }}</span>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors text-base">
+                                    {{ sup.ue_code || 'UE Non spécifiée' }}
+                                    <span class="text-slate-400 font-normal mx-1">•</span>
+                                    <span class="text-slate-600 dark:text-slate-300 font-medium text-sm">{{ sup.ue_name || 'Cours' }}</span>
+                                </h4>
+                                <div class="flex items-center gap-3 mt-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
+                                        <span class="material-symbols-outlined text-[14px]">schedule</span>
+                                        {{ sup.start_time }} - {{ sup.end_time }}
+                                    </div>
+                                    <div *ngIf="sup.site" class="flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">location_on</span>
+                                        {{ sup.site }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="font-bold text-slate-900">{{ sup.ue_code || 'N/A' }}</div>
-                            <div class="text-xs text-slate-500">{{ sup.visit_date | date:'dd/MM/yyyy' }}</div>
+
+                        <!-- Status/Action -->
+                        <div class="hidden sm:flex flex-col items-end gap-1">
+                             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Terminé
+                             </span>
                         </div>
-                    </div>
-                    <div class="text-sm font-semibold text-slate-700">
-                        {{ sup.start_time }} - {{ sup.end_time }}
                     </div>
                 </div>
-            </div>
-            
-            <div class="mt-4 text-center">
-                 <a routerLink="/admin/history" class="text-blue-600 font-semibold hover:underline text-sm">Voir tout l'historique</a>
             </div>
         </div>
     </ng-container>

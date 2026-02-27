@@ -55,13 +55,26 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
 
 export const getAllSupervisions = async (req: AuthRequest, res: Response) => {
   try {
-    const query = `
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    
+    let query = `
       SELECT sf.*, u.username as creator_username
       FROM supervision_forms sf
       LEFT JOIN users u ON sf.user_id = u.id
-      ORDER BY sf.visit_date DESC, sf.created_at DESC
     `;
-    const [rows] = await pool.query(query);
+    
+    const params: any[] = [];
+
+    // If not admin, only show own supervisions
+    if (userRole !== 'admin') {
+        query += ` WHERE sf.user_id = ?`;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY sf.visit_date DESC, sf.created_at DESC`;
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (error) {
     console.error('Erreur getAllSupervisions:', error);

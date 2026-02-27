@@ -20,7 +20,7 @@ export class UsersComponent implements OnInit {
 
   newUser: any = {
     username: '',
-    role: 'user',
+    role: 'enseignant',
     password: ''
   };
 
@@ -60,7 +60,7 @@ export class UsersComponent implements OnInit {
       this.newUser = { ...user, password: '' }; // Don't fill password on edit
     } else {
       this.isEditMode = false;
-      this.newUser = { username: '', role: 'user', password: '' };
+      this.newUser = { username: '', role: 'enseignant', password: '' };
     }
     this.isModalOpen = true;
   }
@@ -68,7 +68,7 @@ export class UsersComponent implements OnInit {
   closeModal() {
     this.isModalOpen = false;
     this.isEditMode = false;
-    this.newUser = { username: '', role: 'user', password: '' };
+    this.newUser = { username: '', role: 'enseignant', password: '' };
   }
 
   openDeleteModal(user: User) {

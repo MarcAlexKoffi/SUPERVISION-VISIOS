@@ -24,9 +24,9 @@
             <div class="relative">
                 <select class="appearance-none bg-none pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border-none rounded-lg text-sm text-slate-600 dark:text-slate-300 font-medium focus:ring-0 cursor-pointer min-w-[140px]">
                     <option>Rôle: Tous</option>
-                    <option>Admin</option>
+                    <option>Administrateur</option>
+                    <option>Assistant</option>
                     <option>Enseignant</option>
-                    <option>Superviseur</option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
                     <span class="material-symbols-outlined text-[20px]">expand_more</span>
@@ -114,11 +114,10 @@
                     <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Rôle</label>
                     <div class="relative">
                         <select [(ngModel)]="newUser.role" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none bg-white text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white cursor-pointer">
-                            <option value="user" disabled>Sélectionner un rôle</option>
-                            <option value="user">Utilisateur</option>
+                            <option value="enseignant" disabled>Sélectionner un rôle</option>
                             <option value="admin">Administrateur</option>
+                            <option value="assistant">Assistant</option>
                             <option value="enseignant">Enseignant</option>
-                            <option value="superviseur">Superviseur</option>
                         </select>
                         <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 pointer-events-none text-[20px]">expand_more</span>
                     </div>

@@ -53,8 +53,8 @@ export class HistoryComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.isAdmin = this.authService.isAdmin;
-    this.currentUser = this.authService.currentUser;
+    this.currentUser = this.authService.currentUserValue;
+    this.isAdmin = this.currentUser?.role === 'admin';
     this.loadHistory();
   }
 

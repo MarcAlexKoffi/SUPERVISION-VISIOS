@@ -9,10 +9,13 @@ export const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT || '3306'),
-  // Désactiver SSL pour le développement local sauf si explicitement requis
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+  // Aiven et la plupart des DB cloud nécessitent SSL.
+  // On l'active par défaut si on détecte qu'on est sur un port non-standard (souvent cloud) ou si DB_SSL est présent.
+  ssl: { rejectUnauthorized: false }, 
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 

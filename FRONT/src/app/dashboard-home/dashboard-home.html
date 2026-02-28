@@ -200,7 +200,7 @@
                                 <div class="flex items-center gap-3 mt-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                                     <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
                                         <span class="material-symbols-outlined text-[14px]">schedule</span>
-                                        {{ sup.start_time }} - {{ sup.end_time }}
+                                        {{ sup.start_time?.slice(0,5) }} - {{ sup.end_time?.slice(0,5) }}
                                     </div>
                                     <div *ngIf="sup.site" class="flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[14px]">location_on</span>

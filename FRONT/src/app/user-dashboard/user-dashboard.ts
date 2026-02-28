@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { SupervisionService } from '../services/supervision.service';
@@ -8,7 +8,7 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe, ConfirmationModalComponent],
+  imports: [CommonModule, RouterModule, ConfirmationModalComponent],
   templateUrl: './user-dashboard.html',
   styleUrl: './user-dashboard.scss',
 })

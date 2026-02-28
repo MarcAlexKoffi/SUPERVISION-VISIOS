@@ -50,6 +50,26 @@
             
             <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
                [class.hidden]="!isAdmin"
+               routerLink="/admin/teachers" 
+               routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" 
+               #rla5="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" 
+                      [class.!text-[#0f42a5]]="rla5.isActive">school</span>
+                Enseignants
+            </a>
+
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
+               [class.hidden]="!isAdmin"
+               routerLink="/admin/ues" 
+               routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" 
+               #rla6="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" 
+                      [class.!text-[#0f42a5]]="rla6.isActive">book</span>
+                UEs (Cours)
+            </a>
+
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" 
+               [class.hidden]="!isAdmin"
                routerLink="/admin/users" 
                routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" 
                #rla4="routerLinkActive">

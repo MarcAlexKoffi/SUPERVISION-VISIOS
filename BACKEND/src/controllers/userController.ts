@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/authMiddleware';
 interface UserOutput extends RowDataPacket {
   id: number;
   username: string;
+  email: string;
   role: string;
   created_at: Date;
 }
@@ -13,7 +14,7 @@ interface UserOutput extends RowDataPacket {
 export const listUsers = async (req: AuthRequest, res: Response) => {
   try {
     const [rows] = await pool.query<UserOutput[]>(
-      'SELECT id, username, role, created_at FROM users'
+      'SELECT u.id, u.username, u.email, r.name as role, u.created_at FROM users u LEFT JOIN roles r ON u.role_id = r.id'
     );
     res.json(rows);
   } catch (error) {
@@ -23,13 +24,13 @@ export const listUsers = async (req: AuthRequest, res: Response) => {
 };
 
 export const createUser = async (req: AuthRequest, res: Response) => {
-  const { username, password, role } = req.body;
+  const { username, password, email, role } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Username et mot de passe requis.' });
   }
 
-  const userRole = role || 'user';
+  const roleName = role || 'user';
 
   try {
      // Check user exist
@@ -38,15 +39,26 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         return res.status(409).json({ message: 'Utilisateur existant.' });
     }
 
+    // Get role_id
+    const [roles] = await pool.query<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', [roleName]);
+    let roleId = null; 
+    if (roles.length > 0) {
+        roleId = roles[0].id;
+    } else {
+        // Fallback to 'user' if role not found
+        const [defaultRole] = await pool.query<RowDataPacket[]>('SELECT id FROM roles WHERE name = "user"');
+        if (defaultRole.length > 0) roleId = defaultRole[0].id;
+    }
+
     // Insert (password plain for now per existing code)
     const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-      [username, password, userRole]
+      'INSERT INTO users (username, password, email, role_id) VALUES (?, ?, ?, ?)',
+      [username, password, email || null, roleId]
     );
 
     res.status(201).json({ 
         message: 'Utilisateur créé.', 
-        user: { id: result.insertId, username, role: userRole } 
+        user: { id: result.insertId, username, email, role: roleName } 
     });
   } catch (error) {
     console.error(error);
@@ -56,7 +68,7 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 
 export const updateUser = async (req: AuthRequest, res: Response) => {
   const userId = req.params.id;
-  const { username, password, role } = req.body;
+  const { username, password, email, role } = req.body;
 
   try {
     // Check if user exists
@@ -65,8 +77,29 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé.' });
     }
 
-    let query = 'UPDATE users SET username = ?, role = ?';
-    let params: any[] = [username, role];
+    let roleId = null;
+    if (role) {
+        const [roles] = await pool.query<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', [role]);
+        if (roles.length > 0) {
+            roleId = roles[0].id;
+        }
+    }
+
+    // Start building update query
+    let query = 'UPDATE users SET username = ?';
+    let params: any[] = [username];
+
+    // Assuming username is always provided. If not, this logic might be brittle, but consistent with previous code.
+    
+    if (email !== undefined) {
+        query += ', email = ?';
+        params.push(email);
+    }
+
+    if (roleId) {
+        query += ', role_id = ?';
+        params.push(roleId);
+    }
 
     if (password) {
       query += ', password = ?';

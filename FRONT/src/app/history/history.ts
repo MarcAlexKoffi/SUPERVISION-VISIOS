@@ -203,8 +203,17 @@ export class HistoryComponent implements OnInit, OnDestroy {
     // View Expects: teacher.name, course.name, date (Date obj), etc.
     
     // Check if data comes from DB (snake_case) or legacy/local (camelCase)
-    const teacherName = data.teacher_name || data.teacherName || 'Non spécifié';
-    const moduleName = data.module || 'Non spécifié';
+    // Prioritize joined data from relational tables if available
+    let teacherName = data.teacher_name || data.teacherName || 'Non spécifié';
+    if (data.teacher_firstname && data.teacher_lastname) {
+        teacherName = `${data.teacher_firstname} ${data.teacher_lastname}`;
+    }
+    
+    let moduleName = data.module || 'Non spécifié';
+    if (data.ue_real_name) {
+        moduleName = data.ue_code ? `${data.ue_code} - ${data.ue_real_name}` : data.ue_real_name;
+    }
+
     const dateStr = data.visit_date || data.date; // Ensure this is not undefined
     const startTimeStr = data.start_time || data.startTime || '00:00';
     const endTimeStr = data.end_time || data.endTime || '00:00';
@@ -284,7 +293,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
       
       observations: data.observations || '',
       supervisorName: data.supervisor_name || data.supervisorName || '',
-      signatures: signatures
+      signatures: signatures,
+      createdAt: data.created_at ? new Date(data.created_at) : new Date() // Ajout de la date d'enregistrement
     };
   }
 

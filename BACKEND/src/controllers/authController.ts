@@ -13,7 +13,7 @@ interface User extends RowDataPacket {
 }
 
 export const register = async (req: Request, res: Response) => {
-  const { username, password, role } = req.body;
+  const { username, password, email, role } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Nom d\'utilisateur et mot de passe requis.' });
@@ -28,21 +28,29 @@ export const register = async (req: Request, res: Response) => {
 
     // AVANT (Avec hachage) : const hashedPassword = await bcrypt.hash(password, 10);
     // MAINTENANT (Mot de passe en clair) :
-    const userRole = role || 'user'; // Rôle par défaut 'user'
+    const roleName = role || 'user'; // Rôle par défaut 'user'
+
+    // Récupérer l'ID du rôle
+    const [roleRows] = await pool.query<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', [roleName]);
+    if (roleRows.length === 0) {
+        return res.status(400).json({ message: `Le rôle '${roleName}' n'existe pas.` });
+    }
+    const roleId = roleRows[0].id;
 
     // Insérer le nouvel utilisateur (mot de passe en clair)
     const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-      [username, password, userRole]
+      'INSERT INTO users (username, password, email, role_id) VALUES (?, ?, ?, ?)',
+      [username, password, email || null, roleId]
     );
 
     const userId = result.insertId;
-    const token = generateToken(userId, userRole);
+    // On génère le token avec le NOM du rôle pour que le front continue de fonctionner
+    const token = generateToken(userId, roleName);
 
     res.status(201).json({ 
         message: 'Utilisateur créé avec succès.',
         token,
-        user: { id: userId, username, role: userRole }
+        user: { id: userId, username, email, role: roleName }
     });
 
   } catch (err) {
@@ -59,8 +67,14 @@ export const login = async (req: Request, res: Response) => {
   }
 
   try {
-    // Rechercher l'utilisateur
-    const [rows] = await pool.query<User[]>('SELECT * FROM users WHERE username = ?', [username]);
+    // Rechercher l'utilisateur avec son rôle
+    const query = `
+        SELECT u.*, r.name as role_name 
+        FROM users u 
+        LEFT JOIN roles r ON u.role_id = r.id 
+        WHERE u.username = ?
+    `;
+    const [rows] = await pool.query<any[]>(query, [username]);
     
     if (rows.length === 0) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
@@ -76,17 +90,20 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
     }
 
-    // Générer le token
-    const token = generateToken(user.id, user.role);
+    // Le rôle peut être null si la jointure échoue (ne devrait pas arriver avec FK)
+    const userRole = user.role_name || 'user';
 
-    // Retourner les infos (sans le mot de passe)
+    // Générer le token
+    const token = generateToken(user.id, userRole);
+
+    // Retourner les infos
     res.json({
         message: 'Connexion réussie.',
         token,
         user: { 
             id: user.id, 
             username: user.username, 
-            role: user.role 
+            role: userRole 
         }
     });
 

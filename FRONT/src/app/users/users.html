@@ -54,7 +54,7 @@
                                 <img [src]="getAvatar(user.username)" [alt]="user.username" class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700">
                                 <div>
                                     <p class="font-bold text-slate-900 dark:text-white">{{ user.username }}</p>
-                                    <p class="text-xs lg:text-sm text-slate-500">ID: {{ user.id }}</p>
+                                    <p class="text-xs lg:text-sm text-slate-500">{{ user.email }}</p>
                                 </div>
                             </div>
                         </td>
@@ -106,6 +106,15 @@
                     <div class="relative">
                         <input [(ngModel)]="newUser.username" type="text" placeholder="Entrez le nom d'utilisateur" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white">
                         <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 text-[20px]">person</span>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
+                    <div class="relative">
+                        <input [(ngModel)]="newUser.email" type="email" placeholder="Entrez l'adresse email" class="w-full pl-4 pr-10 py-2.5 text-sm border border-slate-300 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none text-slate-900 dark:bg-slate-900 dark:border-slate-600 dark:text-white">
+                        <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-400 text-[20px]">mail</span>
                     </div>
                 </div>
 

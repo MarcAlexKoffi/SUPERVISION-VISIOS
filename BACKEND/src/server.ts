@@ -6,6 +6,7 @@ import authRouter from './routes/authRoutes';
 import userRouter from './routes/userRoutes';
 import supervisionRouter from './routes/supervisionRoutes';
 import ueRouter from './routes/ueRoutes';
+import teacherRouter from './routes/teacherRoutes';
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: ['https://supervision-visios.vercel.app', 'http://localhost:4200'],
+    origin: ['https://supervision-visios.vercel.app', 'https://supervision-visios-git-main-koffis-projects.vercel.app', 'http://localhost:4200'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
@@ -26,6 +27,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter); 
 app.use('/api/supervisions', supervisionRouter);
 app.use('/api/ues', ueRouter);
+app.use('/api/teachers', teacherRouter);
 
 
 // Basic Route

@@ -93,7 +93,7 @@
     <!-- Filters -->
     <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="space-y-1" *ngIf="isAdmin">
+            <div class="space-y-1">
                 <label class="text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">Enseignant</label>
                 <div class="relative">
                     <select [(ngModel)]="filters.teacher" (change)="onTeacherChange()" class="w-full pl-3 pr-10 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
@@ -137,7 +137,8 @@
                         <th class="p-4 w-12 text-center">
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
                         </th>
-                        <th class="p-4">Date & Heure</th>
+                        <th class="p-4 w-40">Enregistré le</th>
+                        <th class="p-4 w-40">Date Visite</th>
                         <th class="p-4">Enseignant</th>
                         <th class="p-4">UE (Cours)</th>
                         <th class="p-4">Plateforme</th>
@@ -154,8 +155,20 @@
                             <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{{ s.date | date:'MMM d, y' }}</div>
-                            <div class="text-xs lg:text-sm text-slate-600">{{ s.date | date:'HH:mm' }} - {{ s.endTime | date:'HH:mm' }}</div>
+                            <!-- Enregistré le -->
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enregistré le</span>
+                                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ s.createdAt | date:'dd/MM/yyyy' }}</span>
+                                <span class="text-xs text-slate-400 font-mono">à {{ s.createdAt | date:'HH:mm' }}</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <!-- Date Visite -->
+                             <div class="flex flex-col">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Visite du</span>
+                                <span class="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{{ s.date | date:'dd MMM yyyy' }}</span>
+                                <span class="text-xs lg:text-sm text-slate-600 font-medium">{{ s.startTimeStr }} - {{ s.endTimeStr }}</span>
+                            </div>
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-3">

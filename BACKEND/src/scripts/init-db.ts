@@ -25,14 +25,34 @@ async function initDB() {
     // Utilisation de la base de données
     await connection.changeUser({ database: process.env.DB_NAME });
 
-    // 1. Table Utilisateurs
+    // 1. Table Rôles (Nouveau)
+    const createRolesTable = `
+      CREATE TABLE IF NOT EXISTS roles (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(50) NOT NULL UNIQUE, -- ex: 'admin', 'supervisor', 'user'
+        description VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await connection.query(createRolesTable);
+    console.log('Table "roles" vérifiée/créée.');
+
+    // Insertion des rôles par défaut
+    const roles = ['admin', 'supervisor', 'user'];
+    for (const role of roles) {
+        await connection.query(`INSERT IGNORE INTO roles (name) VALUES (?)`, [role]);
+    }
+    console.log('Rôles par défaut insérés.');
+
+    // 2. Table Utilisateurs (Modifiée avec relation vers Roles)
     const createUsersTable = `
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
-        role VARCHAR(50) DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        role_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
       );
     `;
     await connection.query(createUsersTable);
@@ -125,23 +145,31 @@ async function initDB() {
     console.log('Table "supervision_forms" vérifiée/créée.');
     console.log('Table "ues" vérifiée/créée.');
 
-    // Ajouter ou mettre à jour un admin par défaut (mot de passe en clair)
-    const [rows] = await connection.query('SELECT * FROM users WHERE username = ?', ['admin']);
-    
-    if ((rows as any[]).length === 0) {
-        // Création (Mot de passe en clair 'admin123')
-        await connection.query(
-            'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-            ['admin', 'admin123', 'admin']
-        );
-        console.log('Compte admin créé (non crypté) : admin / admin123');
+    // Ajouter ou mettre à jour un admin par défaut
+    // On récupère l'ID du rôle admin
+    const [adminRoleRows] = await connection.query("SELECT id FROM roles WHERE name = 'admin'");
+    const adminRoleId = (adminRoleRows as any[])[0]?.id;
+
+    if (adminRoleId) {
+        const [rows] = await connection.query('SELECT * FROM users WHERE username = ?', ['admin']);
+        
+        if ((rows as any[]).length === 0) {
+            // Création
+            await connection.query(
+                'INSERT INTO users (username, password, role_id) VALUES (?, ?, ?)',
+                ['admin', 'admin123', adminRoleId]
+            );
+            console.log('Compte admin créé : admin / admin123');
+        } else {
+            // Mise à jour si nécessaire
+             await connection.query(
+                'UPDATE users SET password = ?, role_id = ? WHERE username = ?',
+                ['admin123', adminRoleId, 'admin']
+            );
+            console.log('Compte admin mis à jour.');
+        }
     } else {
-        // Mise à jour pour s'assurer que le mot de passe est en clair si on vient de changer la logique et le role est admin
-        await connection.query(
-            'UPDATE users SET password = ?, role = ? WHERE username = ?',
-            ['admin123', 'admin', 'admin']
-        );
-        console.log('Compte admin mis à jour (mot de passe en clair) : admin / admin123');
+        console.error("Erreur critique: Le rôle 'admin' n'a pas été trouvé.");
     }
 
     console.log('Initialisation de la base de données terminée avec succès.');

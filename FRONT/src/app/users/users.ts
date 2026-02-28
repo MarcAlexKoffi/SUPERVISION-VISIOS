@@ -20,6 +20,7 @@ export class UsersComponent implements OnInit {
 
   newUser: any = {
     username: '',
+    email: '',
     role: 'enseignant',
     password: ''
   };
@@ -38,10 +39,10 @@ export class UsersComponent implements OnInit {
     // Check both potential locations for role to be safe
     const role = currentUser?.user?.role || currentUser?.role;
 
-    if (role !== 'admin') {
-      this.router.navigate(['/']); // Redirect if not admin
-      return;
-    }
+    // if (role !== 'admin') {
+    //   this.router.navigate(['/']); // Redirect if not admin
+    //   return;
+    // }
     this.loadUsers();
   }
 
@@ -60,7 +61,7 @@ export class UsersComponent implements OnInit {
       this.newUser = { ...user, password: '' }; // Don't fill password on edit
     } else {
       this.isEditMode = false;
-      this.newUser = { username: '', role: 'enseignant', password: '' };
+      this.newUser = { username: '', email: '', role: 'enseignant', password: '' };
     }
     this.isModalOpen = true;
   }
@@ -68,7 +69,7 @@ export class UsersComponent implements OnInit {
   closeModal() {
     this.isModalOpen = false;
     this.isEditMode = false;
-    this.newUser = { username: '', role: 'enseignant', password: '' };
+    this.newUser = { username: '', email: '', role: 'enseignant', password: '' };
   }
 
   openDeleteModal(user: User) {

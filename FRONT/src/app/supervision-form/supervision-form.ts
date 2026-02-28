@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupervisionService } from '../services/supervision.service';
 import { UeService } from '../services/ue.service';
+import { TeacherService } from '../services/teacher.service'; // Import TeacherService
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -27,10 +28,14 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   errorMessage = '';
 
   ues: any[] = [];
+  teachers: any[] = []; // List of teachers
   selectedUECode: string = '';
+  selectedTeacherId: number | null = null; // Store selected teacher ID
 
   formData = {
-    teacherName: '',
+    teacherId: null, // New field for ID
+    ueId: null,      // New field for ID
+    teacherName: '', 
     module: '',
     level: '',
     sessionNumber: 0,
@@ -63,18 +68,29 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   constructor(
     private supervisionService: SupervisionService,
     private ueService: UeService,
+    private teacherService: TeacherService, // Inject TeacherService
     private authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
     this.loadUEs();
+    this.loadTeachers(); // Load teachers
     
     // Auto-fill supervisor name if logged in
     const user = this.authService.currentUserValue;
     if (user && user.username) {
         this.formData.supervisorName = user.username;
     }
+  }
+
+  loadTeachers() {
+    this.teacherService.getAll().subscribe({
+        next: (data) => {
+            this.teachers = data.filter(t => t.status === 'active');
+        },
+        error: (err) => console.error('Error loading teachers', err)
+    });
   }
 
   ngAfterViewInit() {
@@ -95,9 +111,8 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   onUEChange() {
     const selectedUE = this.ues.find(ue => ue.code === this.selectedUECode);
     if (selectedUE) {
+      this.formData.ueId = selectedUE.id;
       this.formData.module = selectedUE.name || '';
-      // We fill the responsible as the default teacher, but allow editing
-      this.formData.teacherName = selectedUE.responsible || '';
       this.formData.totalStudents = selectedUE.students_count ? parseInt(selectedUE.students_count) : 0;
       
       // Auto-fill Level/Semester/Phase
@@ -107,6 +122,14 @@ export class SupervisionForm implements AfterViewInit, OnInit {
       if (selectedUE.phase) parts.push(`Phase ${selectedUE.phase}`);
       this.formData.level = parts.join(' - ');
     }
+  }
+
+  onTeacherChange() {
+      const selectedTeacher = this.teachers.find(t => t.id == this.selectedTeacherId);
+      if (selectedTeacher) {
+          this.formData.teacherId = selectedTeacher.id;
+          this.formData.teacherName = `${selectedTeacher.first_name} ${selectedTeacher.last_name}`;
+      }
   }
 
   loadSavedData() {
@@ -323,6 +346,8 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     localStorage.removeItem('supervisionFormData');
 
     this.formData = {
+        teacherId: null,
+        ueId: null,
         teacherName: '',
         module: '',
         level: '',

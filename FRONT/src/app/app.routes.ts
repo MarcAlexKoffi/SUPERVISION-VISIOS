@@ -6,6 +6,8 @@ import { DashboardHome } from './dashboard-home/dashboard-home';
 import { UsersComponent } from './users/users';
 import { HistoryComponent } from './history/history';
 import { UserHistoryComponent } from './user-history/user-history';
+import { TeachersComponent } from './teachers/teachers';
+import { UesComponent } from './ues/ues';
 import { UserDashboard } from './user-dashboard/user-dashboard'; // Import UserDashboard
 import { authGuard } from './guards/auth.guard'; // Import AuthGuard
 
@@ -27,6 +29,8 @@ export const routes: Routes = [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', component: DashboardHome },
             { path: 'users', component: UsersComponent }, // Ideally protect this with RoleGuard
+            { path: 'teachers', component: TeachersComponent },
+            { path: 'ues', component: UesComponent },
             { path: 'history', component: HistoryComponent },
             { path: 'my-history', component: UserHistoryComponent },
             { path: 'supervision-form', component: SupervisionForm }

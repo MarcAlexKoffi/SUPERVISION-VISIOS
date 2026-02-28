@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -9,14 +9,22 @@ import { environment } from '../../environments/environment';
 })
 export class SupervisionService {
   private apiUrl = `${environment.apiUrl}/supervisions`;
+  private _refreshNeeded$ = new Subject<void>();
+
+  get refreshNeeded$() {
+    return this._refreshNeeded$;
+  }
 
   constructor(private http: HttpClient) { }
 
   create(data: any): Observable<any> {
-    return this.http.post(this.apiUrl, data);
+    return this.http.post(this.apiUrl, data).pipe(
+      tap(() => {
+        this._refreshNeeded$.next();
+      })
+    );
   }
 
-  
   getAll(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
   }
@@ -26,6 +34,10 @@ export class SupervisionService {
   }
 
   delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        this._refreshNeeded$.next();
+      })
+    );
   }
 }

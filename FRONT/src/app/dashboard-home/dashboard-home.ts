@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { SupervisionService } from '../services/supervision.service';
 import { AuthService } from '../services/auth.service';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -13,10 +14,11 @@ import { RouterLink } from '@angular/router';
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.scss',
 })
-export class DashboardHome implements OnInit {
+export class DashboardHome implements OnInit, OnDestroy {
   isModalOpen = false;
   isAdmin = false;
   currentUser: any = null;
+  private subscriptions: Subscription = new Subscription();
 
   // DB Fields: code, name, responsible, students_count, level, semester, phase
   // UI Fields mapping:
@@ -78,25 +80,70 @@ export class DashboardHome implements OnInit {
   ) {}
 
   loadUserData() {
-      // Load user specific stats
+      // Load user specific stats (supervisions)
       this.supervisionService.getAll().subscribe({
           next: (data) => {
-              // The backend filters by userId for non-admins already in getAllSupervisions
+              // The backend filters by userId for non-admins already
               const mySupervisions = data; 
-              this.userStats[0].value = mySupervisions.length.toString();
+              this.recentSupervisions = mySupervisions
+                .sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime())
+                .slice(0, 3);
+
+              // Only update if we have user stats array (for user dashboard view)
+              if (this.userStats && this.userStats.length > 0) {
+                  this.userStats[0].value = mySupervisions.length.toString();
+              }
               
               if (mySupervisions.length > 0) {
-                  // Sort by date desc
-                  mySupervisions.sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime());
-                  const lastSup = mySupervisions[0];
-                  this.userStats[1].value = new Date(lastSup.visit_date || lastSup.date).toLocaleDateString();
+                  // Sort by date desc already done above for recentSupervisions
+                  // mySupervisions.sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime());
                   
-                  this.recentSupervisions = mySupervisions.slice(0, 5);
+                  if (this.userStats && this.userStats.length > 1) {
+                      const lastSup = mySupervisions[0];
+                      this.userStats[1].value = new Date(lastSup.visit_date || lastSup.date).toLocaleDateString();
+                  }
               }
           },
-          error: (err) => console.error('Error loading user data', err)
+          error: (err) => console.error('Failed to load user supervisions', err)
       });
   }
+
+  loadStats() {
+     // Fetch UEs to update UEs count and Students count
+     this.ueService.getAll().subscribe({
+         next: (uesData) => {
+             this.ues = uesData;
+             const totalUEs = uesData.length;
+             // Calculate total students from UEs (assuming each UE has students_count)
+             const totalStudents = uesData.reduce((acc, ue) => acc + (ue.students_count || 0), 0);
+             
+             // Update the stats visible to the user (Student Totals, Active Supervisions, Teaching Units)
+             // Note: In HTML, these are hardcoded numbers in the template for !isAdmin view. 
+             // We need to bind them to variables.
+             
+             this.userDashboardStats.totalStudents = totalStudents;
+             this.userDashboardStats.ueCount = totalUEs;
+         },
+         error: (err) => console.error('Failed to load UEs for stats', err)
+     });
+
+     // Fetch Supervisions for "Active Supervisions" count (which is basically total supervisions for the user)
+     this.supervisionService.getAll().subscribe({
+         next: (supervisionsData) => {
+             this.userDashboardStats.activeSupervisions = supervisionsData.length;
+             this.recentSupervisions = supervisionsData
+                .sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime())
+                .slice(0, 3);
+         },
+         error: (err) => console.error('Failed to load supervisions for stats', err)
+     });
+  }
+  
+  userDashboardStats = {
+      totalStudents: 0,
+      activeSupervisions: 0,
+      ueCount: 0
+  };
 
   checkLocalStorage() {
     // Check common keys for previous data
@@ -253,7 +300,30 @@ export class DashboardHome implements OnInit {
       // Additional user-specific data
       if (!this.isAdmin) {
           this.loadUserData();
+          this.loadStats();
       }
+
+      // Auto-refresh subscriptions
+      this.subscriptions.add(
+        this.ueService.refreshNeeded$.subscribe(() => {
+          this.loadData();
+          if (!this.isAdmin) this.loadStats();
+        })
+      );
+
+      this.subscriptions.add(
+        this.supervisionService.refreshNeeded$.subscribe(() => {
+           this.loadData(); // To update recent supervisions or active supervisions stats
+           if (!this.isAdmin) {
+             this.loadUserData();
+             this.loadStats();
+           }
+        })
+      );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   loadData() {
@@ -277,6 +347,13 @@ export class DashboardHome implements OnInit {
     this.supervisionService.getAll().subscribe({
         next: (data) => {
              this.stats[2].value = data.length.toString();
+             
+             // Also load recent supervisions for admin
+             if (this.isAdmin) {
+                 this.recentSupervisions = data
+                    .sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime())
+                    .slice(0, 3);
+             }
         },
         error: (err) => console.error('Error loading supervisions', err)
     });
@@ -359,13 +436,22 @@ export class DashboardHome implements OnInit {
       return;
     }
 
+    // Ensure numeric fields are numbers
+    this.newUE.students_count = Number(this.newUE.students_count) || 0;
+    this.newUE.modules_count = Number(this.newUE.modules_count) || 0;
+    this.newUE.semester = Number(this.newUE.semester) || 1;
+    this.newUE.phase = Number(this.newUE.phase) || 1;
+
     if (this.isEditMode && this.newUE.id) {
         this.ueService.update(this.newUE.id, this.newUE).subscribe({
             next: () => {
                 this.loadData();
                 this.closeModal();
             },
-            error: (err) => alert('Erreur lors de la mise à jour')
+            error: (err) => {
+                 console.error(err);
+                 alert('Erreur lors de la mise à jour: ' + (err.error?.message || err.message));
+            }
         });
     } else {
         this.ueService.create(this.newUE).subscribe({
@@ -373,7 +459,10 @@ export class DashboardHome implements OnInit {
                 this.loadData();
                 this.closeModal();
             },
-            error: (err) => alert('Erreur lors de la création')
+            error: (err) => {
+                console.error(err);
+                alert('Erreur lors de la création: ' + (err.error?.message || err.message));
+            }
         });
     }
   }

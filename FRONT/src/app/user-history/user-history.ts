@@ -1,19 +1,18 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
-import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-history',
+  selector: 'app-user-history',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './history.html',
-  styleUrl: './history.scss',
+  templateUrl: './user-history.html',
+  styleUrl: './user-history.scss',
 })
-export class HistoryComponent implements OnInit, OnDestroy {
+export class UserHistoryComponent implements OnInit {
   filters = {
     teacher: '',
     course: '',
@@ -47,7 +46,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   isAdmin = false;
   currentUser: any = null;
-  private subscriptions: Subscription = new Subscription();
 
   constructor(
     private supervisionService: SupervisionService,
@@ -58,16 +56,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.currentUser = this.authService.currentUserValue;
     this.isAdmin = this.currentUser?.role === 'admin';
     this.loadHistory();
-
-    this.subscriptions.add(
-      this.supervisionService.refreshNeeded$.subscribe(() => {
-        this.loadHistory();
-      })
-    );
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
   }
 
   printHistory() {
@@ -137,10 +125,14 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.supervisionService.getAll().subscribe({
         next: (data) => {
             console.log('Raw History Data:', data);
+            
             // Backend handles filtering, but we enforce it here proactively just in case or for immediate UI feedback
+            /*
             if (!this.isAdmin && this.currentUser) {
                  // data = data.filter((item: any) => item.user_id === this.currentUser.id);
             }
+            */
+           
             this.supervisions = data.map((item: any) => this.mapToView(item));
             console.log('Mapped History Data:', this.supervisions);
             this.updateFilters();
@@ -225,14 +217,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
     
     const startDateTime = new Date(dateObj);
     // Note: Creating date objects for time is tricky if only time string provided, using base date
-    if (typeof startTimeStr === 'string' && startTimeStr.includes(':')) {
-        startDateTime.setHours(parseInt(startTimeStr.split(':')[0]), parseInt(startTimeStr.split(':')[1]));
-    }
+    startDateTime.setHours(parseInt(startTimeStr.split(':')[0]), parseInt(startTimeStr.split(':')[1]));
 
     const endDateTime = new Date(dateObj);
-    if (typeof endTimeStr === 'string' && endTimeStr.includes(':')) {
-        endDateTime.setHours(parseInt(endTimeStr.split(':')[0]), parseInt(endTimeStr.split(':')[1]));
-    }
+    endDateTime.setHours(parseInt(endTimeStr.split(':')[0]), parseInt(endTimeStr.split(':')[1]));
 
     const signatures = {
         supervisor: data.supervisor_signature || (data.signatures && data.signatures.supervisor),
@@ -574,11 +562,11 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   private getPlatformColor(platform: string): string {
-    if (!platform) return 'text-slate-500';
+    if (!platform) return 'bg-gray-100 text-gray-600';
     const p = platform.toLowerCase();
-    if (p.includes('zoom')) return 'text-blue-500';
-    if (p.includes('teams')) return 'text-purple-500';
-    if (p.includes('meet')) return 'text-green-500';
-    return 'text-slate-500';
+    if (p.includes('zoom')) return 'bg-blue-100 text-blue-600';
+    if (p.includes('teams')) return 'bg-indigo-100 text-indigo-600';
+    if (p.includes('meet')) return 'bg-green-100 text-green-600';
+    return 'bg-gray-100 text-gray-600';
   }
-}
+} // End UserHistoryComponent

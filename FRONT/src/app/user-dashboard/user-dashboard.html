@@ -12,7 +12,7 @@
                 Nouvelle Supervision
             </a>
             <button class="justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm">
-                <span class="material-symbols-outlined text-sm">book</span>
+                <span class="material-symbols-outlined text-sm text-blue-600">book</span>
                 Nouvelle UE
             </button>
         </div>
@@ -83,77 +83,6 @@
             <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
                 <div class="bg-orange-500 h-1.5 rounded-full" style="width: 25%"></div>
             </div>
-        </div>
-    </div>
-
-    <!-- Quick Action Card -->
-        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-md text-white flex flex-col justify-between">
-           <div>
-               <h3 class="font-bold text-lg mb-1">Accéder à l'historique</h3>
-               <p class="text-indigo-100 text-sm mb-4">Voir et filtrer toutes vos fiches de supervision.</p>
-           </div>
-           <a routerLink="/history" class="self-start px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-medium hover:bg-white/30 transition-colors">
-               Voir tout l'historique
-           </a>
-        </div>
-
-    <!-- Recent Supervisions List -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <h2 class="font-semibold text-slate-800">Supervisions Récentes</h2>
-            <a routerLink="/history" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Voir tout</a>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
-                        <th class="px-6 py-3 font-semibold">Date</th>
-                        <th class="px-6 py-3 font-semibold">Enseignant</th>
-                        <th class="px-6 py-3 font-semibold">Module</th>
-                        <th class="px-6 py-3 font-semibold">Plateforme</th>
-                        <th class="px-6 py-3 font-semibold text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <tr *ngFor="let s of recentSupervisions" class="hover:bg-slate-50 transition-colors">
-                        <td class="px-6 py-4 text-slate-600 font-medium whitespace-nowrap">
-                            {{ s.date | date:'dd/MM/yyyy' }}
-                        </td>
-                        <td class="px-6 py-4 text-slate-800 font-medium">
-                            {{ s.teacherName }}
-                        </td>
-                        <td class="px-6 py-4 text-slate-600">
-                            {{ s.module }}
-                        </td>
-                         <td class="px-6 py-4 text-slate-600">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                                  [ngClass]="{
-                                    'bg-blue-100 text-blue-700': s.platform?.toLowerCase().includes('zoom'),
-                                    'bg-purple-100 text-purple-700': s.platform?.toLowerCase().includes('teams'),
-                                    'bg-green-100 text-green-700': s.platform?.toLowerCase().includes('meet'),
-                                    'bg-slate-100 text-slate-700': !s.platform?.toLowerCase().match('zoom|teams|meet')
-                                  }">
-                                {{ s.platform || 'Autre' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                             <a routerLink="/history" class="text-slate-400 hover:text-blue-600 transition-colors" title="Voir les détails">
-                                <span class="material-symbols-outlined text-xl">visibility</span>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr *ngIf="recentSupervisions.length === 0">
-                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
-                            <div class="flex flex-col items-center justify-center gap-3">
-                                <span class="material-symbols-outlined text-4xl text-slate-200">assignment_late</span>
-                                <p>Aucune supervision enregistrée pour le moment.</p>
-                                <a routerLink="/supervision-form" class="text-blue-600 hover:underline text-sm mt-1">Créer votre première fiche</a>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
     </div>
 </div>

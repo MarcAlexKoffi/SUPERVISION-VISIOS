@@ -19,8 +19,8 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      // Auto logout ONLY if 401 (unauthorized/invalid token), keep 403 for forbidden role access
       if (error.status === 401) {
-        // Auto logout if 401 response returned from api
         authService.logout(router.url);
       }
       return throwError(() => error);

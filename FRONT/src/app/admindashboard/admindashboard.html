@@ -38,7 +38,7 @@
                 Fiches de Supervision
             </a>
             
-            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" routerLink="/admin/history" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
+            <a (click)="closeSidebar()" class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group" [routerLink]="isAdmin ? '/admin/history' : '/admin/my-history'" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]" #rla3="routerLinkActive">
                 <span class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300" [class.!text-[#0f42a5]]="rla3.isActive">history</span>
                 Historique
             </a>

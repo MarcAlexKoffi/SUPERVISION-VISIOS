@@ -9,13 +9,14 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
     const {
       teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
+      teacherId, ueId, // Nouveaux champs optionnels
       presentCount, totalStudents,
       technical, pedagogical,
       observations, supervisorName,
       supervisorSignature, teacherSignature
     } = req.body;
 
-    // Validation basique
+    // Validation basique (on garde la validation existante pour ne rien casser)
     if (!teacherName || !module || !date) {
         return res.status(400).json({ message: 'Les champs nom enseignant, module et date sont obligatoires.' });
     }
@@ -23,16 +24,18 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
     const query = `
       INSERT INTO supervision_forms (
         user_id, teacher_name, module, level, session_number, visit_date, start_time, end_time, platform,
+        teacher_id, ue_id,
         present_count, total_students,
         tech_internet, tech_audio_video, tech_punctuality,
         ped_objectives, ped_content_mastery, ped_interaction, ped_tools_usage,
         observations, supervisor_name,
         supervisor_signature, teacher_signature
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
       userId, teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
+      teacherId || null, ueId || null,
       presentCount, totalStudents,
       technical?.internet, technical?.audioVideo, technical?.punctuality,
       pedagogical?.objectives, pedagogical?.contentMastery, pedagogical?.interaction, pedagogical?.toolsUsage,
@@ -59,9 +62,13 @@ export const getAllSupervisions = async (req: AuthRequest, res: Response) => {
     const userRole = req.user?.role;
     
     let query = `
-      SELECT sf.*, u.username as creator_username
+      SELECT sf.*, u.username as creator_username,
+             t.first_name as teacher_firstname, t.last_name as teacher_lastname,
+             ue.name as ue_real_name, ue.code as ue_code
       FROM supervision_forms sf
       LEFT JOIN users u ON sf.user_id = u.id
+      LEFT JOIN teachers t ON sf.teacher_id = t.id
+      LEFT JOIN ues ue ON sf.ue_id = ue.id
     `;
     
     const params: any[] = [];
@@ -86,9 +93,13 @@ export const getSupervisionById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const query = `
-      SELECT sf.*, u.username as creator_username
+      SELECT sf.*, u.username as creator_username,
+             t.first_name as teacher_firstname, t.last_name as teacher_lastname,
+             ue.name as ue_real_name, ue.code as ue_code
       FROM supervision_forms sf
       LEFT JOIN users u ON sf.user_id = u.id
+      LEFT JOIN teachers t ON sf.teacher_id = t.id
+      LEFT JOIN ues ue ON sf.ue_id = ue.id
       WHERE sf.id = ?
     `;
     const [rows] = await pool.query<RowDataPacket[]>(query, [id]);

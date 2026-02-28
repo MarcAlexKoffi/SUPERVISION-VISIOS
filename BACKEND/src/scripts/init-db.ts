@@ -38,19 +38,60 @@ async function initDB() {
     await connection.query(createUsersTable);
     console.log('Table "users" vérifiée/créée.');
 
-    // 2. Table Fiches de Supervision
+    // 2. Table Enseignants (Nouveau)
+    const createTeachersTable = `
+      CREATE TABLE IF NOT EXISTS teachers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        email VARCHAR(255) UNIQUE,
+        department VARCHAR(100),
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await connection.query(createTeachersTable);
+    console.log('Table "teachers" vérifiée/créée.');
+
+    // 3. Table des Unités d'Enseignement (UEs)
+    const createUEsTable = `
+      CREATE TABLE IF NOT EXISTS ues (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(50) NOT NULL UNIQUE,
+        name VARCHAR(255) NOT NULL,
+        responsible VARCHAR(255),
+        department VARCHAR(100),
+        students_count INT DEFAULT 0,
+        modules_count INT DEFAULT 0,
+        level VARCHAR(50),
+        semester VARCHAR(10),
+        phase VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await connection.query(createUEsTable);
+    console.log('Table "ues" vérifiée/créée.');
+
+    // 4. Table Fiches de Supervision (Restructurée)
     const createSupervisionTable = `
       CREATE TABLE IF NOT EXISTS supervision_forms (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT, -- L'utilisateur qui a créé la fiche (superviseur)
-        teacher_name VARCHAR(255) NOT NULL,
-        module VARCHAR(255) NOT NULL,
+        
+        -- Nouvelles relations
+        teacher_id INT,
+        ue_id INT,
+
+        -- On garde les anciens champs pour la compatibilité temporaire ou les infos "one-shot"
+        teacher_name VARCHAR(255), 
+        module VARCHAR(255),
+
         level VARCHAR(100),
         session_number VARCHAR(50),
         visit_date DATE NOT NULL,
         start_time TIME,
         end_time TIME,
-        platform VARCHAR(100),
+        platform VARCHAR(100), -- Pourrait être une table 'salles' ou ENUM
         present_count INT DEFAULT 0,
         total_students INT DEFAULT 0,
         
@@ -68,36 +109,20 @@ async function initDB() {
         observations TEXT,
         supervisor_name VARCHAR(255),
         
-        -- Signatures (stockées en base64 - LONGTEXT car ça peut être gros)
+        -- Signatures
         supervisor_signature LONGTEXT,
         teacher_signature LONGTEXT,
         
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL,
+        FOREIGN KEY (ue_id) REFERENCES ues(id) ON DELETE SET NULL
       );
     `;
     await connection.query(createSupervisionTable);
     console.log('Table "supervision_forms" vérifiée/créée.');
-
-    // 3. Table des Unités d'Enseignement (UEs) - pour remplacer le localStorage
-    const createUEsTable = `
-      CREATE TABLE IF NOT EXISTS ues (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        code VARCHAR(50) NOT NULL UNIQUE,
-        name VARCHAR(255) NOT NULL,
-        responsible VARCHAR(255),
-        department VARCHAR(100),
-        students_count INT DEFAULT 0,
-        modules_count INT DEFAULT 0,
-        level VARCHAR(50),
-        semester VARCHAR(10),
-        phase VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-    await connection.query(createUEsTable);
     console.log('Table "ues" vérifiée/créée.');
 
     // Ajouter ou mettre à jour un admin par défaut (mot de passe en clair)

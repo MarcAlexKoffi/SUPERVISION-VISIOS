@@ -1,57 +1,92 @@
 <div class="min-h-screen bg-slate-50 p-6 md:p-8">
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">Bienvenue, {{ currentUser?.username }}</h1>
-            <p class="text-slate-500 mt-1">Tableau de bord de supervision</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                Bonjour, <span class="text-blue-600">{{ currentUser?.username }}</span>
+            </h1>
+            <p class="text-slate-500 mt-2 text-lg">Ravi de vous revoir. Voici un aperçu de vos activités d'enseignement.</p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <a routerLink="/supervision-form" class="justify-center px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">add</span>
+                <span class="material-symbols-outlined text-sm">add_circle</span>
                 Nouvelle Supervision
             </a>
-            <button (click)="openLogoutModal()" class="justify-center px-4 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">logout</span>
-                Déconnexion
+            <button class="justify-center px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-sm">book</span>
+                Nouvelle UE
             </button>
         </div>
     </header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <!-- Stat Card 1 -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
-            <div class="flex items-start justify-between">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wider">Supervisions Totales</h3>
-                    <p class="text-3xl font-bold text-slate-800 mt-2">{{ mySupervisions.length }}</p>
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">ÉTUDIANTS TOTAUX</h3>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-slate-900">1,240</span>
+                        <span class="text-xs font-bold text-emerald-500 flex items-center">
+                            <span class="material-symbols-outlined text-[10px] mr-0.5">trending_up</span>
+                            5%
+                        </span>
+                    </div>
                 </div>
-                <div class="p-3 bg-blue-50 rounded-lg">
-                    <span class="material-symbols-outlined text-blue-600">assignment</span>
-                </div>
-            </div>
-            <div class="mt-4 text-sm text-slate-400">
-                Fiches enregistrées
-            </div>
-        </div>
-        
-        <!-- Stat Card 2 (Placeholder example) -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
-            <div class="flex items-start justify-between">
-                <div>
-                    <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wider">Dernière Activité</h3>
-                    <p class="text-xl font-bold text-slate-800 mt-2">
-                        {{ recentSupervisions.length > 0 ? (recentSupervisions[0].date | date:'dd/MM/yyyy') : 'Aucune' }}
-                    </p>
-                </div>
-                <div class="p-3 bg-green-50 rounded-lg">
-                    <span class="material-symbols-outlined text-green-600">history</span>
+                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <span class="material-symbols-outlined">groups</span>
                 </div>
             </div>
-            <div class="mt-4 text-sm text-slate-400">
-                Date du dernier rapport
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                <div class="bg-blue-600 h-1.5 rounded-full" style="width: 45%"></div>
             </div>
         </div>
 
-        <!-- Quick Action Card -->
+        <!-- Stat Card 2 -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">SUPERVISIONS ACTIVES</h3>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-slate-900">{{ mySupervisions.length }}</span>
+                        <span class="text-xs font-bold text-emerald-500 flex items-center">
+                            <span class="material-symbols-outlined text-[10px] mr-0.5">trending_up</span>
+                            2%
+                        </span>
+                    </div>
+                </div>
+                <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <span class="material-symbols-outlined">verified_user</span>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 35%"></div>
+            </div>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">UNITÉS D'ENSEIGNEMENT</h3>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-bold text-slate-900">4</span>
+                        <span class="text-xs font-bold text-rose-500 flex items-center">
+                            <span class="material-symbols-outlined text-[10px] mr-0.5">trending_down</span>
+                            1%
+                        </span>
+                    </div>
+                </div>
+                <div class="p-2 bg-orange-50 text-orange-600 rounded-lg">
+                    <span class="material-symbols-outlined">menu_book</span>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                <div class="bg-orange-500 h-1.5 rounded-full" style="width: 25%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Action Card -->
         <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-md text-white flex flex-col justify-between">
            <div>
                <h3 class="font-bold text-lg mb-1">Accéder à l'historique</h3>

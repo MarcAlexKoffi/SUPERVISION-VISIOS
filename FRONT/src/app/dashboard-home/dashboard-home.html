@@ -475,185 +475,176 @@
 <!-- Modal Ajout UE -->
 
 
-<div *ngIf="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-    aria-modal="true">
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <!-- Backdrop -->
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" (click)="closeModal()"></div>
 
     <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div
-            class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl border border-slate-100 dark:border-slate-700">
+        <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-slate-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl border border-slate-100 dark:border-slate-700 flex flex-col max-h-[90vh]">
             <!-- Header -->
-            <div
-                class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-100 text-blue-600 rounded-lg dark:bg-blue-900/20 dark:text-blue-400">
                         <span class="material-symbols-outlined">{{ isEditMode ? 'edit_square' : 'library_add' }}</span>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">{{ isEditMode ?
-                            "Modifier l'Unité d'Enseignement" : "Nouvelle Unité d'Enseignement" }}</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ isEditMode ? "Modifiez les informations
-                            de l'UE ci-dessous" : "Ajoutez une nouvelle UE au catalogue" }}</p>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">{{ isEditMode ? "Modifier l'Unité d'Enseignement" : "Nouvelle Unité d'Enseignement" }}</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ isEditMode ? "Modifiez les informations de l'UE ci-dessous" : "Ajoutez une nouvelle UE au catalogue" }}</p>
                     </div>
                 </div>
-                <button (click)="closeModal()"
-                    class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 transition-colors">
+                <button type="button" (click)="closeModal()" class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300 transition-colors">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
 
-            <!-- Body -->
-            <div class="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Code UE -->
-                    <div class="col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Code
-                            UE</label>
-                        <div class="relative">
-                            <span
-                                class="absolute left-3 top-1/2 -translate-y-1/2 icon-calendar text-slate-400 material-symbols-outlined text-[20px]">qr_code</span>
-                            <input type="text" [(ngModel)]="newUE.code"
-                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all uppercase placeholder:normal-case"
-                                placeholder="ex: INFO204">
+            <form (ngSubmit)="saveUE()" #f="ngForm" class="flex flex-col flex-1 overflow-hidden">
+                <!-- Body -->
+                <div class="px-6 py-6 space-y-5 overflow-y-auto flex-1 custom-scrollbar">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Code UE -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Code UE *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px]">qr_code</span>
+                                <input type="text" [(ngModel)]="newUE.code" name="code" required
+                                    class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all uppercase placeholder:normal-case"
+                                    placeholder="ex: INFO204">
+                            </div>
+                        </div>
+
+                        <!-- Parcours / Filière -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Parcours / Filière</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">domain</span>
+                                <select [(ngModel)]="newUE.department" name="department"
+                                    class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                    <option value="" disabled selected>Sélectionner</option>
+                                    <option value="Aministration">Administration des Entreprises</option>
+                                    <option value="Audit">Audit et Contrôle de Gestion</option>
+                                    <option value="Finance">Finance Comptabilité</option>
+                                    <option value="Informatique">Genie Informatique</option>
+                                    <option value="GRH">Gestion des Ressources Humaines</option>
+                                    <option value="Fiscalité">Fiscalité Droit des Affaires</option>
+                                    <option value="Markrting">Marketing</option>
+                                    <option value="Transversale">Transversale</option>
+                                    <option value="MAM">MAM</option>
+                                    <option value="MAFIDA">MAFIDA</option>
+                                </select>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Parcours -->
-                    <div class="col-span-1">
-                        <label
-                            class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Parcours</label>
+                    <!-- Nom de l'UE -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Intitulé de l'UE *</label>
                         <div class="relative">
-                            <span
-                                class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">domain</span>
-                            <select [(ngModel)]="newUE.department"
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">school</span>
+                            <input type="text" [(ngModel)]="newUE.name" name="name" required
+                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                placeholder="ex: Introduction aux Bases de Données">
+                        </div>
+                    </div>
+
+                    <!-- Responsable -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Responsable enseignant</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">person</span>
+                            <input type="text" [(ngModel)]="newUE.responsible" name="responsible"
+                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                placeholder="ex: Dr. Marie Curie">
+                        </div>
+                    </div>
+
+                    <!-- Niveau -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Niveau</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">school</span>
+                            <select [(ngModel)]="newUE.level" name="level"
                                 class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                                <option value="" disabled selected>Sélectionner</option>
-                                <option value="Aministration">Administration des Entreprises</option>
-                                <option value="Audit">Audit et Contrôle de Gestion</option>
-                                <option value="Finance">Finance Comptabilité</option>
-                                <option value="Informatique">Genie Informatique</option>
-                                <option value="GRH">Gestion des Ressources Humaines</option>
-                                <option value="Fiscalité">Fiscalité Droit des Affaires</option>
-                                <option value="Markrting">Markrting</option>
-                                <option value="Transversale">Transversale</option>
+                                <option value="">Sélectionner</option>
+                                <option value="Licence 1">Licence 1</option>
+                                <option value="Licence 2">Licence 2</option>
+                                <option value="Licence 3">Licence 3</option>
+                                <option value="Master 1">Master 1</option>
+                                <option value="Master 2">Master 2</option>
                             </select>
-                            <span
-                                class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
+                        </div>
+                    </div>
+
+                    <!-- Semestre & Phase -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Semestre</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">calendar_view_week</span>
+                                <select [(ngModel)]="newUE.semester" name="semester"
+                                    class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                    <option value="">Sélectionner</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="S1">S1</option>
+                                    <option value="S2">S2</option>
+                                    <option value="S3">S3</option>
+                                    <option value="S4">S4</option>
+                                    <option value="S5">S5</option>
+                                    <option value="S6">S6</option>
+                                </select>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
+                            </div>
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Phase</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">flag</span>
+                                <input type="number" [(ngModel)]="newUE.phase" name="phase" min="1"
+                                    class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="ex: 1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Nombre étudiants -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Effectif étudiants</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">groups</span>
+                                <input type="number" [(ngModel)]="newUE.students_count" name="students_count" min="0"
+                                    class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="0">
+                            </div>
+                        </div>
+                        <!-- Nombre modules -->
+                        <div class="col-span-1">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nombre modules</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">view_module</span>
+                                <input type="number" [(ngModel)]="newUE.modules_count" name="modules_count" min="1"
+                                    class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    placeholder="1">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Nom de l'UE -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Intitulé de
-                        l'UE</label>
-                    <div class="relative">
-                        <span
-                            class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">school</span>
-                        <input type="text" [(ngModel)]="newUE.name"
-                            class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                            placeholder="ex: Introduction aux Bases de Données">
-                    </div>
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row justify-end gap-3 shrink-0">
+                    <button type="button" (click)="closeModal()"
+                        class="w-full sm:w-auto px-5 h-11 rounded-xl font-semibold text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" [disabled]="!f.valid"
+                        class="w-full sm:w-auto px-5 h-11 rounded-xl bg-[#0f42a5] hover:bg-[#0f42a5]/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[20px]">{{ isEditMode ? 'edit' : 'check' }}</span>
+                        <span>{{ isEditMode ? "Modifier l'UE" : "Enregistrer l'UE" }}</span>
+                    </button>
                 </div>
-
-                <!-- Responsable -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Responsable
-                        enseignant</label>
-                    <div class="relative">
-                        <span
-                            class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">person</span>
-                        <input type="text" [(ngModel)]="newUE.responsible"
-                            class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                            placeholder="ex: Dr. Marie Curie">
-                    </div>
-                </div>
-
-                <!-- Niveau -->
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Niveau</label>
-                    <div class="relative">
-                        <span
-                            class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">school</span>
-                        <select [(ngModel)]="newUE.level"
-                            class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                            <option value="" disabled selected>Choisir</option>
-                            <option value="Licence 3">Licence 3</option>
-                            <option value="Master 1">Master 1</option>
-                            <option value="Master 2">Master 2</option>
-                        </select>
-                        <span
-                            class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
-                    </div>
-                </div>
-
-                <!-- Semestre & Phase -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="col-span-1">
-                        <label
-                            class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Semestre</label>
-                        <div class="relative">
-                            <span
-                                class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">calendar_view_week</span>
-                            <input type="number" [(ngModel)]="newUE.semester" min="1" max="10"
-                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                placeholder="ex: 1">
-                        </div>
-                    </div>
-                    <div class="col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Phase</label>
-                        <div class="relative">
-                            <span
-                                class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">flag</span>
-                            <input type="number" [(ngModel)]="newUE.phase" min="1"
-                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                placeholder="ex: 1">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- Nombre étudiants -->
-                    <div class="col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Effectif
-                            étudiants</label>
-                        <div class="relative">
-                            <span
-                                class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">groups</span>
-                            <input type="number" [(ngModel)]="newUE.students_count" min="0"
-                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                placeholder="0">
-                        </div>
-                    </div>
-                    <!-- Nombre modules -->
-                    <div class="col-span-1">
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nombre
-                            modules</label>
-                        <div class="relative">
-                            <span
-                                class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">view_module</span>
-                            <input type="number" [(ngModel)]="newUE.modules_count" min="1"
-                                class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                placeholder="1">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div
-                class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 flex flex-col-reverse sm:flex-row justify-end gap-3">
-                <button (click)="closeModal()"
-                    class="w-full sm:w-auto px-5 h-11 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
-                    Annuler
-                </button>
-                <button (click)="saveUE()"
-                    class="w-full sm:w-auto px-5 h-11 rounded-xl bg-[#0f42a5] hover:bg-[#0f42a5]/90 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-[20px]">{{ isEditMode ? 'edit' : 'check' }}</span>
-                    <span>{{ isEditMode ? "Modifier l'UE" : "Enregistrer l'UE" }}</span>
-                </button>
-            </div>
+            </form>
         </div>
     </div>
 </div>

@@ -121,6 +121,15 @@ export class SupervisionForm implements AfterViewInit, OnInit {
       if (selectedUE.semester) parts.push(`S${selectedUE.semester}`);
       if (selectedUE.phase) parts.push(`Phase ${selectedUE.phase}`);
       this.formData.level = parts.join(' - ');
+      this.checkPresentCount();
+    }
+  }
+
+  checkPresentCount() {
+    if (this.formData.presentCount > this.formData.totalStudents) {
+      this.formData.presentCount = this.formData.totalStudents;
+    } else if (this.formData.presentCount < 0) {
+      this.formData.presentCount = 0;
     }
   }
 

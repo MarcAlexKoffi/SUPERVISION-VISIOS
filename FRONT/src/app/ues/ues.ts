@@ -14,6 +14,14 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 })
 export class UesComponent implements OnInit {
   ues: any[] = [];
+  searchTerm: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  currentPage = 1;
+  itemsPerPage = 10;
+
+  isViewModalOpen = false;
+  selectedUE: any = null;
+
   showModal = false;
   isEditing = false;
   isLoading = false;
@@ -24,10 +32,13 @@ export class UesComponent implements OnInit {
     id: null,
     code: '',
     name: '',
+    responsible: '',
     department: '',
     level: '',
     semester: '',
-    students_count: 0
+    phase: '',
+    students_count: 0,
+    modules_count: 0
   };
 
   constructor(
@@ -51,13 +62,77 @@ export class UesComponent implements OnInit {
     });
   }
 
+  get displayedUEs() {
+    let result = [...this.ues];
+    
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(ue => 
+        (ue.code || '').toLowerCase().includes(term) || 
+        (ue.name || '').toLowerCase().includes(term) ||
+        (ue.department || '').toLowerCase().includes(term) ||
+        (ue.level || '').toLowerCase().includes(term)
+      );
+    }
+
+    result.sort((a, b) => {
+      const nameA = (a.name || '').toLowerCase();
+      const nameB = (b.name || '').toLowerCase();
+      if (nameA < nameB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (nameA > nameB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }
+
+  get paginatedUEs() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.displayedUEs.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.displayedUEs.length / this.itemsPerPage));
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.currentPage = 1;
+  }
+
+  openViewModal(ue: any) {
+    this.selectedUE = ue;
+    this.isViewModalOpen = true;
+  }
+
+  closeViewModal() {
+    this.isViewModalOpen = false;
+    this.selectedUE = null;
+  }
+
   openModal(ue: any = null) {
     if (ue) {
       this.isEditing = true;
       this.currentUE = { ...ue };
     } else {
       this.isEditing = false;
-      this.currentUE = { code: '', name: '', department: '', level: '', semester: '', students_count: 0 };
+      this.currentUE = { 
+        code: '', 
+        name: '', 
+        responsible: '',
+        department: '', 
+        level: '', 
+        semester: '', 
+        phase: '',
+        students_count: 0,
+        modules_count: 0
+      };
     }
     this.showModal = true;
   }

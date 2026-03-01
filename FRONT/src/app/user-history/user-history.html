@@ -1,4 +1,3 @@
-
 <!-- Print View -->
 <div class="hidden print:block font-sans text-black p-8 bg-white max-w-5xl mx-auto">
     <!-- Print Header -->
@@ -9,15 +8,20 @@
                 <p>Imprimé le {{ currentDate | date:'dd/MM/yyyy à HH:mm' }}</p>
             </div>
         </div>
-        
+
         <div class="grid grid-cols-2 gap-4 text-sm border border-gray-300 p-4 rounded bg-gray-50">
             <div>
-                <p class="mb-2 border-b border-gray-200 pb-1"><span class="font-bold text-gray-700 w-24 inline-block">Enseignant:</span> <span class="uppercase font-semibold">{{ filters.teacher || 'TOUS' }}</span></p>
+                <p class="mb-2 border-b border-gray-200 pb-1"><span
+                        class="font-bold text-gray-700 w-24 inline-block">Enseignant:</span> <span
+                        class="uppercase font-semibold">{{ filters.teacher || 'TOUS' }}</span></p>
                 <!-- Remove course from header to focus on teacher if needed, or keep as is. User asked for "all records related to a teacher". If course filter is set, it filters by course too. -->
-                <p class="mb-1"><span class="font-bold text-gray-700 w-24 inline-block">Cours:</span> <span class="uppercase font-semibold">{{ filters.course || 'TOUS' }}</span></p>
+                <p class="mb-1"><span class="font-bold text-gray-700 w-24 inline-block">Cours:</span> <span
+                        class="uppercase font-semibold">{{ filters.course || 'TOUS' }}</span></p>
             </div>
             <div class="text-right">
-                <p class="mb-2 border-b border-gray-200 pb-1"><span class="font-bold text-gray-700">Période:</span> {{ (filters.startDate | date:'dd/MM/yyyy') || 'Début' }} - {{ (filters.endDate | date:'dd/MM/yyyy') || 'Maintenant' }}</p>
+                <p class="mb-2 border-b border-gray-200 pb-1"><span class="font-bold text-gray-700">Période:</span> {{
+                    (filters.startDate | date:'dd/MM/yyyy') || 'Début' }} - {{ (filters.endDate | date:'dd/MM/yyyy') ||
+                    'Maintenant' }}</p>
                 <p class="text-xl font-bold text-black mt-2">Total Durée: {{ totalDuration }}</p>
             </div>
         </div>
@@ -31,16 +35,18 @@
                 <!-- Always show teacher column if "Toutes les enseignants" selected? Or if a specific teacher is selected but we want to be sure? User complains about "last records" only appearing. -->
                 <th class="py-3 px-2 border-r border-black" *ngIf="!filters.teacher">Enseignant</th>
                 <th class="py-3 px-2 border-r border-black">Module</th>
-                <th class="py-3 px-2 border-r border-black text-center">Niveau/Dept</th>
+                <th class="py-3 px-2 border-r border-black text-center">Niveau/Filière</th>
                 <th class="py-3 px-2 border-r border-black text-center">Début</th>
                 <th class="py-3 px-2 border-r border-black text-center">Fin</th>
                 <th class="py-3 px-2 text-right">Durée</th>
             </tr>
         </thead>
         <tbody class="text-gray-800">
-            <tr *ngFor="let s of printSupervisions; let i = index" [class.bg-gray-50]="i % 2 !== 0" class="border-b border-black">
+            <tr *ngFor="let s of printSupervisions; let i = index" [class.bg-gray-50]="i % 2 !== 0"
+                class="border-b border-black">
                 <td class="py-2 px-2 border-r border-black font-medium">{{ s.date | date:'dd/MM/yyyy' }}</td>
-                <td class="py-2 px-2 border-r border-black uppercase text-xs" *ngIf="!filters.teacher">{{ s.teacher.name }}</td>
+                <td class="py-2 px-2 border-r border-black uppercase text-xs" *ngIf="!filters.teacher">{{ s.teacher.name
+                    }}</td>
                 <td class="py-2 px-2 border-r border-black font-bold text-xs">{{ s.course.name }}</td>
                 <td class="py-2 px-2 border-r border-black text-center text-xs">{{ s.teacher.department }}</td>
                 <td class="py-2 px-2 border-r border-black text-center font-mono text-xs">{{ s.startTimeStr }}</td>
@@ -50,18 +56,22 @@
                 </td>
             </tr>
             <tr *ngIf="printSupervisions.length === 0">
-                <td [attr.colspan]="!filters.teacher ? 7 : 6" class="p-8 text-center text-gray-500 italic border-l border-r border-black">Aucune supervision ne correspond aux critères sélectionnés.</td>
+                <td [attr.colspan]="!filters.teacher ? 7 : 6"
+                    class="p-8 text-center text-gray-500 italic border-l border-r border-black">Aucune supervision ne
+                    correspond aux critères sélectionnés.</td>
             </tr>
         </tbody>
         <tfoot class="border-t-2 border-black bg-gray-50 font-bold">
-             <tr>
-                <td [attr.colspan]="!filters.teacher ? 5 : 4" class="py-3 px-4 text-right uppercase text-xs tracking-wide">Total Heures</td>
+            <tr>
+                <td [attr.colspan]="!filters.teacher ? 5 : 4"
+                    class="py-3 px-4 text-right uppercase text-xs tracking-wide">Total Heures</td>
                 <td colspan="3" class="py-3 px-4 text-right text-base">{{ totalDuration }}</td>
-             </tr>
+            </tr>
         </tfoot>
     </table>
 
-    <div class="mt-12 flex justify-between text-xs text-gray-500 uppercase tracking-widest pt-8 border-t border-gray-300">
+    <div
+        class="mt-12 flex justify-between text-xs text-gray-500 uppercase tracking-widest pt-8 border-t border-gray-300">
         <div>Visa de l'enseignant</div>
         <div>Visa de l'administration</div>
     </div>
@@ -71,19 +81,24 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Historique des Supervisions</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Consultez les rapports de supervision passés et les journaux.</p>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Historique des Supervisions
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Consultez les rapports de supervision passés et
+                les journaux.</p>
         </div>
         <div class="flex items-center gap-3">
-            <button (click)="exportCSV()" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
+            <button (click)="exportCSV()"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
                 <span class="material-symbols-outlined text-[20px]">file_download</span>
                 Exporter CSV
             </button>
-            <button (click)="printHistory()" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
+            <button (click)="printHistory()"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
                 <span class="material-symbols-outlined text-[20px]">print</span>
                 Imprimer
             </button>
-            <button routerLink="/admin/supervision-form" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20">
+            <button routerLink="/admin/supervision-form"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20">
                 <span class="material-symbols-outlined text-[20px]">add</span>
                 Nouveau Rapport
             </button>
@@ -96,32 +111,38 @@
             <div class="space-y-1" *ngIf="isAdmin">
                 <label class="text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">Enseignant</label>
                 <div class="relative">
-                    <select [(ngModel)]="filters.teacher" (change)="onTeacherChange()" class="w-full pl-3 pr-10 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                    <select [(ngModel)]="filters.teacher" (change)="onTeacherChange()"
+                        class="w-full pl-3 pr-10 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
                         <option value="">Tous les enseignants</option>
                         <option *ngFor="let t of teachers" [value]="t">{{ t }}</option>
                     </select>
-                    <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-500 pointer-events-none text-[20px] lg:text-[24px]">expand_more</span>
+                    <span
+                        class="absolute right-3 top-2.5 material-symbols-outlined text-slate-500 pointer-events-none text-[20px] lg:text-[24px]">expand_more</span>
                 </div>
             </div>
             <div class="space-y-1">
                 <label class="text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">UE / Cours</label>
                 <div class="relative">
-                    <select [(ngModel)]="filters.course" (change)="applyFilters()" class="w-full pl-3 pr-10 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                    <select [(ngModel)]="filters.course" (change)="applyFilters()"
+                        class="w-full pl-3 pr-10 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none appearance-none bg-none dark:bg-slate-900 dark:border-slate-700 dark:text-white">
                         <option value="">Tous les cours</option>
                         <option *ngFor="let c of courses" [value]="c">{{ c }}</option>
                     </select>
-                    <span class="absolute right-3 top-2.5 material-symbols-outlined text-slate-500 pointer-events-none text-[20px] lg:text-[24px]">expand_more</span>
+                    <span
+                        class="absolute right-3 top-2.5 material-symbols-outlined text-slate-500 pointer-events-none text-[20px] lg:text-[24px]">expand_more</span>
                 </div>
             </div>
             <div class="space-y-1 md:col-span-2">
                 <label class="text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">Période</label>
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
-                        <input [(ngModel)]="filters.startDate" (change)="applyFilters()" type="date" class="w-full pl-3 pr-3 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-800">
+                        <input [(ngModel)]="filters.startDate" (change)="applyFilters()" type="date"
+                            class="w-full pl-3 pr-3 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-800">
                     </div>
                     <span class="text-slate-400">-</span>
                     <div class="relative flex-1">
-                        <input [(ngModel)]="filters.endDate" (change)="applyFilters()" type="date" class="w-full pl-3 pr-3 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-800">
+                        <input [(ngModel)]="filters.endDate" (change)="applyFilters()" type="date"
+                            class="w-full pl-3 pr-3 py-2.5 text-sm lg:text-base bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none dark:bg-slate-900 dark:border-slate-700 dark:text-white text-slate-800">
                     </div>
                 </div>
             </div>
@@ -129,13 +150,16 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
+                    <tr
+                        class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
                         <th class="p-4 w-12 text-center">
-                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
+                            <input type="checkbox"
+                                class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
                         </th>
                         <th class="p-4 w-40">Enregistré le</th>
                         <th class="p-4 w-40">Date Visite</th>
@@ -148,63 +172,83 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     <tr *ngIf="paginatedSupervisions.length === 0">
-                        <td colspan="8" class="p-8 text-center text-slate-500">Aucune supervision trouvée pour ces critères.</td>
+                        <td colspan="8" class="p-8 text-center text-slate-500">Aucune supervision trouvée pour ces
+                            critères.</td>
                     </tr>
-                    <tr *ngFor="let s of paginatedSupervisions" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+                    <tr *ngFor="let s of paginatedSupervisions"
+                        class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td class="p-4 text-center">
-                            <input type="checkbox" class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
+                            <input type="checkbox"
+                                class="w-4 h-4 rounded border-slate-300 text-[#0f42a5] focus:ring-[#0f42a5]">
                         </td>
                         <td class="p-4">
                             <!-- Enregistré le -->
                             <div class="flex flex-col">
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enregistré le</span>
-                                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ s.createdAt | date:'dd/MM/yyyy' }}</span>
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enregistré
+                                    le</span>
+                                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ s.createdAt |
+                                    date:'dd/MM/yyyy' }}</span>
                                 <span class="text-xs text-slate-400 font-mono">à {{ s.createdAt | date:'HH:mm' }}</span>
                             </div>
                         </td>
                         <td class="p-4">
                             <!-- Date Visite -->
-                             <div class="flex flex-col">
+                            <div class="flex flex-col">
                                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Visite du</span>
-                                <span class="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{{ s.date | date:'dd MMM yyyy' }}</span>
-                                <span class="text-xs lg:text-sm text-slate-600 font-medium">{{ s.startTimeStr }} - {{ s.endTimeStr }}</span>
+                                <span class="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{{ s.date |
+                                    date:'dd MMM yyyy' }}</span>
+                                <span class="text-xs lg:text-sm text-slate-600 font-medium">{{ s.startTimeStr }} - {{
+                                    s.endTimeStr }}</span>
                             </div>
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs lg:text-sm font-bold {{ s.teacher.color }}">
+                                <div
+                                    class="w-9 h-9 rounded-full flex items-center justify-center text-xs lg:text-sm font-bold {{ s.teacher.color }}">
                                     {{ s.teacher.initials }}
                                 </div>
                                 <div>
-                                    <div class="text-sm lg:text-base font-bold text-slate-700 dark:text-slate-200">{{ s.teacher.name }}</div>
+                                    <div class="text-sm lg:text-base font-bold text-slate-700 dark:text-slate-200">{{
+                                        s.teacher.name }}</div>
                                     <div class="text-xs lg:text-sm text-slate-600">{{ s.teacher.department }}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="p-4">
                             <div class="inline-flex flex-col">
-                                <span class="px-2 py-0.5 rounded text-[10px] lg:text-xs font-bold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 w-fit mb-1">{{ s.course.code }}</span>
-                                <span class="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-400">{{ s.course.name }}</span>
+                                <span
+                                    class="px-2 py-0.5 rounded text-[10px] lg:text-xs font-bold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 w-fit mb-1">{{
+                                    s.course.code }}</span>
+                                <span class="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-400">{{
+                                    s.course.name }}</span>
                             </div>
                         </td>
                         <td class="p-4">
-                            <div class="flex items-center gap-2 text-sm lg:text-base font-medium text-slate-700 dark:text-slate-300">
-                                <span class="material-symbols-outlined text-[18px] lg:text-[22px] {{ s.platformColor }}">{{ s.platformIcon }}</span>
+                            <div
+                                class="flex items-center gap-2 text-sm lg:text-base font-medium text-slate-700 dark:text-slate-300">
+                                <span
+                                    class="material-symbols-outlined text-[18px] lg:text-[22px] {{ s.platformColor }}">{{
+                                    s.platformIcon }}</span>
                                 {{ s.platform }}
                             </div>
                         </td>
                         <td class="p-4">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs lg:text-sm font-bold {{ s.statusColor }}">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs lg:text-sm font-bold {{ s.statusColor }}">
                                 <span class="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
                                 {{ s.status }}
                             </span>
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button (click)="viewDetails(s)" class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all focus:ring-2 focus:ring-slate-100" title="Voir les détails">
+                                <button (click)="viewDetails(s)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all focus:ring-2 focus:ring-slate-100"
+                                    title="Voir les détails">
                                     <span class="material-symbols-outlined text-[18px]">visibility</span>
                                 </button>
-                                <button (click)="deleteSupervision(s)" class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all focus:ring-2 focus:ring-red-100" title="Supprimer">
+                                <button (click)="deleteSupervision(s)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all focus:ring-2 focus:ring-red-100"
+                                    title="Supprimer">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
                             </div>
@@ -213,23 +257,22 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-800">
+        <div
+            class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-800">
             <div class="text-sm font-bold text-[#0f42a5] uppercase tracking-wider">
                 PAGE {{ currentPage }} SUR {{ totalPages }}
             </div>
 
             <div class="flex items-center gap-2">
-                <button (click)="onPageChange(currentPage - 1)" 
-                        [disabled]="currentPage === 1" 
-                        class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-400 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
+                <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1"
+                    class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-400 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
                     <span class="material-symbols-outlined text-[20px]">chevron_left</span>
                 </button>
 
-                <button (click)="onPageChange(currentPage + 1)" 
-                        [disabled]="currentPage === totalPages" 
-                        class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-900 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
+                <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages"
+                    class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-900 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
                     <span class="material-symbols-outlined text-[20px]">chevron_right</span>
                 </button>
             </div>
@@ -237,31 +280,37 @@
     </div>
 
     <!-- View Details Modal -->
-    <div *ngIf="showModal && selectedSupervision" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="w-full max-w-5xl bg-white shadow-2xl dark:bg-slate-800 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col md:flex-row">
-            
+    <div *ngIf="showModal && selectedSupervision"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div
+            class="w-full max-w-5xl bg-white shadow-2xl dark:bg-slate-800 rounded-3xl overflow-hidden max-h-[90vh] flex flex-col md:flex-row">
+
             <!-- Left Sidebar: List of Supervisions -->
-            <div class="w-full md:w-1/3 h-64 md:h-auto bg-slate-50 dark:bg-slate-900/50 border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-700 flex flex-col shrink-0">
+            <div
+                class="w-full md:w-1/3 h-64 md:h-auto bg-slate-50 dark:bg-slate-900/50 border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-700 flex flex-col shrink-0">
                 <div class="p-6 border-b border-slate-100 dark:border-slate-700">
                     <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Historique Complet</h3>
-                    <div class="font-bold text-lg text-slate-900 dark:text-white truncate" title="{{ selectedSupervision.course.name }}">{{ selectedSupervision.course.name }}</div>
-                    <div class="text-xs text-slate-500">{{ filteredHistoryForUE.length }} enregistrement(s) trouvé(s)</div>
+                    <div class="font-bold text-lg text-slate-900 dark:text-white truncate"
+                        title="{{ selectedSupervision.course.name }}">{{ selectedSupervision.course.name }}</div>
+                    <div class="text-xs text-slate-500">{{ filteredHistoryForUE.length }} enregistrement(s) trouvé(s)
+                    </div>
                 </div>
                 <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                    <div *ngFor="let s of filteredHistoryForUE" 
-                         (click)="selectSupervisionFromHistory(s)"
-                         [class]="s.id === selectedSupervision.id ? 'bg-white dark:bg-slate-800 border-[#0f42a5] ring-1 ring-[#0f42a5]' : 'bg-white dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'"
-                         class="p-4 rounded-xl border shadow-sm cursor-pointer transition-all group relative overflow-hidden">
-                         
-                        <div *ngIf="s.id === selectedSupervision.id" class="absolute left-0 top-0 bottom-0 w-1 bg-[#0f42a5]"></div>
-                        
+                    <div *ngFor="let s of filteredHistoryForUE" (click)="selectSupervisionFromHistory(s)"
+                        [class]="s.id === selectedSupervision.id ? 'bg-white dark:bg-slate-800 border-[#0f42a5] ring-1 ring-[#0f42a5]' : 'bg-white dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'"
+                        class="p-4 rounded-xl border shadow-sm cursor-pointer transition-all group relative overflow-hidden">
+
+                        <div *ngIf="s.id === selectedSupervision.id"
+                            class="absolute left-0 top-0 bottom-0 w-1 bg-[#0f42a5]"></div>
+
                         <div class="flex justify-between items-start mb-2">
                             <span class="text-xs font-bold text-slate-500">{{ s.date | date:'dd MMM yyyy' }}</span>
                             <span [class]="'px-2 py-0.5 rounded text-[10px] font-bold ' + s.statusColor">
                                 {{ s.status }}
                             </span>
                         </div>
-                        <div class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1">{{ s.teacher.name }}</div>
+                        <div class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1">{{ s.teacher.name }}
+                        </div>
                         <div class="flex items-center gap-2 text-xs text-slate-500">
                             <span class="material-symbols-outlined text-[14px]">schedule</span>
                             {{ s.date | date:'HH:mm' }} - {{ s.endTime | date:'HH:mm' }}
@@ -273,200 +322,214 @@
             <!-- Right Content: Details -->
             <div class="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-800 overflow-hidden">
                 <!-- Header -->
-                <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 shrink-0">
+                <div
+                    class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 shrink-0">
                     <div class="flex items-center gap-4">
-                        <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-[#0f42a5] dark:bg-blue-900/30 dark:text-blue-400">
+                        <div
+                            class="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 text-[#0f42a5] dark:bg-blue-900/30 dark:text-blue-400">
                             <span class="material-symbols-outlined text-2xl">description</span>
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-slate-900 dark:text-white">Détails de la Supervision</h3>
-                            <p class="text-xs text-slate-500">Réf: #{{ selectedSupervision.id }} - {{ selectedSupervision.date | date:'dd/MM/yyyy' }}</p>
+                            <p class="text-xs text-slate-500">Réf: #{{ selectedSupervision.id }} - {{
+                                selectedSupervision.date | date:'dd/MM/yyyy' }}</p>
                         </div>
                     </div>
-                    <button (click)="closeModal()" class="p-2 transition-colors rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-slate-700">
+                    <button (click)="closeModal()"
+                        class="p-2 transition-colors rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-slate-700">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
 
-            <!-- Content -->
-            <div class="flex-1 p-6 space-y-6 overflow-y-auto">
-                <div class="grid grid-cols-2 gap-6">
-                   <!-- Info Block -->
-                   <div class="space-y-4">
-                       <div>
-                           <div class="text-xs font-bold text-slate-500 uppercase">Enseignant</div>
-                           <div class="font-medium text-slate-900 dark:text-white">{{ selectedSupervision.teacher.name }}</div>
-                           <div class="text-xs text-slate-500 mt-1">{{ selectedSupervision.teacher.department }} - {{ selectedSupervision.teacher.initials }}</div>
-                       </div>
-                       <!-- Display session number if available -->
-                       <div *ngIf="selectedSupervision.sessionNumber">
-                           <div class="text-xs font-bold text-slate-500 uppercase">Numéro de Séance</div>
-                           <span class="inline-flex px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                               {{ selectedSupervision.sessionNumber }}
-                           </span>
-                       </div>
-                       <div>
-                           <div class="text-xs font-bold text-slate-500 uppercase">Module / Matière</div>
-                           <div class="font-medium text-slate-900 dark:text-white">{{ selectedSupervision.course.name }}</div>
-                       </div>
-                       <div>
-                           <div class="text-xs font-bold text-slate-500 uppercase">Plateforme</div>
-                           <div class="flex items-center gap-2 font-medium text-slate-900 dark:text-white">
-                               <span class="material-symbols-outlined text-[18px]" [class]="'text-' + selectedSupervision.platformColor.split(' ')[1]">{{ selectedSupervision.platformIcon }}</span>
-                               {{ selectedSupervision.platform }}
-                           </div>
-                       </div>
-                   </div>
-                   <!-- Info Block -->
-                   <div class="space-y-4">
-                       <div>
-                           <div class="text-xs font-bold text-slate-500 uppercase">Heure</div>
-                           <div class="font-medium text-slate-900 dark:text-white">
-                               {{ selectedSupervision.date | date:'HH:mm' }} - {{ selectedSupervision.endTime | date:'HH:mm' }}
-                           </div>
-                       </div>
-                       <!-- Participation -->
-                        <div>
-                           <div class="text-xs font-bold text-slate-500 uppercase">Participation</div>
-                           <div class="font-medium text-slate-900 dark:text-white flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[18px] text-slate-400">groups</span>
-                                {{ selectedSupervision.presentCount || 0 }} Présents sur {{ selectedSupervision.totalStudents || 0 }} Inscrits
-                           </div>
-                           <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
-                               <div class="bg-[#0f42a5] h-1.5 rounded-full" [style.width.%]="(selectedSupervision.presentCount / (selectedSupervision.totalStudents || 1)) * 100"></div>
-                           </div>
-                       </div>
-                       <div>
-                           <div class="text-xs font-bold text-slate-500 uppercase">Superviseur</div>
-                           <div class="font-medium text-slate-900 dark:text-white">{{ selectedSupervision.supervisorName || 'Non signé' }}</div>
-                       </div>
-                   </div>
-                </div>
-
-                <!-- Technical & Pedagogical Evaluation Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-700">
-                    <div>
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-green-600">settings_suggest</span>
-                            Aspects Techniques
-                        </h4>
-                        <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                            <li class="flex justify-between">
-                                <span>Connexion Internet:</span>
-                                <span class="font-medium">{{ selectedSupervision.technical?.internet || 'N/A' }}</span>
-                            </li>
-                            <li class="flex justify-between">
-                                <span>Qualité Audio/Vidéo:</span>
-                                <span class="font-medium">{{ selectedSupervision.technical?.audioVideo || 'N/A' }}</span>
-                            </li>
-                            <li class="flex justify-between">
-                                <span>Ponctualité:</span>
-                                <span class="font-medium">{{ selectedSupervision.technical?.punctuality || 'N/A' }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                             <span class="material-symbols-outlined text-blue-600">psychology</span>
-                            Aspects Pédagogiques
-                        </h4>
-                         <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                            <li class="flex justify-between">
-                                <span>Objectifs Clairs:</span>
-                                <span class="font-medium">{{ selectedSupervision.pedagogical?.objectives || 'N/A' }}</span>
-                            </li>
-                            <li class="flex justify-between">
-                                <span>Maîtrise Contenu:</span>
-                                <span class="font-medium">{{ selectedSupervision.pedagogical?.contentMastery || 'N/A' }}</span>
-                            </li>
-                             <li class="flex justify-between">
-                                <span>Interaction:</span>
-                                <span class="font-medium">{{ selectedSupervision.pedagogical?.interaction || 'N/A' }}</span>
-                            </li>
-                            <li class="flex justify-between">
-                                <span>Usage Outils:</span>
-                                <span class="font-medium">{{ selectedSupervision.pedagogical?.toolsUsage || 'N/A' }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Observations -->
-                <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-2">Observations & Remarques</h4>
-                    <p class="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 italic">
-                        {{ selectedSupervision.observations || "Aucune observation particulière n'a été notée." }}
-                    </p>
-                </div>
-                
-                <!-- Signatures -->
-                 <div class="pt-6 border-t border-slate-100 dark:border-slate-700">
-                     <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 text-center flex flex-col items-center justify-center">
-                            <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature Superviseur</span>
-                             <div class="h-16 w-full flex items-center justify-center">
-                                 <img *ngIf="selectedSupervision.signatures?.supervisor" [src]="selectedSupervision.signatures.supervisor" class="max-h-full max-w-full object-contain" alt="Signature Superviseur">
-                                 <div *ngIf="!selectedSupervision.signatures?.supervisor" class="text-slate-300 italic">Non Signé</div>
-                             </div>
-                        </div>
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 text-center flex flex-col items-center justify-center">
-                            <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature Enseignant</span>
-                            <div class="h-16 w-full flex items-center justify-center">
-                                 <img *ngIf="selectedSupervision.signatures?.teacher" [src]="selectedSupervision.signatures.teacher" class="max-h-full max-w-full object-contain" alt="Signature Enseignant">
-                                 <div *ngIf="!selectedSupervision.signatures?.teacher" class="text-slate-300 italic">Non Signé</div>
+                <!-- Content -->
+                <div class="flex-1 p-6 space-y-6 overflow-y-auto">
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- Info Block -->
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase">Enseignant</div>
+                                <div class="font-medium text-slate-900 dark:text-white">{{
+                                    selectedSupervision.teacher.name }}</div>
+                                <div class="text-xs text-slate-500 mt-1">{{ selectedSupervision.teacher.department }} -
+                                    {{ selectedSupervision.teacher.initials }}</div>
+                            </div>
+                            <!-- Display session number if available -->
+                            <div *ngIf="selectedSupervision.sessionNumber">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Numéro de Séance</div>
+                                <span
+                                    class="inline-flex px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                    {{ selectedSupervision.sessionNumber }}
+                                </span>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase">Module / Matière</div>
+                                <div class="font-medium text-slate-900 dark:text-white">{{
+                                    selectedSupervision.course.name }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase">Plateforme</div>
+                                <div class="flex items-center gap-2 font-medium text-slate-900 dark:text-white">
+                                    <span class="material-symbols-outlined text-[18px]"
+                                        [class]="'text-' + selectedSupervision.platformColor.split(' ')[1]">{{
+                                        selectedSupervision.platformIcon }}</span>
+                                    {{ selectedSupervision.platform }}
+                                </div>
                             </div>
                         </div>
-                     </div>
-                 </div>
-            </div>
-            
-            <!-- Footer -->
-            <div class="p-6 border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 flex flex-wrap justify-end gap-3 z-10 shrink-0">
-                 <button (click)="closeModal()" class="px-5 py-2.5 font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
-                    Fermer
-                </button>
-                <button (click)="printSupervision(selectedSupervision)" class="px-5 py-2.5 font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm">
-                    <span class="material-symbols-outlined text-[18px] mr-2 align-middle">print</span>
-                    Imprimer
-                </button>
-                <button (click)="printSupervision(selectedSupervision)" class="px-5 py-2.5 font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a]">
-                    <span class="material-symbols-outlined text-[18px] mr-2 align-middle">download</span>
-                    Télécharger PDF
-                </button>
-            </div>
-            
-        </div> <!-- End Flex Col -->
-    </div> <!-- End Modal Container -->
-</div> <!-- End Modal Overlay -->
+                        <!-- Info Block -->
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase">Heure</div>
+                                <div class="font-medium text-slate-900 dark:text-white">
+                                    {{ selectedSupervision.date | date:'HH:mm' }} - {{ selectedSupervision.endTime |
+                                    date:'HH:mm' }}
+                                </div>
+                            </div>
+                            <!-- Participation -->
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase">Participation</div>
+                                <div class="font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-slate-400">groups</span>
+                                    {{ selectedSupervision.presentCount || 0 }} Présents sur {{
+                                    selectedSupervision.totalStudents || 0 }} Inscrits
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                                    <div class="bg-[#0f42a5] h-1.5 rounded-full"
+                                        [style.width.%]="(selectedSupervision.presentCount / (selectedSupervision.totalStudents || 1)) * 100">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-500 uppercase">Superviseur</div>
+                                <div class="font-medium text-slate-900 dark:text-white">{{
+                                    selectedSupervision.supervisorName || 'Non signé' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical & Pedagogical Evaluation Grid -->
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-green-600">settings_suggest</span>
+                                Aspects Techniques
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                <li class="flex justify-between">
+                                    <span>Connexion Internet:</span>
+                                    <span class="font-medium">{{ selectedSupervision.technical?.internet || 'N/A'
+                                        }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Qualité Audio/Vidéo:</span>
+                                    <span class="font-medium">{{ selectedSupervision.technical?.audioVideo || 'N/A'
+                                        }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Ponctualité:</span>
+                                    <span class="font-medium">{{ selectedSupervision.technical?.punctuality || 'N/A'
+                                        }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-600">psychology</span>
+                                Aspects Pédagogiques
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                <li class="flex justify-between">
+                                    <span>Objectifs Clairs:</span>
+                                    <span class="font-medium">{{ selectedSupervision.pedagogical?.objectives || 'N/A'
+                                        }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Maîtrise Contenu:</span>
+                                    <span class="font-medium">{{ selectedSupervision.pedagogical?.contentMastery ||
+                                        'N/A' }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Interaction:</span>
+                                    <span class="font-medium">{{ selectedSupervision.pedagogical?.interaction || 'N/A'
+                                        }}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Usage Outils:</span>
+                                    <span class="font-medium">{{ selectedSupervision.pedagogical?.toolsUsage || 'N/A'
+                                        }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Observations -->
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-2">Observations & Remarques</h4>
+                        <p
+                            class="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 italic">
+                            {{ selectedSupervision.observations || "Aucune observation particulière n'a été notée." }}
+                        </p>
+                    </div>
+
+                    <!-- Signatures -->
+                    <div class="pt-6 border-t border-slate-100 dark:border-slate-700">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div
+                                class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 text-center flex flex-col items-center justify-center">
+                                <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature
+                                    Superviseur</span>
+                                <div class="h-16 w-full flex items-center justify-center">
+                                    <img *ngIf="selectedSupervision.signatures?.supervisor"
+                                        [src]="selectedSupervision.signatures.supervisor"
+                                        class="max-h-full max-w-full object-contain" alt="Signature Superviseur">
+                                    <div *ngIf="!selectedSupervision.signatures?.supervisor"
+                                        class="text-slate-300 italic">Non Signé</div>
+                                </div>
+                            </div>
+                            <div
+                                class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 text-center flex flex-col items-center justify-center">
+                                <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature
+                                    Enseignant</span>
+                                <div class="h-16 w-full flex items-center justify-center">
+                                    <img *ngIf="selectedSupervision.signatures?.teacher"
+                                        [src]="selectedSupervision.signatures.teacher"
+                                        class="max-h-full max-w-full object-contain" alt="Signature Enseignant">
+                                    <div *ngIf="!selectedSupervision.signatures?.teacher" class="text-slate-300 italic">
+                                        Non Signé</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div
+                    class="p-6 border-t bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-700 flex flex-wrap justify-end gap-3 z-10 shrink-0">
+                    <button (click)="closeModal()"
+                        class="px-5 py-2.5 font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
+                        Fermer
+                    </button>
+                    <button (click)="printSupervision(selectedSupervision)"
+                        class="px-5 py-2.5 font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm">
+                        <span class="material-symbols-outlined text-[18px] mr-2 align-middle">print</span>
+                        Imprimer
+                    </button>
+                    <button (click)="printSupervision(selectedSupervision)"
+                        class="px-5 py-2.5 font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a]">
+                        <span class="material-symbols-outlined text-[18px] mr-2 align-middle">download</span>
+                        Télécharger PDF
+                    </button>
+                </div>
+
+            </div> <!-- End Flex Col -->
+        </div> <!-- End Modal Container -->
+    </div> <!-- End Modal Overlay -->
 
 
-<!-- Delete Confirmation Modal -->
-<div *ngIf="showDeleteModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-    <!-- Backdrop, clicking on it closes the modal -->
-    <div class="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" (click)="cancelDelete()"></div>
-
-    <!-- Modal Content -->
-    <div class="relative w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden transform zoom-in-95 transition-all">
-        <div class="p-6 text-center">
-            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
-                <span class="material-symbols-outlined text-[28px]">warning</span>
-            </div>
-            
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Confirmer la suppression</h3>
-            
-            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 px-2">
-                Êtes-vous sûr de vouloir supprimer cette supervision ?<br>
-                <span class="text-xs mt-1 block opacity-75">Cette action est irréversible.</span>
-            </p>
-            
-            <div class="flex items-center gap-3">
-                <button (click)="cancelDelete()" class="flex-1 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-100 hover:text-slate-900 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700">
-                    Annuler
-                </button>
-                <button (click)="confirmDelete()" class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 focus:ring-2 focus:ring-red-500/30 shadow-sm shadow-red-500/20 transition-colors">
-                    Supprimer
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+    <!-- Delete Confirmation Modal -->
+    <app-confirmation-modal *ngIf="showDeleteModal" [isOpen]="true" title="Confirmer la suppression"
+        message="Êtes-vous sûr de vouloir supprimer cette supervision ? Cette action est irréversible."
+        confirmText="Supprimer" cancelText="Annuler" type="danger" (confirm)="confirmDelete()"
+        (cancel)="cancelDelete()">
+    </app-confirmation-modal>

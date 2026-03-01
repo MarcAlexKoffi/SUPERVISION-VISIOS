@@ -5,21 +5,24 @@
             <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Unités d'Enseignement (UE)</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez la liste des cours et modules.</p>
         </div>
-        <button (click)="openModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 transition-all">
+        <button (click)="openModal()"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 transition-all">
             <span class="material-symbols-outlined text-[20px]">add_box</span>
             Ajouter une UE
         </button>
     </div>
 
     <!-- Table -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
+                    <tr
+                        class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
                         <th class="p-4">Code</th>
                         <th class="p-4">Intitulé (Nom)</th>
-                        <th class="p-4">Département</th>
+                        <th class="p-4">Filière</th>
                         <th class="p-4 text-center">Niveau</th>
                         <th class="p-4 text-center">Semestre</th>
                         <th class="p-4 text-right">Actions</th>
@@ -29,20 +32,26 @@
                     <tr *ngIf="ues.length === 0">
                         <td colspan="6" class="p-8 text-center text-slate-500">Aucune UE enregistrée.</td>
                     </tr>
-                    <tr *ngFor="let ue of ues" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+                    <tr *ngFor="let ue of ues"
+                        class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td class="p-4 font-mono text-sm font-bold text-[#0f42a5]">{{ ue.code }}</td>
                         <td class="p-4 text-sm font-medium text-slate-900 dark:text-white">{{ ue.name }}</td>
                         <td class="p-4 text-sm text-slate-600">{{ ue.department || '-' }}</td>
                         <td class="p-4 text-center">
-                            <span class="inline-flex px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-700">{{ ue.level || '-' }}</span>
+                            <span class="inline-flex px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-700">{{
+                                ue.level || '-' }}</span>
                         </td>
                         <td class="p-4 text-center text-sm text-slate-600">{{ ue.semester || '-' }}</td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button (click)="openModal(ue)" class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all" title="Modifier">
+                                <button (click)="openModal(ue)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all"
+                                    title="Modifier">
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
-                                <button (click)="deleteUE(ue)" class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all" title="Supprimer">
+                                <button (click)="deleteUE(ue)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                                    title="Supprimer">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
                             </div>
@@ -58,31 +67,38 @@
 <div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
     <div class="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ isEditing ? 'Modifier' : 'Ajouter' }} une UE</h3>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ isEditing ? 'Modifier' : 'Ajouter' }} une UE
+            </h3>
             <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        
+
         <form (ngSubmit)="saveUE()" #f="ngForm" class="p-6 space-y-4">
             <div class="space-y-1">
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Code UE *</label>
-                <input type="text" [(ngModel)]="currentUE.code" name="code" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all uppercase placeholder:normal-case" placeholder="ex: INFO1102">
+                <input type="text" [(ngModel)]="currentUE.code" name="code" required
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all uppercase placeholder:normal-case"
+                    placeholder="ex: INFO1102">
             </div>
 
             <div class="space-y-1">
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Intitulé (Nom du Module) *</label>
-                <input type="text" [(ngModel)]="currentUE.name" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all" placeholder="ex: Algorithmique et Programmation">
+                <input type="text" [(ngModel)]="currentUE.name" name="name" required
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all"
+                    placeholder="ex: Algorithmique et Programmation">
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4">
-                 <div class="space-y-1">
-                    <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Département</label>
-                    <input type="text" [(ngModel)]="currentUE.department" name="department" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Filière</label>
+                    <input type="text" [(ngModel)]="currentUE.department" name="department"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
                 </div>
-                 <div class="space-y-1">
+                <div class="space-y-1">
                     <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Niveau</label>
-                    <select [(ngModel)]="currentUE.level" name="level" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                    <select [(ngModel)]="currentUE.level" name="level"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
                         <option value="">Sélectionner</option>
                         <option value="Licence 1">Licence 1</option>
                         <option value="Licence 2">Licence 2</option>
@@ -93,9 +109,18 @@
                 </div>
             </div>
 
-             <div class="space-y-1">
+
+            <div class="space-y-1">
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Effectif étudiants</label>
+                <input type="number" [(ngModel)]="currentUE.students_count" name="students_count" min="0"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all"
+                    placeholder="0">
+            </div>
+
+            <div class="space-y-1">
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Semestre</label>
-                <select [(ngModel)]="currentUE.semester" name="semester" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                <select [(ngModel)]="currentUE.semester" name="semester"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
                     <option value="">Sélectionner</option>
                     <option value="S1">S1</option>
                     <option value="S2">S2</option>
@@ -107,11 +132,19 @@
             </div>
 
             <div class="pt-4 flex justify-end gap-3">
-                <button type="button" (click)="closeModal()" class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Annuler</button>
-                <button type="submit" [disabled]="!f.valid || isLoading" class="px-4 py-2 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="button" (click)="closeModal()"
+                    class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Annuler</button>
+                <button type="submit" [disabled]="!f.valid || isLoading"
+                    class="px-4 py-2 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal *ngIf="isDeleteModalOpen" [isOpen]="true" title="Supprimer une UE"
+    [message]="'Êtes-vous sûr de vouloir supprimer l’UE ' + (ueToDelete?.name || ueToDelete?.code) + ' ?'"
+    confirmText="Supprimer" cancelText="Annuler" type="danger" (confirm)="confirmDelete()" (cancel)="cancelDelete()">
+</app-confirmation-modal>

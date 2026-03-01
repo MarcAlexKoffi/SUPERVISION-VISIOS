@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from '../services/teacher.service';
 import { ToastService } from '../services/toast.service'; // Assuming ToastService exists
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
   selector: 'app-teachers',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './teachers.html',
 })
 export class TeachersComponent implements OnInit {
@@ -16,6 +17,9 @@ export class TeachersComponent implements OnInit {
   showModal = false;
   isEditing = false;
   isLoading = false;
+
+  showDeleteModal = false;
+  teacherToDelete: any = null;
 
   currentTeacher: any = {
     id: null,
@@ -29,7 +33,7 @@ export class TeachersComponent implements OnInit {
   constructor(
     private teacherService: TeacherService,
     private toastService: ToastService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadTeachers();
@@ -50,11 +54,11 @@ export class TeachersComponent implements OnInit {
   openModal(teacher: any = null) {
     if (teacher) {
       this.isEditing = true;
-      this.currentTeacher = { 
-        id: teacher.id, 
-        firstName: teacher.first_name, 
-        lastName: teacher.last_name, 
-        email: teacher.email, 
+      this.currentTeacher = {
+        id: teacher.id,
+        firstName: teacher.first_name,
+        lastName: teacher.last_name,
+        email: teacher.email,
         department: teacher.department,
         status: teacher.status || 'active'
       };
@@ -99,11 +103,27 @@ export class TeachersComponent implements OnInit {
   }
 
   deleteTeacher(teacher: any) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${teacher.first_name} ${teacher.last_name} ?`)) {
-      this.teacherService.delete(teacher.id).subscribe({
-        next: () => this.toastService.success('Enseignant supprimé'),
-        error: () => this.toastService.error('Erreur lors de la suppression')
-      });
-    }
+    this.teacherToDelete = teacher;
+    this.showDeleteModal = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteModal = false;
+    this.teacherToDelete = null;
+  }
+
+  confirmDelete() {
+    if (!this.teacherToDelete) return;
+    this.teacherService.delete(this.teacherToDelete.id).subscribe({
+      next: () => {
+        this.toastService.success('Enseignant supprimé');
+        this.showDeleteModal = false;
+        this.teacherToDelete = null;
+      },
+      error: () => {
+        this.toastService.error('Erreur lors de la suppression');
+        this.showDeleteModal = false;
+      }
+    });
   }
 }

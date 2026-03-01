@@ -38,7 +38,7 @@ async function initDB() {
     console.log('Table "roles" vérifiée/créée.');
 
     // Insertion des rôles par défaut
-    const roles = ['admin', 'supervisor', 'user'];
+    const roles = ['admin', 'supervisor', 'user', 'assistant', 'enseignant'];
     for (const role of roles) {
         await connection.query(`INSERT IGNORE INTO roles (name) VALUES (?)`, [role]);
     }
@@ -49,6 +49,7 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
+        email VARCHAR(255) UNIQUE,
         password VARCHAR(255) NOT NULL,
         role_id INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -86,7 +87,9 @@ async function initDB() {
         level VARCHAR(50),
         semester VARCHAR(10),
         phase VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        user_id INT, -- Ref to users(id) to know who created it (optional if all can see)
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
     `;
     await connection.query(createUEsTable);

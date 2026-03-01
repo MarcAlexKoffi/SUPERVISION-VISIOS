@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../services/user.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
@@ -32,7 +33,7 @@ export class UsersComponent implements OnInit {
     private userService: UserService,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     const currentUser = this.authService.currentUserValue;
@@ -87,7 +88,7 @@ export class UsersComponent implements OnInit {
       alert('Le nom d\'utilisateur est obligatoire');
       return;
     }
-    
+
     if (!this.isEditMode && !this.newUser.password) {
       alert('Le mot de passe est obligatoire pour la création');
       return;
@@ -126,8 +127,8 @@ export class UsersComponent implements OnInit {
           this.closeDeleteModal();
         },
         error: (err) => {
-            console.error(err);
-            alert('Erreur lors de la suppression');
+          console.error(err);
+          alert('Erreur lors de la suppression');
         }
       });
     }
@@ -136,9 +137,9 @@ export class UsersComponent implements OnInit {
   getAvatar(name: string) {
     return `https://ui-avatars.com/api/?name=${name}&background=random&color=fff`;
   }
-  
+
   togglePassword() {
-      this.showPassword = !this.showPassword;
+    this.showPassword = !this.showPassword;
   }
 
   getRoleBadgeClass(role: string): string {

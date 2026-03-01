@@ -3,9 +3,11 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Enseignants</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez la liste des professeurs (Ajout, Modification, Suppression).</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez la liste des professeurs (Ajout,
+                Modification, Suppression).</p>
         </div>
-        <button (click)="openModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 transition-all">
+        <button (click)="openModal()"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 transition-all">
             <span class="material-symbols-outlined text-[20px]">person_add</span>
             Ajouter un Enseignant
         </button>
@@ -14,14 +16,16 @@
     <!-- Stats or Filters can go here -->
 
     <!-- Table -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
+                    <tr
+                        class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
                         <th class="p-4">Nom & Prénom</th>
                         <th class="p-4">Email</th>
-                        <th class="p-4">Département</th>
+                        <th class="p-4">Filière</th>
                         <th class="p-4">Statut</th>
                         <th class="p-4 text-right">Actions</th>
                     </tr>
@@ -30,34 +34,43 @@
                     <tr *ngIf="teachers.length === 0">
                         <td colspan="5" class="p-8 text-center text-slate-500">Aucun enseignant enregistré.</td>
                     </tr>
-                    <tr *ngFor="let t of teachers" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
+                    <tr *ngFor="let t of teachers"
+                        class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td class="p-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
+                                <div
+                                    class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
                                     {{ t.first_name.charAt(0) }}{{ t.last_name.charAt(0) }}
                                 </div>
                                 <div>
-                                    <div class="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{{ t.first_name }} {{ t.last_name }}</div>
+                                    <div class="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{{
+                                        t.first_name }} {{ t.last_name }}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="p-4 text-sm text-slate-600">{{ t.email || '-' }}</td>
                         <td class="p-4 text-sm text-slate-600">
-                            <span class="inline-flex px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold font-mono">
+                            <span
+                                class="inline-flex px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold font-mono">
                                 {{ t.department || 'N/A' }}
                             </span>
                         </td>
-                         <td class="p-4">
-                            <span [class]="'inline-flex px-2 py-0.5 rounded-full text-xs font-bold ' + (t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')">
+                        <td class="p-4">
+                            <span
+                                [class]="'inline-flex px-2 py-0.5 rounded-full text-xs font-bold ' + (t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')">
                                 {{ t.status }}
                             </span>
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex items-center justify-end gap-2">
-                                <button (click)="openModal(t)" class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all" title="Modifier">
+                                <button (click)="openModal(t)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all"
+                                    title="Modifier">
                                     <span class="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
-                                <button (click)="deleteTeacher(t)" class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all" title="Supprimer">
+                                <button (click)="deleteTeacher(t)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                                    title="Supprimer">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
                             </div>
@@ -73,48 +86,63 @@
 <div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
     <div class="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ isEditing ? 'Modifier' : 'Ajouter' }} un Enseignant</h3>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ isEditing ? 'Modifier' : 'Ajouter' }} un
+                Enseignant</h3>
             <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        
+
         <form (ngSubmit)="saveTeacher()" #f="ngForm" class="p-6 space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Prénom *</label>
-                    <input type="text" [(ngModel)]="currentTeacher.firstName" name="firstName" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                    <input type="text" [(ngModel)]="currentTeacher.firstName" name="firstName" required
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
                 </div>
                 <div class="space-y-1">
                     <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Nom *</label>
-                    <input type="text" [(ngModel)]="currentTeacher.lastName" name="lastName" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                    <input type="text" [(ngModel)]="currentTeacher.lastName" name="lastName" required
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
                 </div>
             </div>
 
             <div class="space-y-1">
                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Email</label>
-                <input type="email" [(ngModel)]="currentTeacher.email" name="email" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                <input type="email" [(ngModel)]="currentTeacher.email" name="email"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
             </div>
 
             <div class="space-y-1">
-                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Département</label>
-                <input type="text" [(ngModel)]="currentTeacher.department" name="department" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all" placeholder="Ex: Informatique">
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Filière</label>
+                <input type="text" [(ngModel)]="currentTeacher.department" name="department"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all"
+                    placeholder="Ex: Informatique">
             </div>
-            
+
             <div class="space-y-1" *ngIf="isEditing">
-                 <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Statut</label>
-                 <select [(ngModel)]="currentTeacher.status" name="status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
+                <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Statut</label>
+                <select [(ngModel)]="currentTeacher.status" name="status"
+                    class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] outline-none transition-all">
                     <option value="active">Actif</option>
                     <option value="inactive">Inactif</option>
-                 </select>
+                </select>
             </div>
 
             <div class="pt-4 flex justify-end gap-3">
-                <button type="button" (click)="closeModal()" class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Annuler</button>
-                <button type="submit" [disabled]="!f.valid || isLoading" class="px-4 py-2 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="button" (click)="closeModal()"
+                    class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Annuler</button>
+                <button type="submit" [disabled]="!f.valid || isLoading"
+                    class="px-4 py-2 text-sm font-bold text-white bg-[#0f42a5] hover:bg-[#1e3a8a] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<app-confirmation-modal *ngIf="showDeleteModal" [isOpen]="true" title="Supprimer un enseignant"
+    [message]="'Êtes-vous sûr de vouloir supprimer ' + teacherToDelete?.first_name + ' ' + teacherToDelete?.last_name + ' ?'"
+    confirmText="Supprimer" cancelText="Annuler" type="danger" (confirm)="confirmDelete()" (cancel)="cancelDelete()">
+</app-confirmation-modal>

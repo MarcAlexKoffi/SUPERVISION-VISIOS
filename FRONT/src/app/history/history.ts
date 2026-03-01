@@ -5,11 +5,12 @@ import { RouterModule } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
 import { Subscription } from 'rxjs';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, ConfirmationModalComponent],
   templateUrl: './history.html',
   styleUrl: './history.scss',
 })
@@ -23,7 +24,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   supervisions: any[] = [];
   filteredSupervisions: any[] = [];
-  
+
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
@@ -37,7 +38,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   selectedSupervision: any = null;
   filteredHistoryForUE: any[] = [];
   showModal = false;
-  
+
   // Delete Modal
   showDeleteModal = false;
   supervisionToDelete: any = null;
@@ -52,7 +53,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   constructor(
     private supervisionService: SupervisionService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
@@ -93,13 +94,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
       let diff = end - start;
       // Handle overnight or simply ensure positive duration
       if (diff < 0) diff += 24 * 60;
-      
+
       // Only count if diff makes sense (e.g. > 0)
       if (diff > 0) {
         totalMinutes += diff;
       }
     });
-    
+
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return `${hours}h ${minutes.toString().padStart(2, '0')}`;
@@ -109,54 +110,54 @@ export class HistoryComponent implements OnInit, OnDestroy {
     const start = this.parseTime(s.startTimeStr);
     const end = this.parseTime(s.endTimeStr);
     if (start === 0 && end === 0) return '0h 00';
-    
+
     let diff = end - start;
     if (diff < 0) diff += 24 * 60;
-    
+
     const hours = Math.floor(diff / 60);
     const minutes = diff % 60;
-    
+
     return `${hours}h ${minutes.toString().padStart(2, '0')}`;
   }
 
   parseTime(timeStr: string): number {
     if (!timeStr) return 0;
     try {
-        const parts = timeStr.split(':');
-        if (parts.length < 2) return 0;
-        const hours = parseInt(parts[0], 10);
-        const minutes = parseInt(parts[1], 10);
-        return (isNaN(hours) ? 0 : hours) * 60 + (isNaN(minutes) ? 0 : minutes);
+      const parts = timeStr.split(':');
+      if (parts.length < 2) return 0;
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      return (isNaN(hours) ? 0 : hours) * 60 + (isNaN(minutes) ? 0 : minutes);
     } catch (e) {
-        return 0;
+      return 0;
     }
   }
 
   loadHistory() {
     // Call API instead of localStorage
     this.supervisionService.getAll().subscribe({
-        next: (data) => {
-            console.log('Raw History Data:', data);
-            // Backend handles filtering, but we enforce it here proactively just in case or for immediate UI feedback
-            if (!this.isAdmin && this.currentUser) {
-                 // data = data.filter((item: any) => item.user_id === this.currentUser.id);
-            }
-            this.supervisions = data.map((item: any) => this.mapToView(item));
-            console.log('Mapped History Data:', this.supervisions);
-            this.updateFilters();
-            this.applyFilters();
-        },
-        error: (err) => console.error('Failed to load history', err)
+      next: (data) => {
+        console.log('Raw History Data:', data);
+        // Backend handles filtering, but we enforce it here proactively just in case or for immediate UI feedback
+        if (!this.isAdmin && this.currentUser) {
+          // data = data.filter((item: any) => item.user_id === this.currentUser.id);
+        }
+        this.supervisions = data.map((item: any) => this.mapToView(item));
+        console.log('Mapped History Data:', this.supervisions);
+        this.updateFilters();
+        this.applyFilters();
+      },
+      error: (err) => console.error('Failed to load history', err)
     });
   }
 
   updateFilters() {
-      // Extract unique teachers and courses for filter dropdowns
-      const historyTeachers = this.supervisions.map(s => s.teacher.name).filter(Boolean);
-      const historyCourses = this.supervisions.map(s => s.course.name).filter(Boolean);
-      
-      this.teachers = [...new Set(historyTeachers)].sort();
-      this.courses = [...new Set(historyCourses)].sort();
+    // Extract unique teachers and courses for filter dropdowns
+    const historyTeachers = this.supervisions.map(s => s.teacher.name).filter(Boolean);
+    const historyCourses = this.supervisions.map(s => s.course.name).filter(Boolean);
+
+    this.teachers = [...new Set(historyTeachers)].sort();
+    this.courses = [...new Set(historyCourses)].sort();
   }
 
   onTeacherChange() {
@@ -168,10 +169,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.filteredSupervisions = this.supervisions.filter(s => {
       // Teacher Filter
       const matchTeacher = !this.filters.teacher || s.teacher.name === this.filters.teacher;
-      
+
       // Course Filter
       const matchCourse = !this.filters.course || s.course.name === this.filters.course;
-      
+
       // Date Filter
       let matchDate = true;
       const itemDate = new Date(s.date);
@@ -182,7 +183,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
         start.setHours(0, 0, 0, 0);
         matchDate = matchDate && itemDate >= start;
       }
-      
+
       if (this.filters.endDate) {
         const end = new Date(this.filters.endDate);
         end.setHours(23, 59, 59, 999);
@@ -191,7 +192,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
       return matchTeacher && matchCourse && matchDate;
     });
-    
+
     this.currentPage = 1; // Reset to page 1 on filter change
   }
 
@@ -201,23 +202,31 @@ export class HistoryComponent implements OnInit, OnDestroy {
     // Map API/DB structure to View structure
     // DB: teacher_name, module, visit_date, etc.
     // View Expects: teacher.name, course.name, date (Date obj), etc.
-    
+
     // Check if data comes from DB (snake_case) or legacy/local (camelCase)
     // Prioritize joined data from relational tables if available
     let teacherName = data.teacher_name || data.teacherName || 'Non spécifié';
     if (data.teacher_firstname && data.teacher_lastname) {
-        teacherName = `${data.teacher_firstname} ${data.teacher_lastname}`;
+      teacherName = `${data.teacher_firstname} ${data.teacher_lastname}`;
     }
-    
+
     let moduleName = data.module || 'Non spécifié';
+    // If we have relate UE data, prioritize it
     if (data.ue_real_name) {
-        moduleName = data.ue_code ? `${data.ue_code} - ${data.ue_real_name}` : data.ue_real_name;
+      // If code is available, format: CODE - Name. Else just Name.
+      moduleName = data.ue_real_name;
+      if (data.ue_code) {
+        moduleName = `${data.ue_code} - ${moduleName}`;
+      }
+    } else if (data.ue_code) {
+      // If only code is available (edge case)
+      moduleName = `${data.ue_code} - ${moduleName}`;
     }
 
     const dateStr = data.visit_date || data.date; // Ensure this is not undefined
     const startTimeStr = data.start_time || data.startTime || '00:00';
     const endTimeStr = data.end_time || data.endTime || '00:00';
-    
+
     // Handle time format if it comes as HH:MM:SS from mysql
     const formatTime = (t: string) => t && t.length > 5 ? t.substring(0, 5) : t;
 
@@ -225,45 +234,45 @@ export class HistoryComponent implements OnInit, OnDestroy {
     if (dateStr) {
       dateObj = new Date(dateStr);
     }
-    
+
     // Validate dateObj
     if (isNaN(dateObj.getTime())) {
-        console.warn('Invalid date found:', dateStr, data);
-        dateObj = new Date(); // Fallback to now
+      console.warn('Invalid date found:', dateStr, data);
+      dateObj = new Date(); // Fallback to now
     }
-    
+
     const startDateTime = new Date(dateObj);
     // Note: Creating date objects for time is tricky if only time string provided, using base date
     if (typeof startTimeStr === 'string' && startTimeStr.includes(':')) {
-        startDateTime.setHours(parseInt(startTimeStr.split(':')[0]), parseInt(startTimeStr.split(':')[1]));
+      startDateTime.setHours(parseInt(startTimeStr.split(':')[0]), parseInt(startTimeStr.split(':')[1]));
     }
 
     const endDateTime = new Date(dateObj);
     if (typeof endTimeStr === 'string' && endTimeStr.includes(':')) {
-        endDateTime.setHours(parseInt(endTimeStr.split(':')[0]), parseInt(endTimeStr.split(':')[1]));
+      endDateTime.setHours(parseInt(endTimeStr.split(':')[0]), parseInt(endTimeStr.split(':')[1]));
     }
 
     const signatures = {
-        supervisor: data.supervisor_signature || (data.signatures && data.signatures.supervisor),
-        teacher: data.teacher_signature || (data.signatures && data.signatures.teacher)
+      supervisor: data.supervisor_signature || (data.signatures && data.signatures.supervisor),
+      teacher: data.teacher_signature || (data.signatures && data.signatures.teacher)
     };
 
     const technical = {
-        internet: data.tech_internet || (data.technical && data.technical.internet),
-        audioVideo: data.tech_audio_video || (data.technical && data.technical.audioVideo),
-        punctuality: data.tech_punctuality || (data.technical && data.technical.punctuality)
+      internet: data.tech_internet || (data.technical && data.technical.internet),
+      audioVideo: data.tech_audio_video || (data.technical && data.technical.audioVideo),
+      punctuality: data.tech_punctuality || (data.technical && data.technical.punctuality)
     };
 
     const pedagogical = {
-        objectives: data.ped_objectives || (data.pedagogical && data.pedagogical.objectives),
-        contentMastery: data.ped_content_mastery || (data.pedagogical && data.pedagogical.contentMastery),
-        interaction: data.ped_interaction || (data.pedagogical && data.pedagogical.interaction),
-        toolsUsage: data.ped_tools_usage || (data.pedagogical && data.pedagogical.toolsUsage)
+      objectives: data.ped_objectives || (data.pedagogical && data.pedagogical.objectives),
+      contentMastery: data.ped_content_mastery || (data.pedagogical && data.pedagogical.contentMastery),
+      interaction: data.ped_interaction || (data.pedagogical && data.pedagogical.interaction),
+      toolsUsage: data.ped_tools_usage || (data.pedagogical && data.pedagogical.toolsUsage)
     };
 
     return {
       id: data.id,
-      originalData: data, 
+      originalData: data,
       date: new Date(dateStr), // Keep just the date part for filtering/sorting if needed, or full datetime
       endTime: endDateTime, // Used for display duration/end time
       startTimeStr: formatTime(startTimeStr),
@@ -276,7 +285,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       },
       sessionNumber: data.session_number || data.sessionNumber || '',
       course: {
-        code: 'UE', 
+        code: 'UE',
         name: moduleName
       },
       platform: data.platform || 'Autre',
@@ -284,13 +293,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
       platformColor: this.getPlatformColor(data.platform),
       status: 'Terminé',
       statusColor: 'bg-green-100 text-green-700',
-      
+
       presentCount: data.present_count || data.presentCount || 0,
       totalStudents: data.total_students || data.totalStudents || 0,
-      
+
       technical: technical,
       pedagogical: pedagogical,
-      
+
       observations: data.observations || '',
       supervisorName: data.supervisor_name || data.supervisorName || '',
       signatures: signatures,
@@ -319,7 +328,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   get endItem() {
     return Math.min(this.currentPage * this.itemsPerPage, this.filteredSupervisions.length);
   }
-  
+
   onPageChange(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -333,7 +342,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   confirmDelete() {
     if (!this.supervisionToDelete) return;
-    
+
     this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
       next: () => {
         this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
@@ -346,7 +355,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
         if (err.status === 403) {
           alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
         } else {
-            alert('Erreur lors de la suppression');
+          alert('Erreur lors de la suppression');
         }
         this.cancelDelete();
       }
@@ -364,22 +373,22 @@ export class HistoryComponent implements OnInit, OnDestroy {
     const headers = ['Date', 'Heure Debut', 'Heure Fin', 'Enseignant', 'UE/Module', 'Plateforme', 'Statut'];
     const rows = this.filteredSupervisions.map(s => [
       s.date.toLocaleDateString(),
-      s.date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-      s.endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      s.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      s.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       s.teacher.name,
       s.course.name,
       s.platform,
       s.status
     ]);
 
-    let csvContent = "data:text/csv;charset=utf-8," 
-        + headers.join(",") + "\n" 
-        + rows.map(e => e.join(",")).join("\n");
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `supervisions_export_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute("download", `supervisions_export_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -388,8 +397,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
   viewDetails(supervision: any) {
     // 1. Find all supervisions for this specific UE/Course
     this.filteredHistoryForUE = this.supervisions
-        .filter(s => s.course.name === supervision.course.name)
-        .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date desc (newest first)
+      .filter(s => s.course.name === supervision.course.name)
+      .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date desc (newest first)
 
     // 2. Select the clicked one initially
     this.selectedSupervision = supervision;
@@ -397,7 +406,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   selectSupervisionFromHistory(supervision: any) {
-      this.selectedSupervision = supervision;
+    this.selectedSupervision = supervision;
   }
 
   closeModal() {
@@ -415,8 +424,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
     const s = supervision;
     const dateFormatted = s.date.toLocaleDateString('fr-FR');
-    const startTimeFormatted = s.date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
-    const endTimeFormatted = s.endTime.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+    const startTimeFormatted = s.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const endTimeFormatted = s.endTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
     const supervisorSig = s.signatures?.supervisor ? `<img src="${s.signatures.supervisor}" style="max-height: 50px; display: block; margin: 0 auto;">` : '<div style="font-style: italic; color: #94a3b8;">Non signé</div>';
     const teacherSig = s.signatures?.teacher ? `<img src="${s.signatures.teacher}" style="max-height: 50px; display: block; margin: 0 auto;">` : '<div style="font-style: italic; color: #94a3b8;">Non signé</div>';
@@ -569,7 +578,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     if (!name) return colors[0];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
   }

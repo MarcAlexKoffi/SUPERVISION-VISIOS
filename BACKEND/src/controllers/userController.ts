@@ -60,9 +60,15 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         message: 'Utilisateur créé.', 
         user: { id: result.insertId, username, email, role: roleName } 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur.' });
+    if (error.code === 'ER_DUP_ENTRY') {
+        if (error.sqlMessage && error.sqlMessage.includes('email')) {
+             return res.status(409).json({ message: 'Cet email est déjà utilisé.' });
+        }
+        return res.status(409).json({ message: 'Utilisateur ou email existant.' });
+    }
+    res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur.', error: error.message });
   }
 };
 
@@ -112,8 +118,14 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     await pool.query(query, params);
 
     res.json({ message: 'Utilisateur mis à jour avec succès.' });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+    if (error.code === 'ER_DUP_ENTRY') {
+        if (error.sqlMessage && error.sqlMessage.includes('email')) {
+             return res.status(409).json({ message: 'Cet email est déjà utilisé.' });
+        }
+        return res.status(409).json({ message: 'Utilisateur ou email existant.' });
+    }
     res.status(500).json({ message: 'Erreur lors de la mise à jour.' });
   }
 };

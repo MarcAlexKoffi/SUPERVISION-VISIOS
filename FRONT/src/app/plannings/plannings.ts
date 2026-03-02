@@ -47,7 +47,7 @@ export class Plannings implements OnInit {
   modalData: Partial<Planning> = this.getEmptyPlanning();
 
   daysOfWeek: Date[] = [];
-  calendarHours = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 to 19:00
+  calendarHours = Array.from({ length: 14 }, (_, i) => i + 8); // 8:00 to 21:00
 
   constructor(
     private planningService: PlanningService,
@@ -287,7 +287,7 @@ export class Plannings implements OnInit {
         
         // Define day start and end time limits
         const startHour = 8;
-        const endHour = 19;
+        const endHour = 21;
         const totalHours = endHour - startHour;
         const rowHeight = gridHeight / totalHours;
 

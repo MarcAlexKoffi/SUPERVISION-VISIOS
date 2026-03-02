@@ -1,8 +1,8 @@
-<div class="p-6 max-w-7xl mx-auto space-y-8">
+ï»¿<div class="p-6 max-w-7xl mx-auto space-y-8">
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">Formations & Classes</h1>
-      <p class="text-sm text-slate-500 mt-1">Gérez vos parcours et vos classes depuis cette page</p>
+      <p class="text-sm text-slate-500 mt-1">GÃ©rez vos parcours et vos classes depuis cette page</p>
     </div>
   </div>
 
@@ -27,8 +27,8 @@
               <input type="text" [(ngModel)]="newParcours.code" placeholder="Ex: INFO_2A" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nom / Libellé</label>
-              <input type="text" [(ngModel)]="newParcours.name" placeholder="Ex: Informatique 2ème Année" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nom / LibellÃ©</label>
+              <input type="text" [(ngModel)]="newParcours.name" placeholder="Ex: Informatique 2Ã¨me AnnÃ©e" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
             </div>
           </div>
           <div class="mt-4 flex justify-end gap-2">
@@ -63,7 +63,7 @@
             </div>
             
             <div *ngIf="parcoursList.length === 0" class="text-center py-8 text-slate-400 text-sm">
-              Aucun parcours configuré.
+              Aucun parcours configurÃ©.
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@
               <input type="number" [(ngModel)]="newClasse.effectif" placeholder="0" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
             </div>
             <div class="md:col-span-3">
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Parcours relié (Optionnel)</label>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Parcours reliÃ© (Optionnel)</label>
               <select [(ngModel)]="newClasse.parcours_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
                 <option [ngValue]="null">--- Aucun parcours ---</option>
                 <option *ngFor="let p of parcoursList" [value]="p.id">{{ p.name }} ({{ p.code }})</option>
@@ -122,7 +122,7 @@
                 <div class="font-bold text-slate-800">{{ c.name }}</div>
                 <div class="flex gap-2 mt-1 items-center">
                   <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[12px]">person</span> {{ c.effectif }} étudiants
+                    <span class="material-symbols-outlined text-[12px]">person</span> {{ c.effectif }} Ã©tudiants
                   </span>
                   <span *ngIf="c.parcours_name" class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded truncate max-w-[150px]">
                     {{ c.parcours_name }}
@@ -140,7 +140,7 @@
             </div>
 
             <div *ngIf="classesList.length === 0" class="text-center py-8 text-slate-400 text-sm">
-              Aucune classe configurée.
+              Aucune classe configurÃ©e.
             </div>
           </div>
         </div>
@@ -154,7 +154,7 @@
   *ngIf="isDeleteModalOpen" 
   [isOpen]="true" 
   title="Confirmation de suppression"
-  [message]="deleteType === 'parcours' ? 'Voulez-vous vraiment supprimer ce parcours ? Cette action peut avoir un impact sur les classes liées.' : 'Voulez-vous vraiment supprimer cette classe ?'"
+  [message]="deleteType === 'parcours' ? 'Voulez-vous vraiment supprimer ce parcours ? Cette action peut avoir un impact sur les classes liÃ©es.' : 'Voulez-vous vraiment supprimer cette classe ?'"
   confirmText="Supprimer" 
   cancelText="Annuler" 
   type="danger" 

@@ -6,21 +6,26 @@ import { AuthRequest } from '../middleware/authMiddleware';
 export const createPlanning = async (req: AuthRequest, res: Response) => {
   try {
     const {
-      parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status
+      parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status, title, description
     } = req.body;
 
-    if (!parcours || !ue_id || !teacher_id || !date || !start_time || !end_time) {
-      return res.status(400).json({ message: 'Les champs requis sont manquants.' });
+    // Validation: Require either ue_id OR title
+    if (!ue_id && !title) {
+        return res.status(400).json({ message: "Veuillez sélectionner une UE ou saisir un titre pour l'activité." });
+    }
+
+    if (!parcours || !teacher_id || !date || !end_time) {
+      return res.status(400).json({ message: 'Les champs requis sont manquants (Classe, Enseignant, Date, Heure de fin).' });
     }
 
     const query = `
       INSERT INTO plannings (
-        parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status, title, description
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
-      parcours, ue_id, teacher_id, date, start_time, end_time, session_type || 'CM', platform || '', visio_link || '', status || 'À superviser'
+      parcours, ue_id || null, teacher_id, date, start_time || null, end_time, session_type || 'Activite', platform || '', visio_link || '', status || 'À superviser', title || null, description || null
     ];
 
     const [result] = await pool.query<ResultSetHeader>(query, values);
@@ -79,25 +84,40 @@ export const updatePlanning = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const {
-      parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status
+      parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status, title, description
     } = req.body;
 
-    const query = `
-      UPDATE plannings 
-      SET parcours = COALESCE(?, parcours), 
-          ue_id = COALESCE(?, ue_id), 
-          teacher_id = COALESCE(?, teacher_id), 
-          date = COALESCE(?, date), 
-          start_time = COALESCE(?, start_time), 
-          end_time = COALESCE(?, end_time), 
-          session_type = COALESCE(?, session_type), 
-          platform = COALESCE(?, platform), 
-          visio_link = COALESCE(?, visio_link), 
-          status = COALESCE(?, status)
-      WHERE id = ?
-    `;
+    // Helper to add field if not undefined
+    const fields: string[] = [];
+    const values: any[] = [];
+    
+    // Helper function to push if defined
+    const add = (col: string, val: any) => {
+        if (val !== undefined) {
+            fields.push(`${col} = ?`);
+            values.push(val);
+        }
+    };
 
-    const values = [parcours, ue_id, teacher_id, date, start_time, end_time, session_type, platform, visio_link, status, id];
+    add('parcours', parcours);
+    add('ue_id', ue_id); // Can receive null to unset
+    add('teacher_id', teacher_id);
+    add('date', date);
+    add('start_time', start_time);
+    add('end_time', end_time);
+    add('session_type', session_type);
+    add('platform', platform);
+    add('visio_link', visio_link);
+    add('status', status);
+    add('title', title);
+    add('description', description);
+
+    if (fields.length === 0) {
+        return res.json({ message: 'Aucune donnée à modifier.' });
+    }
+
+    values.push(id);
+    const query = `UPDATE plannings SET ${fields.join(', ')} WHERE id = ?`;
 
     const [result] = await pool.query<ResultSetHeader>(query, values);
 

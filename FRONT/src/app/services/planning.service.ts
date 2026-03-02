@@ -6,10 +6,12 @@ import { environment } from '../../environments/environment';
 export interface Planning {
   id?: number;
   parcours: string;
-  ue_id: number;
+  ue_id?: number | null; // Optional now
+  title?: string; // Optional activity title
+  description?: string; // Optional description/details
   teacher_id: number;
   date: string; // YYYY-MM-DD
-  start_time: string; // HH:MM
+  start_time?: string; // HH:MM (Optional)
   end_time: string; // HH:MM
   session_type: string;
   platform: string;

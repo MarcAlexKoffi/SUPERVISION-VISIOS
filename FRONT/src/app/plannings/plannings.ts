@@ -44,6 +44,7 @@ export class Plannings implements OnInit {
   // Modal State
   isAddModalOpen = false;
   isEditMode = false;
+  isActivityMode = false; // New flag
   modalData: Partial<Planning> = this.getEmptyPlanning();
 
   daysOfWeek: Date[] = [];
@@ -81,7 +82,6 @@ export class Plannings implements OnInit {
     return {
       parcours: this.selectedParcours,
       session_type: 'CM',
-      platform: 'Zoom',
       status: 'À superviser',
     };
   }
@@ -159,7 +159,20 @@ export class Plannings implements OnInit {
 
   openAddModal() {
     this.isEditMode = false;
+    this.isActivityMode = false;
     this.modalData = this.getEmptyPlanning();
+    this.modalData.date = format(
+      this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
+      'yyyy-MM-dd',
+    );
+    this.isAddModalOpen = true;
+  }
+
+  openAddActivityModal() {
+    this.isEditMode = false;
+    this.isActivityMode = true;
+    this.modalData = this.getEmptyPlanning();
+    this.modalData.ue_id = null; // Explicitly null
     this.modalData.date = format(
       this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
       'yyyy-MM-dd',
@@ -170,6 +183,9 @@ export class Plannings implements OnInit {
   openEditModal(planning: Planning) {
     this.isEditMode = true;
     this.modalData = { ...planning };
+    // Determine mode based on data
+    this.isActivityMode = !this.modalData.ue_id && !!this.modalData.title;
+    
     // Cut off seconds from time if it exists (e.g. HH:MM:SS -> HH:MM)
     if (this.modalData.start_time && this.modalData.start_time.length > 5) {
       this.modalData.start_time = this.modalData.start_time.substring(0, 5);
@@ -189,15 +205,25 @@ export class Plannings implements OnInit {
   }
 
   savePlanning() {
-    if (
-      !this.modalData.ue_id ||
-      !this.modalData.teacher_id ||
-      !this.modalData.date ||
-      !this.modalData.start_time ||
-      !this.modalData.end_time
-    ) {
-      this.toastService.error('Veuillez remplir tous les champs obligatoires');
+    // Validate either UE or Title provided
+    if ((!this.modalData.ue_id && !this.modalData.title) || 
+        !this.modalData.teacher_id || 
+        !this.modalData.date || 
+        !this.modalData.end_time ||
+        !this.modalData.parcours) {
+      this.toastService.error('Veuillez sélectionner une UE ou entrer un titre, et remplir les autres champs.');
       return;
+    }
+
+    // If start time is missing, default it to end time (0 duration) or empty if safe.
+    // However, if NOT activity mode (i.e. Course mode), start time is required.
+    if (!this.isActivityMode && !this.modalData.start_time) {
+        this.toastService.error('Veuillez renseigner l\'heure de début pour une séance de cours.');
+        return;
+    }
+
+    if (!this.modalData.start_time) {
+        this.modalData.start_time = this.modalData.end_time;
     }
 
     if (this.isEditMode && this.modalData.id) {
@@ -469,7 +495,11 @@ export class Plannings implements OnInit {
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(100, 116, 139); // slate-500
-                    const t = `${plan.start_time.substring(0,5)} - ${plan.end_time.substring(0,5)}`;
+                    
+                    const t = plan.start_time 
+                        ? `${plan.start_time.substring(0,5)} - ${plan.end_time.substring(0,5)}`
+                        : `Fin: ${plan.end_time.substring(0,5)}`;
+                        
                     doc.text(t, textMarginL, Math.max(textY, bottomY));
                 }
 
@@ -489,14 +519,20 @@ export class Plannings implements OnInit {
       doc.setFontSize(12);
       doc.text(`Semaine: ${this.getWeekLabel()}`, 14, 30);
 
-      const tableData = this.plannings.map((p) => [
-        p.date ? format(parseISO(p.date), 'dd/MM/yyyy') : '',
-        `${p.start_time.substring(0, 5)} - ${p.end_time.substring(0, 5)}`,
-        p.ue_name || '',
-        `${p.teacher_first_name} ${p.teacher_last_name}`,
-        p.session_type || '',
-        p.status || '',
-      ]);
+      const tableData = this.plannings.map((p) => {
+        const timeStr = p.start_time 
+          ? `${p.start_time.substring(0, 5)} - ${p.end_time.substring(0, 5)}`
+          : `Date Butoir: ${p.end_time.substring(0, 5)}`;
+
+        return [
+          p.date ? format(parseISO(p.date), 'dd/MM/yyyy') : '',
+          timeStr,
+          p.ue_name || '',
+          `${p.teacher_first_name} ${p.teacher_last_name}`,
+          p.session_type || '',
+          p.status || '',
+        ];
+      });
 
       autoTable(doc, {
         head: [['Date', 'Heure', 'UE', 'Enseignant', 'Type', 'Statut']],
@@ -509,24 +545,43 @@ export class Plannings implements OnInit {
   }
 
   // Positioning logic for calendar blocks
-  getTopPosition(startTime: string): string {
+  getTopPosition(startTime?: string): string {
     if (!startTime) return '0px';
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const startHour = 8; // Calendar starts at 8
-    const pixelsPerHour = 140; // Augmenté pour l'espacement
-    const offset = (hours - startHour + minutes / 60) * pixelsPerHour;
+    const [h, m] = startTime.split(':').map(Number);
+    
+    // Assume 8am start
+    const startHour = 8;
+    // Calculate pixels offset (140px per hour)
+    const hoursFromStart = h - startHour + (m / 60);
+    const offset = hoursFromStart * 140;
+
     return `${Math.max(0, offset)}px`;
   }
 
-  getHeight(startTime: string, endTime: string): string {
-    if (!startTime || !endTime) return '140px';
-    const [startH, startM] = startTime.split(':').map(Number);
-    const [endH, endM] = endTime.split(':').map(Number);
+  getHeight(startTime?: string, endTime?: string): string {
+    if (!endTime) return '140px'; 
+    
+    // If no start time, default to 1 hour duration or similar visually
+    let startH: number, startM: number;
+    let endH: number, endM: number;
+
+    [endH, endM] = endTime.split(':').map(Number);
+
+    if (startTime) {
+        [startH, startM] = startTime.split(':').map(Number);
+    } else {
+        // If deadline only, maybe make it look like a 1h block ending at deadline?
+        // Or make it start 1h before deadline
+        startH = endH - 1; 
+        startM = endM;
+    }
+
     const pixelsPerHour = 140;
 
     const startOffset = startH + startM / 60;
     const endOffset = endH + endM / 60;
-    // Hauteur minimale pour afficher tous les détails (équivalent de 50 minutes)
+    
+    // Minimum height of ~50 mins (0.85 hours)
     const height = Math.max(0.85, endOffset - startOffset) * pixelsPerHour;
 
     return `${height}px`;

@@ -40,6 +40,17 @@
 
             <a (click)="closeSidebar()"
                 class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"
+                routerLink="/admin/plannings"
+                routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]"
+                #rla_planning="routerLinkActive">
+                <span
+                    class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
+                    [class.!text-[#0f42a5]]="rla_planning.isActive">calendar_month</span>
+                Planning Visios
+            </a>
+
+            <a (click)="closeSidebar()"
+                class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"
                 routerLink="/admin/supervision-form"
                 routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]"
                 #rla2="routerLinkActive">
@@ -71,8 +82,16 @@
             </a>
 
             <a (click)="closeSidebar()"
-                class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"
-                [class.hidden]="!isAdmin" routerLink="/admin/users"
+                class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"                  routerLink="/admin/formations" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]"
+                  #rla_formations="routerLinkActive">
+                  <span
+                      class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
+                      [class.!text-[#0f42a5]]="rla_formations.isActive">apartment</span>
+                  Formations & Classes
+              </a>
+
+              <a (click)="closeSidebar()"
+                  class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"                [class.hidden]="!isAdmin" routerLink="/admin/users"
                 routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]"
                 #rla4="routerLinkActive">
                 <span
@@ -136,6 +155,7 @@
                     <span class="material-symbols-outlined">menu</span>
                 </button>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla.isActive">Tableau de bord</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla_planning.isActive">Planning Visios</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla2.isActive">Fiche de Supervision</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla3.isActive">Historique</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla4.isActive">Gestion des Utilisateurs</h2>

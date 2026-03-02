@@ -6,6 +6,7 @@ import { UeService } from '../services/ue.service';
 import { TeacherService } from '../services/teacher.service'; // Import TeacherService
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { ClasseService } from '../services/classe.service';
 
 @Component({
   selector: 'app-supervision-form',
@@ -29,6 +30,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
 
   ues: any[] = [];
   teachers: any[] = []; // List of teachers
+  classesList: any[] = []; // List of classes
   selectedUECode: string = '';
   selectedTeacherId: number | null = null; // Store selected teacher ID
 
@@ -69,6 +71,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     private supervisionService: SupervisionService,
     private ueService: UeService,
     private teacherService: TeacherService, // Inject TeacherService
+    private classeService: ClasseService,
     private authService: AuthService,
     private router: Router
   ) {}
@@ -76,12 +79,20 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   ngOnInit() {
     this.loadUEs();
     this.loadTeachers(); // Load teachers
-    
+    this.loadClasses();
+
     // Auto-fill supervisor name if logged in
     const user = this.authService.currentUserValue;
     if (user && user.username) {
         this.formData.supervisorName = user.username;
     }
+  }
+
+  loadClasses() {
+    this.classeService.getAll().subscribe({
+      next: (data) => this.classesList = data,
+      error: (err) => console.error('Error loading classes', err)
+    });
   }
 
   loadTeachers() {
@@ -113,14 +124,14 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     if (selectedUE) {
       this.formData.ueId = selectedUE.id;
       this.formData.module = selectedUE.name || '';
-      this.formData.totalStudents = selectedUE.students_count ? parseInt(selectedUE.students_count) : 0;
-      
-      // Auto-fill Level/Semester/Phase
-      const parts = [];
-      if (selectedUE.level) parts.push(selectedUE.level);
-      if (selectedUE.semester) parts.push(`S${selectedUE.semester}`);
-      if (selectedUE.phase) parts.push(`Phase ${selectedUE.phase}`);
-      this.formData.level = parts.join(' - ');
+      // We no longer set level or totalStudents from UE, it comes from the Classe selection
+    }
+  }
+
+  onClassChange() {
+    const selectedClass = this.classesList.find(c => c.name === this.formData.level);
+    if (selectedClass) {
+      this.formData.totalStudents = selectedClass.effectif || 0;
       this.checkPresentCount();
     }
   }

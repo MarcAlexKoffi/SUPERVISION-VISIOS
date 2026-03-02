@@ -7,6 +7,9 @@ import userRouter from './routes/userRoutes';
 import supervisionRouter from './routes/supervisionRoutes';
 import ueRouter from './routes/ueRoutes';
 import teacherRouter from './routes/teacherRoutes';
+import planningRouter from './routes/planningRoutes';
+import parcoursRouter from './routes/parcoursRoutes';
+import classeRouter from './routes/classeRoutes';
 
 dotenv.config();
 
@@ -28,7 +31,9 @@ app.use('/api/users', userRouter);
 app.use('/api/supervisions', supervisionRouter);
 app.use('/api/ues', ueRouter);
 app.use('/api/teachers', teacherRouter);
-
+app.use('/api/plannings', planningRouter);
+app.use('/api/parcours', parcoursRouter);
+app.use('/api/classes', classeRouter);
 
 // Basic Route
 app.get('/', (req, res) => {

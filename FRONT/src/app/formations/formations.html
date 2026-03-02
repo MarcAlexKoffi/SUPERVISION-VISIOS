@@ -1,0 +1,135 @@
+<div class="p-6 max-w-7xl mx-auto space-y-8">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Formations & Classes</h1>
+      <p class="text-sm text-slate-500 mt-1">Gérez vos parcours et vos classes depuis cette page</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Zone Parcours -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500">school</span>
+          Parcours
+        </h2>
+      </div>
+
+      <div class="p-6 flex-1 flex flex-col">
+        <!-- Formulaire d'ajout Parcours -->
+        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6">
+          <h3 class="text-sm font-semibold text-blue-900 mb-3">Ajouter un nouveau parcours</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Code</label>
+              <input type="text" [(ngModel)]="newParcours.code" placeholder="Ex: INFO_2A" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nom / Libellé</label>
+              <input type="text" [(ngModel)]="newParcours.name" placeholder="Ex: Informatique 2ème Année" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+            </div>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <button (click)="addParcours()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">add</span>
+              Ajouter le parcours
+            </button>
+          </div>
+        </div>
+
+        <!-- Liste des parcours -->
+        <div class="flex-1 overflow-y-auto min-h-[300px]">
+          <h3 class="text-sm font-semibold text-slate-600 mb-3">Parcours existants ({{ parcoursList.length }})</h3>
+          
+          <div class="space-y-3">
+            <div *ngFor="let p of parcoursList" class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition-colors group">
+              <div>
+                <div class="font-bold text-slate-800">{{ p.name }}</div>
+                <div class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">{{ p.code }}</div>
+              </div>
+              <button (click)="deleteParcours(p.id!)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+            
+            <div *ngIf="parcoursList.length === 0" class="text-center py-8 text-slate-400 text-sm">
+              Aucun parcours configuré.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Zone Classes -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-200 bg-emerald-50 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-500">groups</span>
+          Classes
+        </h2>
+      </div>
+
+      <div class="p-6 flex-1 flex flex-col">
+        <!-- Formulaire d'ajout Classe -->
+        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 mb-6">
+          <h3 class="text-sm font-semibold text-emerald-900 mb-3">Ajouter une nouvelle classe</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nom de la classe</label>
+              <input type="text" [(ngModel)]="newClasse.name" placeholder="Ex: Master Dev Grp A" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Effectif</label>
+              <input type="number" [(ngModel)]="newClasse.effectif" placeholder="0" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Parcours relié (Optionnel)</label>
+              <select [(ngModel)]="newClasse.parcours_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
+                <option [ngValue]="null">--- Aucun parcours ---</option>
+                <option *ngFor="let p of parcoursList" [value]="p.id">{{ p.name }} ({{ p.code }})</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <button (click)="addClasse()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">add</span>
+              Ajouter la classe
+            </button>
+          </div>
+        </div>
+
+        <!-- Liste des classes -->
+        <div class="flex-1 overflow-y-auto min-h-[300px]">
+          <h3 class="text-sm font-semibold text-slate-600 mb-3">Classes existantes ({{ classesList.length }})</h3>
+          
+          <div class="space-y-3">
+            <div *ngFor="let c of classesList" class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition-colors group">
+              <div class="flex-1">
+                <div class="font-bold text-slate-800">{{ c.name }}</div>
+                <div class="flex gap-2 mt-1 items-center">
+                  <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[12px]">person</span> {{ c.effectif }} étudiants
+                  </span>
+                  <span *ngIf="c.parcours_name" class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded truncate max-w-[150px]">
+                    {{ c.parcours_name }}
+                  </span>
+                </div>
+              </div>
+              <button (click)="deleteClasse(c.id!)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 ml-2">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+
+            <div *ngIf="classesList.length === 0" class="text-center py-8 text-slate-400 text-sm">
+              Aucune classe configurée.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

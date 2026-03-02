@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { ToastService } from '../services/toast.service';
+import { ParcoursService } from '../services/parcours.service';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
@@ -18,6 +19,7 @@ export class UesComponent implements OnInit {
   sortDirection: 'asc' | 'desc' = 'asc';
   currentPage = 1;
   itemsPerPage = 10;
+  parcoursList: any[] = [];
 
   isViewModalOpen = false;
   selectedUE: any = null;
@@ -43,13 +45,29 @@ export class UesComponent implements OnInit {
 
   constructor(
     private ueService: UeService,
+    private parcoursService: ParcoursService,
     private toastService: ToastService
   ) { }
 
   ngOnInit() {
     this.loadUEs();
-    this.ueService.refreshNeeded$.subscribe(() => {
-      this.loadUEs();
+    this.loadParcours();
+    
+    // Subscribe to refresh events if available
+    if (this.ueService.refreshNeeded$) {
+      this.ueService.refreshNeeded$.subscribe(() => {
+        this.loadUEs();
+      });
+    }
+  }
+
+  loadParcours() {
+    this.parcoursService.getAll().subscribe({
+      next: (data) => {
+        this.parcoursList = data;
+        console.log('Parcours loaded:', data);
+      },
+      error: (err) => console.error('Erreur loading parcours', err)
     });
   }
 

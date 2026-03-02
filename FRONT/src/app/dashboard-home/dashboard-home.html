@@ -520,16 +520,7 @@
                                 <select [(ngModel)]="newUE.department" name="department"
                                     class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                                     <option value="" disabled selected>Sélectionner</option>
-                                    <option value="Aministration">Administration des Entreprises</option>
-                                    <option value="Audit">Audit et Contrôle de Gestion</option>
-                                    <option value="Finance">Finance Comptabilité</option>
-                                    <option value="Informatique">Genie Informatique</option>
-                                    <option value="GRH">Gestion des Ressources Humaines</option>
-                                    <option value="Fiscalité">Fiscalité Droit des Affaires</option>
-                                    <option value="Markrting">Marketing</option>
-                                    <option value="Transversale">Transversale</option>
-                                    <option value="MAM">MAM</option>
-                                    <option value="MAFIDA">MAFIDA</option>
+                                    <option *ngFor="let p of parcoursList" [value]="p.name">{{ p.name }}</option>
                                 </select>
                                 <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
                             </div>

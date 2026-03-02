@@ -55,7 +55,7 @@
             <optgroup label="Classes existantes">
               <option *ngFor="let c of databaseClasses" [value]="c.name">{{c.name}}</option>
             </optgroup>
-            <optgroup label="Anciens Parcours">
+            <optgroup label="Parcours">
               <option *ngFor="let p of parcoursList" [value]="p">{{p}}</option>
             </optgroup>
         </select>
@@ -297,7 +297,7 @@
               <optgroup label="Classes existantes">
                 <option *ngFor="let c of databaseClasses" [value]="c.name">{{ c.name }}</option>
               </optgroup>
-              <optgroup label="Anciens Parcours">
+              <optgroup label="Parcours">
                 <option *ngFor="let p of parcoursList" [value]="p">{{p}}</option>
               </optgroup>
             </select>

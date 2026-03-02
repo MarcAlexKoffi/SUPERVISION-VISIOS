@@ -3,7 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from '../services/teacher.service';
-import { ToastService } from '../services/toast.service'; // Assuming ToastService exists
+import { ToastService } from '../services/toast.service';
+import { ParcoursService } from '../services/parcours.service';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
@@ -14,6 +15,7 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 })
 export class TeachersComponent implements OnInit {
   teachers: any[] = [];
+  parcoursList: any[] = [];
   showModal = false;
   isEditing = false;
   isLoading = false;
@@ -32,12 +34,22 @@ export class TeachersComponent implements OnInit {
 
   constructor(
     private teacherService: TeacherService,
+    private parcoursService: ParcoursService,
     private toastService: ToastService
   ) { }
 
   ngOnInit() {
     this.loadTeachers();
+    this.loadParcours();
     this.teacherService.refreshNeeded$.subscribe(() => {
+      this.loadTeachers();
+    });
+  }
+
+  loadParcours() {
+    this.parcoursService.getAll().subscribe({
+        next: (data) => this.parcoursList = data,
+        error: (err) => console.error('Erreur chargement parcours', err)freshNeeded$.subscribe(() => {
       this.loadTeachers();
     });
   }

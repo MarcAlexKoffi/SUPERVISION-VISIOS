@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { SupervisionService } from '../services/supervision.service';
 import { AuthService } from '../services/auth.service';
+import { ParcoursService } from '../services/parcours.service';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -19,6 +20,7 @@ export class DashboardHome implements OnInit, OnDestroy {
   isAdmin = false;
   currentUser: any = null;
   private subscriptions: Subscription = new Subscription();
+  parcoursList: any[] = [];
 
   // DB Fields: code, name, responsible, students_count, level, semester, phase
   // UI Fields mapping:
@@ -76,8 +78,16 @@ export class DashboardHome implements OnInit, OnDestroy {
   constructor(
     private ueService: UeService,
     private supervisionService: SupervisionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private parcoursService: ParcoursService
   ) {}
+
+  loadParcours() {
+    this.parcoursService.getAll().subscribe({
+        next: (data) => this.parcoursList = data,
+        error: (err) => console.error('Erreur chargement parcours', err)
+    });
+  }
 
   loadUserData() {
       // Load user specific stats (supervisions)
@@ -293,6 +303,8 @@ export class DashboardHome implements OnInit, OnDestroy {
       this.isAdmin = this.currentUser?.role === 'admin';
 
       this.checkLocalStorage(); // Check for any local backups
+
+      this.loadParcours();
 
       // Always load UEs list for everyone (Admins and Users)
       this.loadData();

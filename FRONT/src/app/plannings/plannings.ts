@@ -23,14 +23,8 @@ export class Plannings implements OnInit {
   @ViewChild('calendarPdfArea') calendarPdfArea!: ElementRef;
 
   // Filters
-  parcoursList = [
-    'Informatique 1ère Année',
-    'Informatique 2ème Année',
-    'Master Marketing',
-    'Génie Logiciel',
-    'Réseaux & Télécoms',
-  ];
-  selectedParcours = this.parcoursList[0];
+  parcoursList: string[] = [];
+  selectedParcours = '';
   selectedStatus = '';
 
   // Dates
@@ -67,7 +61,20 @@ export class Plannings implements OnInit {
   ngOnInit() {
     this.updateDaysOfWeek();
     this.loadUesAndTeachers();
-    this.loadPlannings();
+    this.loadParcours();
+  }
+
+  loadParcours() {
+    this.parcoursService.getAll().subscribe({
+      next: (data) => {
+        this.parcoursList = data.map(p => p.name);
+        if (this.parcoursList.length > 0 && !this.selectedParcours) {
+            this.selectedParcours = this.parcoursList[0];
+            this.loadPlannings();
+        }
+      },
+      error: () => this.toastService.error('Erreur lors du chargement des parcours')
+    });
   }
 
   getEmptyPlanning(): Partial<Planning> {

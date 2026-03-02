@@ -351,6 +351,7 @@ export class SupervisionForm implements AfterViewInit, OnInit {
 
   closeSuccessModal() {
     this.showSuccessModal = false;
+    window.location.reload();
   }
   
   closeErrorModal() {

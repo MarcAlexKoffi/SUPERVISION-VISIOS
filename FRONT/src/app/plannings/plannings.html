@@ -306,6 +306,17 @@
       </div>
 
       <div class="space-y-1.5">
+        <label class="flex items-center gap-1.5 text-sm font-bold text-slate-700">Matière / UE <span class="text-rose-500">*</span></label>
+        <div class="relative">
+          <select [(ngModel)]="modalData.ue_id" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all cursor-pointer shadow-sm">
+            <option [ngValue]="undefined" disabled selected>Sélectionner une UE</option>
+            <option *ngFor="let ue of ues" [value]="ue.id">{{ ue.code }} - {{ ue.name }}</option>
+          </select>
+          <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 pointer-events-none">expand_content</span>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
         <label class="flex items-center gap-1.5 text-sm font-bold text-slate-700">Enseignant <span class="text-rose-500">*</span></label>
         <div class="relative">
           <select [(ngModel)]="modalData.teacher_id" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all cursor-pointer shadow-sm">

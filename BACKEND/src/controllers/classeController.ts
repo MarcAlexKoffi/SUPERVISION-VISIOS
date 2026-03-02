@@ -44,3 +44,22 @@ export const deleteClasse = async (req: Request, res: Response): Promise<void> =
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const updateClasse = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { name, effectif, parcours_id } = req.body;
+  if (!name || isNaN(effectif)) {
+    res.status(400).json({ message: 'Name and effectif are required' });
+    return;
+  }
+  try {
+    await pool.query(
+      'UPDATE classes SET name = ?, effectif = ?, parcours_id = ? WHERE id = ?',
+      [name, effectif, parcours_id || null, id]
+    );
+    res.json({ id, name, effectif, parcours_id });
+  } catch (error) {
+    console.error('Error updating classe:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

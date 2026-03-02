@@ -27,6 +27,10 @@ export class ClasseService {
     return this.http.post<Classe>(this.apiUrl, classe);
   }
 
+  update(id: number, classe: Classe): Observable<Classe> { // Assuming existing endpoint accepts PUT
+    return this.http.put<Classe>(`${this.apiUrl}/${id}`, classe);
+  }
+
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }

@@ -25,6 +25,10 @@ export class ParcoursService {
     return this.http.post<Parcours>(this.apiUrl, parcours);
   }
 
+  update(id: number, parcours: Parcours): Observable<Parcours> {
+    return this.http.put<Parcours>(`${this.apiUrl}/${id}`, parcours);
+  }
+
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
   }

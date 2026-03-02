@@ -48,9 +48,10 @@ export class TeachersComponent implements OnInit {
 
   loadParcours() {
     this.parcoursService.getAll().subscribe({
-        next: (data) => this.parcoursList = data,
-        error: (err) => console.error('Erreur chargement parcours', err)freshNeeded$.subscribe(() => {
-      this.loadTeachers();
+        next: (data) => {
+          this.parcoursList = data;
+        },
+        error: (err) => console.error('Erreur chargement parcours', err)
     });
   }
 

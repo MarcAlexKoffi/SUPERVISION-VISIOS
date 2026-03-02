@@ -39,3 +39,19 @@ export const deleteParcours = async (req: Request, res: Response): Promise<void>
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const updateParcours = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { code, name } = req.body;
+  if (!code || !name) {
+    res.status(400).json({ message: 'Code and name are required' });
+    return;
+  }
+  try {
+    await pool.query('UPDATE parcours SET code = ?, name = ? WHERE id = ?', [code, name, id]);
+    res.status(200).json({ id, code, name });
+  } catch (error) {
+    console.error('Error updating parcours:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

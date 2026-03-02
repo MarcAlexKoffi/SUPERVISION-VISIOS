@@ -215,13 +215,7 @@ export class Plannings implements OnInit {
       return;
     }
 
-    // If start time is missing, default it to end time (0 duration) or empty if safe.
-    // However, if NOT activity mode (i.e. Course mode), start time is required.
-    if (!this.isActivityMode && !this.modalData.start_time) {
-        this.toastService.error('Veuillez renseigner l\'heure de début pour une séance de cours.');
-        return;
-    }
-
+    // If start time is missing, default it to end time (0 duration) or empty if safe
     if (!this.modalData.start_time) {
         this.modalData.start_time = this.modalData.end_time;
     }

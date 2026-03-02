@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { ToastService } from '../services/toast.service';
 import { ParcoursService } from '../services/parcours.service';
+import { TeacherService } from '../services/teacher.service';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
 @Component({
@@ -20,6 +21,7 @@ export class UesComponent implements OnInit {
   currentPage = 1;
   itemsPerPage = 10;
   parcoursList: any[] = [];
+  teachers: any[] = [];
 
   isViewModalOpen = false;
   selectedUE: any = null;
@@ -46,12 +48,14 @@ export class UesComponent implements OnInit {
   constructor(
     private ueService: UeService,
     private parcoursService: ParcoursService,
+    private teacherService: TeacherService,
     private toastService: ToastService
   ) { }
 
   ngOnInit() {
     this.loadUEs();
     this.loadParcours();
+    this.loadTeachers();
     
     // Subscribe to refresh events if available
     if (this.ueService.refreshNeeded$) {
@@ -68,6 +72,15 @@ export class UesComponent implements OnInit {
         console.log('Parcours loaded:', data);
       },
       error: (err) => console.error('Erreur loading parcours', err)
+    });
+  }
+
+  loadTeachers() {
+    this.teacherService.getAll().subscribe({
+      next: (data) => {
+         this.teachers = data;
+      },
+      error: (err) => console.error('Error loading teachers', err)
     });
   }
 

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
 import { Subscription } from 'rxjs';
@@ -52,7 +52,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   constructor(
     private supervisionService: SupervisionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -70,7 +71,12 @@ export class HistoryComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
+editSupervision(supervision: any) {
+    // Navigate to supervision-form with an ID parameter or state
+    this.router.navigate(['/admin/supervision-form'], { queryParams: { id: supervision.id } });
+  }
 
+  
   printHistory() {
     this.isPrinting = true;
     setTimeout(() => {

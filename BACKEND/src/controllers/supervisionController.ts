@@ -116,8 +116,57 @@ export const getSupervisionById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateSupervision = async (req: AuthRequest, res: Response) => {
-    // À implémenter si besoin de modification
-    res.status(501).json({ message: 'Not implemented' });
+    try {
+        const { id } = req.params;
+        const userId = req.user?.id;
+        const userRole = req.user?.role;
+        
+        // Check if exists and ownership
+        const [existing] = await pool.query<RowDataPacket[]>('SELECT user_id FROM supervision_forms WHERE id = ?', [id]);
+        if (existing.length === 0) return res.status(404).json({ message: 'Fiche non trouvée.' });
+        if (userRole !== 'admin' && existing[0].user_id !== userId) {
+            return res.status(403).json({ message: 'Non autorisé à modifier cette fiche.' });
+        }
+
+        const {
+          teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
+          teacherId, ueId,
+          presentCount, totalStudents,
+          technical, pedagogical,
+          observations, supervisorName,
+          supervisorSignature, teacherSignature
+        } = req.body;
+    
+        const query = `
+          UPDATE supervision_forms 
+          SET teacher_name=?, module=?, level=?, session_number=?, visit_date=?, start_time=?, end_time=?, platform=?,
+              teacher_id=?, ue_id=?,
+              present_count=?, total_students=?,
+              tech_internet=?, tech_audio_video=?, tech_punctuality=?,
+              ped_objectives=?, ped_content_mastery=?, ped_interaction=?, ped_tools_usage=?,
+              observations=?, supervisor_name=?,
+              supervisor_signature=?, teacher_signature=?
+          WHERE id=?
+        `;
+    
+        const values = [
+          teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
+          teacherId || null, ueId || null,
+          presentCount, totalStudents,
+          technical?.internet, technical?.audioVideo, technical?.punctuality,
+          pedagogical?.objectives, pedagogical?.contentMastery, pedagogical?.interaction, pedagogical?.toolsUsage,
+          observations, supervisorName,
+          supervisorSignature, teacherSignature,
+          id
+        ];
+    
+        await pool.query(query, values);
+    
+        res.json({ message: 'Fiche mise à jour avec succès.', id });
+    } catch (error) {
+        console.error('Erreur updateSupervision:', error);
+        res.status(500).json({ message: 'Erreur lors de la mise à jour.' });
+    }
 };
 
 export const deleteSupervision = async (req: AuthRequest, res: Response) => {

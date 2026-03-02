@@ -1,12 +1,13 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupervisionService } from '../services/supervision.service';
 import { UeService } from '../services/ue.service';
 import { TeacherService } from '../services/teacher.service'; // Import TeacherService
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { ClasseService } from '../services/classe.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-supervision-form',
@@ -15,10 +16,13 @@ import { ClasseService } from '../services/classe.service';
   templateUrl: './supervision-form.html',
   styleUrl: './supervision-form.scss',
 })
-export class SupervisionForm implements AfterViewInit, OnInit {
+export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('supervisorCanvas') supervisorCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('teacherCanvas') teacherCanvas!: ElementRef<HTMLCanvasElement>;
   
+  editingId: number | null = null;
+  private routeSub: Subscription | null = null;
+
   currentDate = new Date();
   isSaving = false;
   saveMessage = 'Enregistrer la fiche';
@@ -73,19 +77,91 @@ export class SupervisionForm implements AfterViewInit, OnInit {
     private teacherService: TeacherService, // Inject TeacherService
     private classeService: ClasseService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.loadUEs();
-    this.loadTeachers(); // Load teachers
-    this.loadClasses();
+    this.scriptLoader();
 
-    // Auto-fill supervisor name if logged in
+    // Auto-fill supervisor name if logged in (only if not editing, handled later)
     const user = this.authService.currentUserValue;
     if (user && user.username) {
         this.formData.supervisorName = user.username;
     }
+
+    this.routeSub = this.route.queryParams.subscribe(params => {
+      if (params['id']) {
+        this.editingId = +params['id'];
+        this.loadSupervision(this.editingId);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.routeSub) {
+      this.routeSub.unsubscribe();
+    }
+  }
+
+  scriptLoader() {
+    this.loadUEs();
+    this.loadTeachers(); // Load teachers
+    this.loadClasses();
+  }
+
+  loadSupervision(id: number) {
+    this.supervisionService.getById(id).subscribe({
+      next: (data) => {
+        if (!data) return;
+        
+        // Map backend data to formData
+        // Adjust field mapping as necessary based on your backend response structure
+        this.selectedTeacherId = (data.teacher && data.teacher.id) ? data.teacher.id : data.teacherId; 
+        
+        // Ensure formData matches the structure
+        this.formData = {
+          teacherId: data.teacherId || (data.teacher ? data.teacher.id : null),
+          ueId: data.ueId || (data.course ? data.course.id : null),
+          teacherName: data.teacherName || (data.teacher ? data.teacher.name : ''),
+          module: data.module || (data.course ? data.course.name : ''),
+          level: data.level || (data.course ? data.course.level : ''), // Or from backend directly
+          sessionNumber: data.sessionNumber || 1,
+          date: data.date ? data.date.split('T')[0] : new Date().toISOString().split('T')[0],
+          startTime: data.startTime || data.startTimeStr,
+          endTime: data.endTime || data.endTimeStr,
+          platform: data.platform,
+          presentCount: data.presentCount || 0,
+          totalStudents: data.totalStudents || 0,
+          technical: data.technical || { internet: '', audioVideo: '', punctuality: '' },
+          pedagogical: data.pedagogical || { objectives: '', contentMastery: '', interaction: '', toolsUsage: '' },
+          observations: data.observations || '',
+          supervisorName: data.supervisorName || (this.authService.currentUserValue?.username || '')
+        };
+
+        // Trigger change detection for selects if needed
+        if (this.selectedTeacherId) {
+             // force update
+             this.onTeacherChange();
+        }
+
+        // Load signatures if they exist (assuming stored as base64 or URL in backend)
+        // If they are not in the main object, adjust accordingly.
+        // Assuming backend might not return full base64 for performance unless requested, 
+        // OR it returns them. Let's assume they are in data.supervisorSignature and data.teacherSignature
+        if (data.supervisorSignature) {
+            setTimeout(() => this.loadSignature('supervisor', data.supervisorSignature), 100);
+        }
+        if (data.teacherSignature) {
+            setTimeout(() => this.loadSignature('teacher', data.teacherSignature), 100);
+        }
+
+      },
+      error: (err) => {
+        console.error('Error loading supervision', err);
+        // this.router.navigate(['/admin/history']);
+      }
+    });
   }
 
   loadClasses() {
@@ -107,7 +183,10 @@ export class SupervisionForm implements AfterViewInit, OnInit {
   ngAfterViewInit() {
     this.setupCanvas(this.supervisorCanvas.nativeElement, 'supervisor');
     this.setupCanvas(this.teacherCanvas.nativeElement, 'teacher');
-    this.loadSavedData();
+    // Only load from localStorage if not editing an existing supervision
+    if (!this.editingId) {
+        this.loadSavedData();
+    }
   }
 
   loadUEs() {
@@ -326,23 +405,42 @@ export class SupervisionForm implements AfterViewInit, OnInit {
         teacherSignature: teacherSig
     };
 
-    this.supervisionService.create(payload).subscribe({
+    if (this.editingId) {
+      this.supervisionService.update(this.editingId, payload).subscribe({
         next: (res) => {
-            this.isSaving = false;
-            this.showSuccessModal = true;
-            this.saveMessage = 'Enregistrer la fiche';
-            // Clear localStorage draft if any
-            localStorage.removeItem('supervisionFormData');
-            this.resetForm(false);
+            this.handleSuccess();
         },
         error: (err) => {
-            console.error('Erreur sauvegarde', err);
-            this.isSaving = false;
-            this.saveMessage = 'Enregistrer la fiche';
-            this.errorMessage = err.error?.message || err.statusText || 'Une erreur inconnue est survenue.';
-            this.showErrorModal = true;
+           this.handleError(err);
         }
-    });
+      });
+    } else {
+      this.supervisionService.create(payload).subscribe({
+          next: (res) => {
+              this.handleSuccess();
+          },
+          error: (err) => {
+              this.handleError(err);
+          }
+      });
+    }
+  }
+
+  handleSuccess() {
+      this.isSaving = false;
+      this.showSuccessModal = true;
+      this.saveMessage = 'Enregistrer la fiche';
+      // Clear localStorage draft if any
+      localStorage.removeItem('supervisionFormData');
+      // this.resetForm(false); // Don't reset immediately, let user click OK
+  }
+
+  handleError(err: any) {
+      console.error('Erreur sauvegarde', err);
+      this.isSaving = false;
+      this.saveMessage = 'Enregistrer la fiche';
+      this.errorMessage = err.error?.message || err.statusText || 'Une erreur inconnue est survenue.';
+      this.showErrorModal = true;
   }
 
   cancelSave() {

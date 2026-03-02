@@ -25,6 +25,14 @@ export class SupervisionService {
     );
   }
 
+  update(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data).pipe(
+      tap(() => {
+        this._refreshNeeded$.next();
+      })
+    );
+  }
+
   getAll(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
   }

@@ -49,15 +49,10 @@
   <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-5 items-end sticky top-0 z-20">
     
     <div class="flex-1 min-w-[200px] space-y-1.5">
-        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Classe / Parcours</label>
+        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Classe</label>
         <div class="relative">
           <select [(ngModel)]="selectedParcours" (change)="onFilterChange()" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all cursor-pointer">
-            <optgroup label="Classes existantes">
-              <option *ngFor="let c of databaseClasses" [value]="c.name">{{c.name}}</option>
-            </optgroup>
-            <optgroup label="Parcours">
-              <option *ngFor="let p of parcoursList" [value]="p">{{p}}</option>
-            </optgroup>
+            <option *ngFor="let c of databaseClasses" [value]="c.name">{{c.name}}</option>
         </select>
         <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 pointer-events-none">expand_content</span>
       </div>

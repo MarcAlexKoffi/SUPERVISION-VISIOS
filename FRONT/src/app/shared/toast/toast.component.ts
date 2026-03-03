@@ -14,16 +14,18 @@ import { Subscription } from 'rxjs';
            [ngClass]="{
              'bg-white border-green-500 text-slate-800 dark:bg-slate-800 dark:text-white': toast.type === 'success',
              'bg-white border-red-500 text-slate-800 dark:bg-slate-800 dark:text-white': toast.type === 'error',
-             'bg-white border-blue-500 text-slate-800 dark:bg-slate-800 dark:text-white': toast.type === 'info'
+             'bg-white border-blue-500 text-slate-800 dark:bg-slate-800 dark:text-white': toast.type === 'info',
+             'bg-white border-yellow-500 text-slate-800 dark:bg-slate-800 dark:text-white': toast.type === 'warning'
            }">
         <div class="flex items-start gap-3">
           <div [ngClass]="{
             'text-green-500': toast.type === 'success',
             'text-red-500': toast.type === 'error',
-            'text-blue-500': toast.type === 'info'
+            'text-blue-500': toast.type === 'info',
+            'text-yellow-500': toast.type === 'warning'
           }">
             <span class="material-symbols-outlined text-2xl">
-              {{ toast.type === 'success' ? 'check_circle' : (toast.type === 'error' ? 'error' : 'info') }}
+              {{ toast.type === 'success' ? 'check_circle' : (toast.type === 'error' ? 'error' : (toast.type === 'warning' ? 'warning' : 'info')) }}
             </span>
           </div>
           <div class="flex-1 pt-0.5">

@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 
 export interface Toast {
   id: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   title: string;
   message: string;
   duration?: number;
@@ -16,7 +16,7 @@ export class ToastService {
   private _toasts = new BehaviorSubject<Toast[]>([]);
   public readonly toasts$ = this._toasts.asObservable();
 
-  show(type: 'success' | 'error' | 'info', title: string, message: string, duration = 5000) {
+  show(type: 'success' | 'error' | 'info' | 'warning', title: string, message: string, duration = 5000) {
     const id = Math.random().toString(36).substring(2, 9);
     const toast: Toast = { id, type, title, message, duration };
     
@@ -29,6 +29,7 @@ export class ToastService {
     }
   }
 
+  // Méthodes existantes
   success(message: string, title = 'Succès') {
     this.show('success', title, message);
   }
@@ -39,6 +40,23 @@ export class ToastService {
 
   info(message: string, title = 'Information') {
     this.show('info', title, message);
+  }
+
+  // Méthodes alias pour compatibilité
+  showSuccess(message: string, title = 'Succès') {
+    this.show('success', title, message);
+  }
+
+  showError(message: string, title = 'Erreur') {
+    this.show('error', title, message);
+  }
+
+  showInfo(message: string, title = 'Information') {
+    this.show('info', title, message);
+  }
+
+  showWarning(message: string, title = 'Attention') {
+    this.show('warning', title, message);
   }
 
   remove(id: string) {

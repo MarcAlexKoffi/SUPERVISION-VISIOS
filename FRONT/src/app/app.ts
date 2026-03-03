@@ -3,6 +3,7 @@ import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel,
 import { CommonModule } from '@angular/common';
 import { LoadingService } from './services/loading.service';
 import { AutoLogoutService } from './services/auto-logout.service';
+import { SyncService } from './services/sync.service';
 import { ToastComponent } from './shared/toast/toast.component';
 import { delay } from 'rxjs';
 
@@ -17,8 +18,10 @@ export class App implements OnInit {
   private router = inject(Router);
   private loadingService = inject(LoadingService);
   private autoLogoutService = inject(AutoLogoutService); // Initialize auto-logout monitoring
+  private syncService = inject(SyncService);
 
   ngOnInit() {
+    this.syncService.init();
     this.loadingService.loading$.pipe(delay(0)).subscribe((loading) => {
         this.isLoading = loading;
     });

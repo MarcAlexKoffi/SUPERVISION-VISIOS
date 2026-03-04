@@ -1,10 +1,9 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
 
 export interface Parcours {
-  id?: number;
+  id?: string;
   code: string;
   name: string;
 }
@@ -13,23 +12,29 @@ export interface Parcours {
   providedIn: 'root'
 })
 export class ParcoursService {
-  private apiUrl = `${environment.apiUrl}/parcours`;
+  private firestore: Firestore = inject(Firestore);
+  private parcoursCollection = collection(this.firestore, 'parcours');
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
   getAll(): Observable<Parcours[]> {
-    return this.http.get<Parcours[]>(this.apiUrl);
+    return collectionData(this.parcoursCollection, { idField: 'id' }) as Observable<Parcours[]>;
   }
 
-  create(parcours: Parcours): Observable<Parcours> {
-    return this.http.post<Parcours>(this.apiUrl, parcours);
+  create(parcours: Parcours): Observable<any> {
+    const { id, ...data } = parcours;
+    return from(addDoc(this.parcoursCollection, data));
   }
 
-  update(id: number, parcours: Parcours): Observable<Parcours> {
-    return this.http.put<Parcours>(`${this.apiUrl}/${id}`, parcours);
+  update(id: string, parcours: Parcours): Observable<any> {
+    const docRef = doc(this.firestore, `parcours/${id}`);
+    const { id: _, ...data } = parcours;
+    return from(updateDoc(docRef, data));
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: string): Observable<any> {
+    const docRef = doc(this.firestore, `parcours/${id}`);
+    return from(deleteDoc(docRef));
   }
 }
+

@@ -1,13 +1,12 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
 
 export interface Classe {
-  id?: number;
+  id?: string;
   name: string;
-  effectif: number;
-  parcours_id?: number | null;
+  effectif?: number;
+  parcours_id?: string | null;
   parcours_name?: string;
 }
 
@@ -15,23 +14,30 @@ export interface Classe {
   providedIn: 'root'
 })
 export class ClasseService {
-  private apiUrl = `${environment.apiUrl}/classes`;
+  private firestore: Firestore = inject(Firestore);
+  private classesCollection = collection(this.firestore, 'parcours'); // Note: 'classes' are 'parcours' in migration
+  // If 'classes' and 'parcours' were different in MySQL, we need careful mapping.
+  // In previous context, 'parcours' route handled 'classes'.
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
   getAll(): Observable<Classe[]> {
-    return this.http.get<Classe[]>(this.apiUrl);
+    return collectionData(this.classesCollection, { idField: 'id' }) as Observable<Classe[]>;
   }
 
-  create(classe: Classe): Observable<Classe> {
-    return this.http.post<Classe>(this.apiUrl, classe);
+  create(classe: Classe): Observable<any> {
+    const { id, ...data } = classe;
+    return from(addDoc(this.classesCollection, data));
   }
 
-  update(id: number, classe: Classe): Observable<Classe> { // Assuming existing endpoint accepts PUT
-    return this.http.put<Classe>(`${this.apiUrl}/${id}`, classe);
+  update(id: string, classe: Classe): Observable<any> {
+    const docRef = doc(this.firestore, `parcours/${id}`);
+    const { id: _, ...data } = classe;
+    return from(updateDoc(docRef, data));
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  delete(id: string): Observable<any> {
+    const docRef = doc(this.firestore, `parcours/${id}`);
+    return from(deleteDoc(docRef));
   }
 }

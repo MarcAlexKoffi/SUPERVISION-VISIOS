@@ -1,32 +1,37 @@
 
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc, getDoc } from '@angular/fire/firestore';
+import { Observable, Subject, from } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupervisionService {
-  private apiUrl = `${environment.apiUrl}/supervisions`;
+  private firestore: Firestore = inject(Firestore);
+  private supervisionsCollection = collection(this.firestore, 'supervisions');
+  
   private _refreshNeeded$ = new Subject<void>();
 
   get refreshNeeded$() {
     return this._refreshNeeded$;
   }
 
-  constructor(private http: HttpClient) { }
+  constructor() { }
 
   create(data: any): Observable<any> {
-    return this.http.post(this.apiUrl, data).pipe(
+    const { id, ...cleanData } = data;
+    return from(addDoc(this.supervisionsCollection, cleanData)).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
     );
   }
 
-  update(id: number, data: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, data).pipe(
+  update(id: string, data: any): Observable<any> {
+    const docRef = doc(this.firestore, `supervisions/${id}`);
+    const { id: _, ...cleanData } = data;
+    return from(updateDoc(docRef, cleanData)).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
@@ -34,18 +39,23 @@ export class SupervisionService {
   }
 
   getAll(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+    return collectionData(this.supervisionsCollection, { idField: 'id' });
   }
 
-  getById(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${id}`);
+  getById(id: string): Observable<any> {
+      const docRef = doc(this.firestore, `supervisions/${id}`);
+      return from(getDoc(docRef)).pipe(
+          map(snapshot => snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null)
+      );
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+  delete(id: string): Observable<any> {
+    const docRef = doc(this.firestore, `supervisions/${id}`);
+    return from(deleteDoc(docRef)).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
     );
   }
 }
+

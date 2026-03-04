@@ -1,44 +1,50 @@
 
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
+import { Observable, Subject, from } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UeService {
-  private apiUrl = `${environment.apiUrl}/ues`;
+  private firestore: Firestore = inject(Firestore);
+  private uesCollection = collection(this.firestore, 'ues');
+  
   private _refreshNeeded$ = new Subject<void>();
 
   get refreshNeeded$() {
     return this._refreshNeeded$;
   }
 
-  constructor(private http: HttpClient) { }
+  constructor() { }
 
   getAll(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+    return collectionData(this.uesCollection, { idField: 'id' });
   }
 
   create(ue: any): Observable<any> {
-    return this.http.post(this.apiUrl, ue).pipe(
+    const { id, ...data } = ue;
+    return from(addDoc(this.uesCollection, data)).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
     );
   }
 
-  update(id: number, ue: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, ue).pipe(
+  update(id: string, ue: any): Observable<any> {
+    const docRef = doc(this.firestore, `ues/${id}`);
+    const { id: _, ...data } = ue;
+    return from(updateDoc(docRef, data)).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
     );
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+  delete(id: string): Observable<any> {
+    const docRef = doc(this.firestore, `ues/${id}`);
+    return from(deleteDoc(docRef)).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })

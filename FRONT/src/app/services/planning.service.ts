@@ -1,18 +1,21 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, from } from 'rxjs';
+import { 
+  Firestore, collection, collectionData, query, where, orderBy, 
+  addDoc, doc, updateDoc, deleteDoc, DocumentReference 
+} from '@angular/fire/firestore';
 
 export interface Planning {
-  id?: number;
+  id?: string; // Changed to string for Firestore ID
   parcours: string;
-  ue_id?: number | null; // Optional now
-  title?: string; // Optional activity title
-  description?: string; // Optional description/details
-  teacher_id: number;
+  ue_id?: string | null; // Changed to string reference or keep number if legacy
+  teacher_id: string; // Changed to string reference
+  title?: string;
+  description?: string;
   date: string; // YYYY-MM-DD
-  start_time?: string; // HH:MM (Optional)
-  end_time: string; // HH:MM
+  start_time?: string;
+  end_time: string;
   session_type: string;
   platform: string;
   visio_link: string;
@@ -21,36 +24,57 @@ export interface Planning {
   ue_name?: string;
   teacher_first_name?: string;
   teacher_last_name?: string;
+  // Denormalized objects (optional but recommended for display)
+  ue?: { code: string; name: string };
+  teacher?: { first_name: string; last_name: string; email: string };
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class PlanningService {
-  private apiUrl = `${environment.apiUrl}/plannings`;
+  private firestore: Firestore = inject(Firestore);
+  private planningsCollection = collection(this.firestore, 'plannings');
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
   getPlannings(filters?: { parcours?: string; startDate?: string; endDate?: string; status?: string }): Observable<Planning[]> {
-    let params = new HttpParams();
+    let q = query(this.planningsCollection, orderBy('date', 'asc'), orderBy('start_time', 'asc'));
+
     if (filters) {
-      if (filters.parcours) params = params.set('parcours', filters.parcours);
-      if (filters.startDate) params = params.set('startDate', filters.startDate);
-      if (filters.endDate) params = params.set('endDate', filters.endDate);
-      if (filters.status) params = params.set('status', filters.status);
+      if (filters.parcours) {
+        q = query(q, where('parcours', '==', filters.parcours));
+      }
+      if (filters.startDate) {
+        q = query(q, where('date', '>=', filters.startDate));
+      }
+      if (filters.endDate) {
+        q = query(q, where('date', '<=', filters.endDate));
+      }
+      if (filters.status) {
+         q = query(q, where('status', '==', filters.status));
+      }
     }
-    return this.http.get<Planning[]>(this.apiUrl, { params });
+    
+    // cast result to Planning[] including ID
+    return collectionData(q, { idField: 'id' }) as Observable<Planning[]>;
   }
 
-  createPlanning(planning: Planning): Observable<any> {
-    return this.http.post(this.apiUrl, planning);
+  createPlanning(planning: Planning): Observable<DocumentReference> {
+    // Clean undefined fields if needed, but Firestore handles it mostly fine.
+    // Ensure we don't pass 'id' in the body
+    const { id, ...data } = planning;
+    return from(addDoc(this.planningsCollection, data));
   }
 
-  updatePlanning(id: number, planning: Partial<Planning>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, planning);
+  updatePlanning(id: string, planning: Partial<Planning>): Observable<void> {
+    const docRef = doc(this.firestore, `plannings/${id}`);
+    return from(updateDoc(docRef, planning));
   }
 
-  deletePlanning(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  deletePlanning(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `plannings/${id}`);
+    return from(deleteDoc(docRef));
   }
 }
+

@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlanningService, Planning } from '../services/planning.service';
@@ -11,6 +11,7 @@ import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay
 import { fr } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-plannings',
@@ -19,7 +20,7 @@ import autoTable from 'jspdf-autotable';
   templateUrl: './plannings.html',
   styleUrls: ['./plannings.scss'],
 })
-export class Plannings implements OnInit {
+export class Plannings implements OnInit, OnDestroy {
   @ViewChild('calendarPdfArea') calendarPdfArea!: ElementRef;
 
   // Filters
@@ -37,6 +38,8 @@ export class Plannings implements OnInit {
   teachers: any[] = [];
   ues: any[] = [];
   databaseClasses: any[] = [];
+  
+  private planningsSubscription: Subscription | null = null;
 
   // View State
   currentView: 'supervisor' | 'calendar' = 'supervisor';
@@ -63,6 +66,10 @@ export class Plannings implements OnInit {
     this.updateDaysOfWeek();
     this.loadUesAndTeachers();
     this.loadParcours();
+  }
+  
+  ngOnDestroy() {
+      if (this.planningsSubscription) { this.planningsSubscription.unsubscribe(); }
   }
 
   loadParcours() {
@@ -102,6 +109,10 @@ export class Plannings implements OnInit {
   }
 
   loadPlannings() {
+    if (this.planningsSubscription) { 
+        this.planningsSubscription.unsubscribe(); 
+    }
+
     const filters = {
       parcours: this.selectedParcours,
       startDate: format(this.weekStart, 'yyyy-MM-dd'),
@@ -109,7 +120,7 @@ export class Plannings implements OnInit {
       ...(this.selectedStatus ? { status: this.selectedStatus } : {}),
     };
 
-    this.planningService.getPlannings(filters).subscribe({
+    this.planningsSubscription = this.planningService.getPlannings(filters).subscribe({
       next: (data) => (this.plannings = data),
       error: () => this.toastService.error('Erreur lors du chargement des plannings'),
     });
@@ -237,12 +248,12 @@ export class Plannings implements OnInit {
     }
   }
 
-  deletePlanning(id: number) {
+  deletePlanning(id: any) {
     if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
-      this.planningService.deletePlanning(id).subscribe({
+      this.planningService.deletePlanning(String(id)).subscribe({
         next: () => {
           this.toastService.success('Séance supprimée');
-          this.loadPlannings();
+          this.loadPlannings(); // This might be redundant if we use real-time listeners, but harmless for now.
         },
         error: () => this.toastService.error('Erreur de suppression'),
       });

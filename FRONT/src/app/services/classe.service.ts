@@ -15,7 +15,7 @@ export interface Classe {
 })
 export class ClasseService {
   private firestore: Firestore = inject(Firestore);
-  private classesCollection = collection(this.firestore, 'parcours'); // Note: 'classes' are 'parcours' in migration
+  private classesCollection = collection(this.firestore, 'classes');
   // If 'classes' and 'parcours' were different in MySQL, we need careful mapping.
   // In previous context, 'parcours' route handled 'classes'.
 

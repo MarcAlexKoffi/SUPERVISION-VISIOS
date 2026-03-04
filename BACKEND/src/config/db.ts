@@ -3,11 +3,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const pool = mysql.createPool({
+console.log('DB Config:', {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  db: process.env.DB_NAME
+});
+
+export const pool = mysql.createPool({
+  host: process.env.DB_HOST?.trim(),
+  user: process.env.DB_USER?.trim(),
+  password: process.env.DB_PASSWORD?.trim(),
+  database: process.env.DB_NAME?.trim(),
   port: parseInt(process.env.DB_PORT || '3306'),
   // Gérer dynamiquement SSL basé sur l'environnement
   ...(process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1' ? { ssl: { rejectUnauthorized: false } } : {}),

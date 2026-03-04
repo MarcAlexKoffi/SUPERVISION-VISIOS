@@ -211,14 +211,16 @@ editSupervision(supervision: any) {
 
     // Check if data comes from DB (snake_case) or legacy/local (camelCase)
     // Prioritize joined data from relational tables if available
-    let teacherName = data.teacher_name || data.teacherName || 'Non spécifié';
+    let teacherName = data.teacher?.name || data.teacher_name || data.teacherName || 'Non spécifié';
     if (data.teacher_firstname && data.teacher_lastname) {
       teacherName = `${data.teacher_firstname} ${data.teacher_lastname}`;
     }
 
-    let moduleName = data.module || 'Non spécifié';
+    let moduleName = data.ue?.name || data.module || 'Non spécifié';
     // If we have relate UE data, prioritize it
-    if (data.ue_real_name) {
+    if (data.ue?.code) {
+       moduleName = `${data.ue.code} - ${moduleName}`;
+    } else if (data.ue_real_name) {
       // If code is available, format: CODE - Name. Else just Name.
       moduleName = data.ue_real_name;
       if (data.ue_code) {

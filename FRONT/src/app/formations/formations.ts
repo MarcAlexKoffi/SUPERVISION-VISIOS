@@ -24,10 +24,10 @@ export class Formations implements OnInit {
 
   // Edit State
   isEditingParcours = false;
-  currentParcoursId: number | null = null;
+  currentParcoursId: string | null = null;
   
   isEditingClasse = false;
-  currentClasseId: number | null = null;
+  currentClasseId: string | null = null;
 
   // Modal State
   isDeleteModalOpen = false;
@@ -113,6 +113,11 @@ export class Formations implements OnInit {
     if (!this.newClasse.name || !this.newClasse.effectif || this.newClasse.effectif <= 0) {
       this.toastService.error('Veuillez remplir le nom et un effectif valide');
       return;
+    }
+
+    // Ensure parcours_id is a string if it exists (for Firebase)
+    if (this.newClasse.parcours_id) {
+       this.newClasse.parcours_id = String(this.newClasse.parcours_id);
     }
 
     if (this.isEditingClasse && this.currentClasseId) {

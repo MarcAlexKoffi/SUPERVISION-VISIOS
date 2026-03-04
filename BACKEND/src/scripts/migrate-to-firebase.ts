@@ -29,34 +29,28 @@ async function migrate() {
     console.log('👤 Migration des utilisateurs...');
     const [users] = await pool.query<RowDataPacket[]>('SELECT * FROM users');
     for (const user of users) {
-        // We use setDoc with specific ID to easier mapping if needed, 
-        // or just let Firestore auto-gen ID. 
-        // Let's us username as ID or keep auto. 
-        // Actually, we can't easily keep the same ID as MySQL (int vs string), 
-        // but we can store the old ID.
-        await addDoc(collection(db, 'users'), {
+        // Use setDoc with old_mysql_id converted to string to avoid duplicates
+        await setDoc(doc(db, 'users', String(user.id)), {
             old_mysql_id: user.id,
             username: user.username,
             email: user.email,
-            role: user.role_id === 1 ? 'admin' : 'user', // Basic role mapping, adjust if needed
+            role: user.role_id === 1 ? 'admin' : 'user', 
             created_at: new Date()
         });
     }
-    console.log(`✅ ${users.length} utilisateurs migrés (métadonnées).`);
+    console.log(`✅ ${users.length} utilisateurs migrés.`);
 
     // B. Migrate Teachers
     console.log('👨‍🏫 Migration des enseignants...');
     const [teachers] = await pool.query<RowDataPacket[]>('SELECT * FROM teachers');
     for (const t of teachers) {
-        // Create teacher document
-        const ref = await addDoc(collection(db, 'teachers'), {
+        await setDoc(doc(db, 'teachers', String(t.id)), {
             old_mysql_id: t.id,
             first_name: t.first_name,
             last_name: t.last_name,
             email: t.email,
-            phone: t.phone || null // Handle undefined phone
+            phone: t.phone || null
         });
-        // We might need to map old ID to new ID for relations
     }
     console.log(`✅ ${teachers.length} enseignants migrés.`);
 
@@ -64,7 +58,7 @@ async function migrate() {
     console.log('📚 Migration des UEs...');
     const [ues] = await pool.query<RowDataPacket[]>('SELECT * FROM ues');
     for (const ue of ues) {
-        await addDoc(collection(db, 'ues'), {
+        await setDoc(doc(db, 'ues', String(ue.id)), {
             old_mysql_id: ue.id,
             code: ue.code,
             name: ue.name,
@@ -73,30 +67,44 @@ async function migrate() {
     }
     console.log(`✅ ${ues.length} UEs migrées.`);
 
-    // D. Migrate Classes (Parcours)
-    console.log('🎓 Migration des classes (parcours)...');
-    const [classes] = await pool.query<RowDataPacket[]>('SELECT * FROM parcours'); // or 'classes' table if renamed? Assume 'parcours' based on routes
-    for (const c of classes) {
-        await addDoc(collection(db, 'parcours'), {
+    // D. Migrate Parcours
+    console.log('🎓 Migration des parcours...');
+    const [parcours] = await pool.query<RowDataPacket[]>('SELECT * FROM parcours'); 
+    for (const c of parcours) {
+        await setDoc(doc(db, 'parcours', String(c.id)), {
             old_mysql_id: c.id,
             name: c.name,
             description: c.description || null
         });
     }
-    console.log(`✅ ${classes.length} classes migrées.`);
+    console.log(`✅ ${parcours.length} parcours migrés.`);
 
-    // E. Migrate Plannings
+    // E. Migrate Classes (Real Classes Table)
+    console.log('🏫 Migration des classes...');
+    // Check if table exists first to avoid error if it doesn't
+    try {
+        const [classes] = await pool.query<RowDataPacket[]>('SELECT c.*, p.name as parcours_name FROM classes c LEFT JOIN parcours p ON c.parcours_id = p.id');
+        for (const c of classes) {
+            await setDoc(doc(db, 'classes', String(c.id)), {
+                old_mysql_id: c.id,
+                name: c.name,
+                effectif: c.effectif || 0,
+                parcours: c.parcours_name || 'Inconnu',
+                parcours_id: c.parcours_id ? String(c.parcours_id) : null
+            });
+        }
+        console.log(`✅ ${classes.length} classes migrées.`);
+    } catch (err: any) {
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+             console.log('⚠️ La table "classes" n\'existe pas dans MySQL, migration ignorée pour cette table.');
+        } else {
+             throw err;
+        }
+    }
+
+
+    // F. Migrate Plannings
     console.log('📅 Migration des plannings...');
-    // We need to join to get semantic data because IDs will change
-    // Or we fetch all new Firestore docs, create a map [oldId -> newId], then migrate plannings.
-    // That's the robust way.
-    
-    // 1. Fetch all new teachers to map
-    // We can't easily do this in one script run without keeping state or re-querying firestore.
-    // For simplicity in this "Help me now" context, we will store the old IDs in the planning document too,
-    // and when we display them in Angular, we might have issues joining if we rely on IDs.
-    // BETTER: Store the copies of teacher/UE data IN the planning document (Denormalization - NoSQL way).
-    
     const [plannings] = await pool.query<RowDataPacket[]>(`
         SELECT p.*, 
              u.code as ue_code, u.name as ue_name, 
@@ -107,10 +115,10 @@ async function migrate() {
     `);
 
     for (const p of plannings) {
-        await addDoc(collection(db, 'plannings'), {
+        await setDoc(doc(db, 'plannings', String(p.id)), {
             old_mysql_id: p.id,
-            parcours: p.parcours, // This is a string name in MySQL usually, so it's fine
-            date: p.date, // format YYYY-MM-DD
+            parcours: p.parcours, 
+            date: p.date, 
             start_time: p.start_time,
             end_time: p.end_time,
             session_type: p.session_type,
@@ -119,7 +127,6 @@ async function migrate() {
             status: p.status || 'À superviser',
             title: p.title || null,
             description: p.description || null,
-            // Denormalized Data (NoSQL Best Practice)
             ue: p.ue_id ? {
                 code: p.ue_code,
                 name: p.ue_name
@@ -132,6 +139,70 @@ async function migrate() {
         });
     }
     console.log(`✅ ${plannings.length} séances planifiées migrées.`);
+
+
+    // G. Migrate Supervisions (History)
+    console.log('📝 Migration de l\'historique des supervisions...');
+    const [supervisions] = await pool.query<RowDataPacket[]>(`
+      SELECT s.*, 
+             u.username as supervisor_username, u.email as supervisor_email,
+             t.first_name as teacher_first_name, t.last_name as teacher_last_name, t.email as teacher_email,
+             ue.code as ue_code, ue.name as ue_name
+      FROM supervision_forms s
+      LEFT JOIN users u ON s.user_id = u.id
+      LEFT JOIN teachers t ON s.teacher_id = t.id
+      LEFT JOIN ues ue ON s.ue_id = ue.id
+    `);
+
+    for (const s of supervisions) {
+        await setDoc(doc(db, 'supervisions', String(s.id)), {
+            old_mysql_id: s.id,
+            visit_date: s.visit_date,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            
+            supervisor: {
+                id: s.user_id || null, 
+                name: s.supervisor_name || s.supervisor_username || 'Inconnu',
+                email: s.supervisor_email || null
+            },
+            teacher: {
+                id: s.teacher_id || null,
+                name: s.teacher_name || (s.teacher_first_name ? `${s.teacher_first_name} ${s.teacher_last_name}` : 'Inconnu'),
+                email: s.teacher_email || null
+            },
+            ue: {
+                id: s.ue_id || null,
+                name: s.module || s.ue_name || 'Inconnu',
+                code: s.ue_code || null
+            },
+            session: {
+                level: s.level || null,
+                number: s.session_number || null,
+                platform: s.platform || null,
+                students: {
+                    present: s.present_count || 0,
+                    total: s.total_students || 0
+                }
+            },
+            evaluation: {
+                technical: {
+                    internet: s.tech_internet || null,
+                    audio_video: s.tech_audio_video || null,
+                    punctuality: s.tech_punctuality || null
+                },
+                pedagogical: {
+                    objectives: s.ped_objectives || null,
+                    mastery: s.ped_content_mastery || null,
+                    interaction: s.ped_interaction || null,
+                    tools: s.ped_tools_usage || null
+                }
+            },
+            observations: s.observations || null,
+            created_at: s.created_at || new Date()
+        });
+    }
+    console.log(`✅ ${supervisions.length} fiches de supervision migrées.`);
 
     console.log('🎉 Migration terminée avec succès !');
     process.exit(0);

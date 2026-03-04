@@ -209,15 +209,11 @@ export class Plannings implements OnInit {
     if ((!this.modalData.ue_id && !this.modalData.title) || 
         !this.modalData.teacher_id || 
         !this.modalData.date || 
+        !this.modalData.start_time || 
         !this.modalData.end_time ||
         !this.modalData.parcours) {
-      this.toastService.error('Veuillez sélectionner une UE ou entrer un titre, et remplir les autres champs.');
+      this.toastService.error('Veuillez remplir tous les champs obligatoires (UE/Titre, Date, Heures).');
       return;
-    }
-
-    // If start time is missing, default it to end time (0 duration) or empty if safe
-    if (!this.modalData.start_time) {
-        this.modalData.start_time = this.modalData.end_time;
     }
 
     if (this.isEditMode && this.modalData.id) {

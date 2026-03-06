@@ -5,27 +5,35 @@ import * as path from 'path';
 
 dotenv.config();
 
-// --- 1. CONFIGURATION MYSQL (Pour la migration et compatibilité temporaire) ---
-console.log('DB Config:', {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  db: process.env.DB_NAME
-});
+// --- 1. CONFIGURATION MYSQL (Pour la migration uniquement - Optionnel) ---
+// On ne crée le pool que si les variables sont définies pour éviter des erreurs sur Render
+let pool: any = null;
+if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
+  console.log('DB Config MySQL:', {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    db: process.env.DB_NAME
+  });
 
-export const pool = mysql.createPool({
-  host: process.env.DB_HOST?.trim(),
-  user: process.env.DB_USER?.trim(),
-  password: process.env.DB_PASSWORD?.trim(),
-  database: process.env.DB_NAME?.trim(),
-  port: parseInt(process.env.DB_PORT || '3306'),
-  // Gérer dynamiquement SSL basé sur l'environnement
-  ...(process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1' ? { ssl: { rejectUnauthorized: false } } : {}),
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0
-});
+  pool = mysql.createPool({
+    host: process.env.DB_HOST?.trim(),
+    user: process.env.DB_USER?.trim(),
+    password: process.env.DB_PASSWORD?.trim(),
+    database: process.env.DB_NAME?.trim(),
+    port: parseInt(process.env.DB_PORT || '3306'),
+    // Gérer dynamiquement SSL basé sur l'environnement
+    ...(process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1' ? { ssl: { rejectUnauthorized: false } } : {}),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
+  });
+} else {
+  console.log('MySQL configuraton skipped (Variables not set). Using Firestore only.');
+}
+
+export { pool };
 
 // --- 2. CONFIGURATION FIREBASE ADMIN (Pour la nouvelle version) ---
 // Initialize Firebase Admin

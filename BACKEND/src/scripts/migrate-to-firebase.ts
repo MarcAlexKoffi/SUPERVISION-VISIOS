@@ -2,8 +2,12 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, setDoc, doc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { pool } from '../config/db';
+import { pool as dbPool } from '../config/db';
 import { RowDataPacket } from 'mysql2';
+import { Pool } from 'mysql2/promise';
+
+// Cast pool to correct type for TypeScript
+const pool = dbPool as Pool;
 
 // 1. Configuration Firebase (copiée depuis votre message)
 const firebaseConfig = {
@@ -34,7 +38,7 @@ async function migrate() {
             old_mysql_id: user.id,
             username: user.username,
             email: user.email,
-            role: user.role_id === 1 ? 'admin' : 'user', 
+            role: user.role_id === 1 ? 'admin' : 'user',
             created_at: new Date()
         });
     }

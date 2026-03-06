@@ -1,6 +1,9 @@
 
-import { pool } from '../config/db';
+import { pool as dbPool } from '../config/db';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { Pool } from 'mysql2/promise';
+
+const pool = dbPool as Pool;
 
 async function generateTestData() {
   try {

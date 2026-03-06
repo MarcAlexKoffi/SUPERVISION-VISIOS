@@ -6,6 +6,7 @@ import { SupervisionService } from '../services/supervision.service'; // Import 
 import { AuthService } from '../services/auth.service';
 import { Subscription } from 'rxjs';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
+import { parseDate } from '../shared/utils/date.utils';
 
 @Component({
   selector: 'app-history',
@@ -238,10 +239,7 @@ editSupervision(supervision: any) {
     // Handle time format if it comes as HH:MM:SS from mysql
     const formatTime = (t: string) => t && t.length > 5 ? t.substring(0, 5) : t;
 
-    let dateObj = new Date();
-    if (dateStr) {
-      dateObj = new Date(dateStr);
-    }
+    let dateObj = parseDate(dateStr);
 
     // Validate dateObj
     if (isNaN(dateObj.getTime())) {
@@ -281,7 +279,7 @@ editSupervision(supervision: any) {
     return {
       id: data.id,
       originalData: data,
-      date: new Date(dateStr), // Keep just the date part for filtering/sorting if needed, or full datetime
+      date: dateObj, // Keep just the date part for filtering/sorting if needed, or full datetime
       endTime: endDateTime, // Used for display duration/end time
       startTimeStr: formatTime(startTimeStr),
       endTimeStr: formatTime(endTimeStr),

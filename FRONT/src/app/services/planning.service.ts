@@ -1,19 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, from } from 'rxjs';
-import { 
-  Firestore, collection, collectionData, query, where, orderBy, 
-  addDoc, doc, updateDoc, deleteDoc, DocumentReference 
-} from '@angular/fire/firestore';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface Planning {
-  id?: string; // Changed to string for Firestore ID
+  id?: string;
   parcours: string;
-  ue_id?: string | null; // Changed to string reference or keep number if legacy
-  teacher_id: string; // Changed to string reference
+  ue_id?: string | null;
+  teacher_id?: string | null;
   title?: string;
   description?: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   start_time?: string;
   end_time: string;
   session_type: string;
@@ -24,7 +22,6 @@ export interface Planning {
   ue_name?: string;
   teacher_first_name?: string;
   teacher_last_name?: string;
-  // Denormalized objects (optional but recommended for display)
   ue?: { code: string; name: string };
   teacher?: { first_name: string; last_name: string; email: string };
 }
@@ -33,48 +30,44 @@ export interface Planning {
   providedIn: 'root'
 })
 export class PlanningService {
-  private firestore: Firestore = inject(Firestore);
-  private planningsCollection = collection(this.firestore, 'plannings');
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/plannings`;
 
   constructor() {}
 
   getPlannings(filters?: { parcours?: string; startDate?: string; endDate?: string; status?: string }): Observable<Planning[]> {
-    let q = query(this.planningsCollection, orderBy('date', 'asc'), orderBy('start_time', 'asc'));
-
+    let params = new HttpParams();
     if (filters) {
-      if (filters.parcours) {
-        q = query(q, where('parcours', '==', filters.parcours));
-      }
-      if (filters.startDate) {
-        q = query(q, where('date', '>=', filters.startDate));
-      }
-      if (filters.endDate) {
-        q = query(q, where('date', '<=', filters.endDate));
-      }
-      if (filters.status) {
-         q = query(q, where('status', '==', filters.status));
-      }
+      if (filters.parcours) params = params.set('parcours', filters.parcours);
+      if (filters.startDate) params = params.set('startDate', filters.startDate);
+      if (filters.endDate) params = params.set('endDate', filters.endDate);
+      if (filters.status) params = params.set('status', filters.status);
     }
-    
-    // cast result to Planning[] including ID
-    return collectionData(q, { idField: 'id' }) as Observable<Planning[]>;
+
+    return this.http.get<any[]>(this.apiUrl, { params }).pipe(
+      map(plannings => plannings.map(p => ({
+        ...p,
+        // Map backend flat structure to frontend nested structure if needed
+        ue: p.ue_code ? { code: p.ue_code, name: p.ue_name } : undefined,
+        teacher: p.teacher_first_name ? { 
+            first_name: p.teacher_first_name, 
+            last_name: p.teacher_last_name, 
+            email: p.teacher_email 
+        } : undefined
+      })))
+    );
   }
 
-  createPlanning(planning: Planning): Observable<DocumentReference> {
-    // Clean undefined fields if needed, but Firestore handles it mostly fine.
-    // Ensure we don't pass 'id' in the body
-    const { id, ...data } = planning;
-    return from(addDoc(this.planningsCollection, data));
+  createPlanning(planning: Planning): Observable<any> {
+    return this.http.post<any>(this.apiUrl, planning);
   }
 
   updatePlanning(id: string, planning: Partial<Planning>): Observable<void> {
-    const docRef = doc(this.firestore, `plannings/${id}`);
-    return from(updateDoc(docRef, planning));
+    return this.http.put<void>(`${this.apiUrl}/${id}`, planning);
   }
 
   deletePlanning(id: string): Observable<void> {
-    const docRef = doc(this.firestore, `plannings/${id}`);
-    return from(deleteDoc(docRef));
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
 

@@ -1,7 +1,8 @@
+import * as functions from 'firebase-functions';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { pool } from './config/db';
+import './config/db'; 
 import authRouter from './routes/authRoutes';
 import userRouter from './routes/userRoutes';
 import supervisionRouter from './routes/supervisionRoutes';
@@ -14,18 +15,15 @@ import classeRouter from './routes/classeRoutes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
+// Allow specific origins including localhost:4200 and Vercel domains
 app.use(cors({
-    origin: ['https://supervision-visios.vercel.app', 'https://supervision-visios-git-main-koffis-projects.vercel.app', 'http://localhost:4200'],
+    origin: true,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
-app.use(express.json({ limit: '50mb' })); // Augmenter llimite pour les signatures base64
+app.use(express.json({ limit: '50mb' }));
 
-// Routes
 app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter); 
 app.use('/api/supervisions', supervisionRouter);
@@ -35,22 +33,17 @@ app.use('/api/plannings', planningRouter);
 app.use('/api/parcours', parcoursRouter);
 app.use('/api/classes', classeRouter);
 
-// Basic Route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Supervision Visios Backend API' });
+  res.json({ message: 'Welcome to Supervision Visios Backend API (Firebase)' });
 });
 
-// Database Connection Test Route
-app.get('/db-test', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT NOW() as now');
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Database connection error');
-  }
-});
+export const api = functions.https.onRequest(app);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Local Development Server
+// Listen only if not running in Cloud Functions environment
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}

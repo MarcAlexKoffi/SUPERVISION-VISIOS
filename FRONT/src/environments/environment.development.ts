@@ -1,6 +1,6 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://supervision-api.onrender.com/api',
+  production: false,
+  apiUrl: 'http://localhost:3000/api',
   firebase: {
       apiKey: "AIzaSyBKgTwGI4DrDopUMGQkIgrGH50CtnicQyQ",
       authDomain: "supervision-visios.firebaseapp.com",

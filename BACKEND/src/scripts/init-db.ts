@@ -146,7 +146,65 @@ async function initDB() {
     `;
     await connection.query(createSupervisionTable);
     console.log('Table "supervision_forms" vérifiée/créée.');
-    console.log('Table "ues" vérifiée/créée.');
+
+    // 5. Table Parcours
+    const createParcoursQuery = `
+      CREATE TABLE IF NOT EXISTS parcours (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        code VARCHAR(50) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `;
+    await connection.query(createParcoursQuery);
+    console.log('Table "parcours" vérifiée/créée.');
+
+    // 6. Table Classes
+    const createClassesQuery = `
+      CREATE TABLE IF NOT EXISTS classes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        effectif INT NOT NULL,
+        parcours_id INT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (parcours_id) REFERENCES parcours(id) ON DELETE SET NULL
+      )
+    `;
+    await connection.query(createClassesQuery);
+    console.log('Table "classes" vérifiée/créée.');
+
+    // 7. Table Plannings
+    const createPlanningsQuery = `
+      CREATE TABLE IF NOT EXISTS plannings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        parcours VARCHAR(255) NOT NULL,
+        ue_id INT,
+        teacher_id INT,
+        
+        title VARCHAR(255),
+        description TEXT,
+        
+        date DATE NOT NULL,
+        start_time TIME,
+        end_time TIME,
+        
+        session_type VARCHAR(50) DEFAULT 'CM',
+        platform VARCHAR(50),
+        visio_link TEXT,
+        status ENUM('À superviser', 'Supervisé', 'Annulé') DEFAULT 'À superviser',
+        
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (ue_id) REFERENCES ues(id) ON DELETE SET NULL,
+        FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
+      )
+    `;
+    await connection.query(createPlanningsQuery);
+    console.log('Table "plannings" vérifiée/créée.');
+
 
     // Ajouter ou mettre à jour un admin par défaut
     // On récupère l'ID du rôle admin

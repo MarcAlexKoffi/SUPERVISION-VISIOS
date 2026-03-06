@@ -1,28 +1,35 @@
 // src/controllers/teacherController.ts
 import { Request, Response } from 'express';
-import { pool } from '../config/db';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { db } from '../config/db';
 
 export const getAllTeachers = async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM teachers ORDER BY last_name, first_name');
+    // Simplification du tri pour éviter l'erreur d'index manquant dans Firestore
+    const snapshot = await db.collection('teachers').orderBy('last_name').get();
+    const rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Tri secondaire côté client ou serveur si nécessaire (ici on laisse le client gérer potentiellement)
+    
     res.json(rows);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erreur getAllTeachers:', error);
-    res.status(500).json({ message: "Erreur lors de la récupération des enseignants." });
+    res.status(500).json({ 
+      message: "Erreur lors de la récupération des enseignants.",
+      error: error.message,
+      stack: error.stack
+    });
   }
 };
 
 export const getTeacherById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM teachers WHERE id = ?', [id]);
+    const docRef = await db.collection('teachers').doc(id).get();
     
-    if (rows.length === 0) {
+    if (!docRef.exists) {
       return res.status(404).json({ message: "Enseignant non trouvé." });
     }
     
-    res.json(rows[0]);
+    res.json({ id: docRef.id, ...docRef.data() });
   } catch (error) {
     console.error('Erreur getTeacherById:', error);
     res.status(500).json({ message: "Erreur serveur." });
@@ -31,21 +38,27 @@ export const getTeacherById = async (req: Request, res: Response) => {
 
 export const createTeacher = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, department } = req.body;
+    const { firstName, lastName, email, department, phone } = req.body; // Added phone
     
     if (!firstName || !lastName) {
         return res.status(400).json({ message: "Le nom et le prénom sont obligatoires." });
     }
 
-    const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO teachers (first_name, last_name, email, department) VALUES (?, ?, ?, ?)',
-      [firstName, lastName, email, department]
-    );
+    const newTeacher = {
+        first_name: firstName,
+        last_name: lastName,
+        email: email || null,
+        department: department || null,
+        phone: phone || null,
+        created_at: new Date()
+    };
+
+    const docRef = await db.collection('teachers').add(newTeacher);
 
     res.status(201).json({ 
         message: "Enseignant ajouté.",
-        id: result.insertId,
-        teacher: { id: result.insertId, firstName, lastName, email, department }
+        id: docRef.id,
+        teacher: { id: docRef.id, ...newTeacher }
     });
   } catch (error) {
     console.error('Erreur createTeacher:', error);
@@ -56,14 +69,19 @@ export const createTeacher = async (req: Request, res: Response) => {
 export const updateTeacher = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, department, status } = req.body;
+    const { firstName, lastName, email, department, status, phone } = req.body;
 
-    await pool.query(
-      'UPDATE teachers SET first_name = ?, last_name = ?, email = ?, department = ?, status = ? WHERE id = ?',
-      [firstName, lastName, email, department, status, id]
-    );
+    const updateData: any = {};
+    if (firstName) updateData.first_name = firstName;
+    if (lastName) updateData.last_name = lastName;
+    if (email !== undefined) updateData.email = email;
+    if (department !== undefined) updateData.department = department;
+    if (status !== undefined) updateData.status = status;
+    if (phone !== undefined) updateData.phone = phone;
 
-    res.json({ message: "Enseignant mis à jour." });
+    await db.collection('teachers').doc(id).update(updateData);
+
+    res.json({ message: "Enseignant mis à jour.", id, ...updateData });
   } catch (error) {
     console.error('Erreur updateTeacher:', error);
     res.status(500).json({ message: "Erreur lors de la mise à jour." });
@@ -73,7 +91,7 @@ export const updateTeacher = async (req: Request, res: Response) => {
 export const deleteTeacher = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM teachers WHERE id = ?', [id]);
+    await db.collection('teachers').doc(id).delete();
     res.json({ message: "Enseignant supprimé." });
   } catch (error) {
     console.error('Erreur deleteTeacher:', error);

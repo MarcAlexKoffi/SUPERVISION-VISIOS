@@ -17,3 +17,7 @@ yarn-error.log*
 Thumbs.db
 
 .env.production
+
+# Secrets
+serviceAccountKey.json
+

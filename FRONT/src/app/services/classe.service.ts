@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc } from '@angular/fire/firestore';
-import { Observable, from } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Classe {
   id?: string;
@@ -14,30 +15,24 @@ export interface Classe {
   providedIn: 'root'
 })
 export class ClasseService {
-  private firestore: Firestore = inject(Firestore);
-  private classesCollection = collection(this.firestore, 'classes');
-  // If 'classes' and 'parcours' were different in MySQL, we need careful mapping.
-  // In previous context, 'parcours' route handled 'classes'.
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/classes`;
 
   constructor() {}
 
   getAll(): Observable<Classe[]> {
-    return collectionData(this.classesCollection, { idField: 'id' }) as Observable<Classe[]>;
+    return this.http.get<Classe[]>(this.apiUrl);
   }
 
   create(classe: Classe): Observable<any> {
-    const { id, ...data } = classe;
-    return from(addDoc(this.classesCollection, data));
+    return this.http.post<any>(this.apiUrl, classe);
   }
 
   update(id: string, classe: Classe): Observable<any> {
-    const docRef = doc(this.firestore, `parcours/${id}`);
-    const { id: _, ...data } = classe;
-    return from(updateDoc(docRef, data));
+    return this.http.put<any>(`${this.apiUrl}/${id}`, classe);
   }
 
   delete(id: string): Observable<any> {
-    const docRef = doc(this.firestore, `parcours/${id}`);
-    return from(deleteDoc(docRef));
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }
 }

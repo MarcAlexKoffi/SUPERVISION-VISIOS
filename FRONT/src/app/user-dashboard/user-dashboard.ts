@@ -23,7 +23,7 @@ export class UserDashboard implements OnInit {
         private supervisionService: SupervisionService,
         private router: Router
     ) {
-        this.currentUser = this.authService.currentUserValue?.user;
+        this.currentUser = this.authService.currentUserValue;
     }
 
     ngOnInit() {

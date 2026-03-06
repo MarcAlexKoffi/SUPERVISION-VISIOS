@@ -1,15 +1,15 @@
 
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, addDoc, doc, updateDoc, deleteDoc, getDoc } from '@angular/fire/firestore';
-import { Observable, Subject, from } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable, Subject, tap, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupervisionService {
-  private firestore: Firestore = inject(Firestore);
-  private supervisionsCollection = collection(this.firestore, 'supervisions');
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl + '/supervisions';
   
   private _refreshNeeded$ = new Subject<void>();
 
@@ -20,8 +20,7 @@ export class SupervisionService {
   constructor() { }
 
   create(data: any): Observable<any> {
-    const { id, ...cleanData } = data;
-    return from(addDoc(this.supervisionsCollection, cleanData)).pipe(
+    return this.http.post(this.apiUrl, data).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
@@ -29,9 +28,7 @@ export class SupervisionService {
   }
 
   update(id: string, data: any): Observable<any> {
-    const docRef = doc(this.firestore, `supervisions/${id}`);
-    const { id: _, ...cleanData } = data;
-    return from(updateDoc(docRef, cleanData)).pipe(
+    return this.http.put(`${this.apiUrl}/${id}`, data).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
@@ -39,19 +36,15 @@ export class SupervisionService {
   }
 
   getAll(): Observable<any[]> {
-    return collectionData(this.supervisionsCollection, { idField: 'id' });
+    return this.http.get<any[]>(this.apiUrl);
   }
 
   getById(id: string): Observable<any> {
-      const docRef = doc(this.firestore, `supervisions/${id}`);
-      return from(getDoc(docRef)).pipe(
-          map(snapshot => snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null)
-      );
+      return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
   delete(id: string): Observable<any> {
-    const docRef = doc(this.firestore, `supervisions/${id}`);
-    return from(deleteDoc(docRef)).pipe(
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })

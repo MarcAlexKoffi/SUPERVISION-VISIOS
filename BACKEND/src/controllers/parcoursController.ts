@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { pool } from '../config/db';
+import { db } from '../config/db';
 
 export const getParcours = async (req: Request, res: Response): Promise<void> => {
   try {
-    const [rows] = await pool.query('SELECT * FROM parcours ORDER BY name ASC');
+    const snapshot = await db.collection('parcours').orderBy('name', 'asc').get();
+    const rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(rows);
   } catch (error) {
     console.error('Error fetching parcours:', error);
@@ -12,17 +13,15 @@ export const getParcours = async (req: Request, res: Response): Promise<void> =>
 };
 
 export const createParcours = async (req: Request, res: Response): Promise<void> => {
-  const { code, name } = req.body;
+  const { code, name, description } = req.body;
   if (!code || !name) {
     res.status(400).json({ message: 'Code and name are required' });
     return;
   }
   try {
-    const [result] = await pool.query(
-      'INSERT INTO parcours (code, name) VALUES (?, ?)',
-      [code, name]
-    );
-    res.status(201).json({ id: (result as any).insertId, code, name });
+    const newParcours = { code, name, description: description || null };
+    const docRef = await db.collection('parcours').add(newParcours);
+    res.status(201).json({ id: docRef.id, ...newParcours });
   } catch (error) {
     console.error('Error creating parcours:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -32,7 +31,7 @@ export const createParcours = async (req: Request, res: Response): Promise<void>
 export const deleteParcours = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM parcours WHERE id = ?', [id]);
+    await db.collection('parcours').doc(id).delete();
     res.json({ message: 'Parcours deleted successfully' });
   } catch (error) {
     console.error('Error deleting parcours:', error);
@@ -42,14 +41,15 @@ export const deleteParcours = async (req: Request, res: Response): Promise<void>
 
 export const updateParcours = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const { code, name } = req.body;
+  const { code, name, description } = req.body; // Added description
   if (!code || !name) {
     res.status(400).json({ message: 'Code and name are required' });
     return;
   }
   try {
-    await pool.query('UPDATE parcours SET code = ?, name = ? WHERE id = ?', [code, name, id]);
-    res.status(200).json({ id, code, name });
+    const updateData = { code, name, description: description || null };
+    await db.collection('parcours').doc(id).update(updateData);
+    res.status(200).json({ id, ...updateData });
   } catch (error) {
     console.error('Error updating parcours:', error);
     res.status(500).json({ message: 'Internal server error' });

@@ -1,16 +1,10 @@
 // src/controllers/authController.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { pool } from '../config/db';
+import { db } from '../config/db';
 import { generateToken } from '../utils/token';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
-interface User extends RowDataPacket {
-  id: number;
-  username: string;
-  password?: string;
-  role: string;
-}
+// interface User removed as no longer needed for MySQL typing
 
 export const register = async (req: Request, res: Response) => {
   const { username, password, email, role } = req.body;
@@ -20,37 +14,36 @@ export const register = async (req: Request, res: Response) => {
   }
 
   try {
-    // Vérifier si l'utilisateur existe déjà
-    const [existingUsers] = await pool.query<User[]>('SELECT * FROM users WHERE username = ?', [username]);
-    if (existingUsers.length > 0) {
+    // Check if user exists
+    const usersRef = db.collection('users');
+    const existingUser = await usersRef.where('username', '==', username).get();
+    
+    if (!existingUser.empty) {
       return res.status(409).json({ message: 'Cet utilisateur existe déjà.' });
     }
 
-    // AVANT (Avec hachage) : const hashedPassword = await bcrypt.hash(password, 10);
-    // MAINTENANT (Mot de passe en clair) :
-    const roleName = role || 'user'; // Rôle par défaut 'user'
+    const roleName = role || 'user';
+    
+    // Create new user (Storing plain password as per previous logic, but should be hashed)
+    const newUser = {
+      username,
+      password, // Ideally hash this
+      email: email || null,
+      role: roleName,
+      created_at: new Date()
+    };
 
-    // Récupérer l'ID du rôle
-    const [roleRows] = await pool.query<RowDataPacket[]>('SELECT id FROM roles WHERE name = ?', [roleName]);
-    if (roleRows.length === 0) {
-        return res.status(400).json({ message: `Le rôle '${roleName}' n'existe pas.` });
-    }
-    const roleId = roleRows[0].id;
+    const docRef = await usersRef.add(newUser);
+    const userDoc = await docRef.get();
+    const userData = userDoc.data();
 
-    // Insérer le nouvel utilisateur (mot de passe en clair)
-    const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO users (username, password, email, role_id) VALUES (?, ?, ?, ?)',
-      [username, password, email || null, roleId]
-    );
-
-    const userId = result.insertId;
-    // On génère le token avec le NOM du rôle pour que le front continue de fonctionner
-    const token = generateToken(userId, roleName);
+    // Generate token
+    const token = generateToken(docRef.id, roleName); // Uses string ID
 
     res.status(201).json({ 
         message: 'Utilisateur créé avec succès.',
         token,
-        user: { id: userId, username, email, role: roleName }
+        user: { id: docRef.id, ...userData }
     });
 
   } catch (err) {
@@ -67,41 +60,33 @@ export const login = async (req: Request, res: Response) => {
   }
 
   try {
-    // Rechercher l'utilisateur avec son rôle
-    const query = `
-        SELECT u.*, r.name as role_name 
-        FROM users u 
-        LEFT JOIN roles r ON u.role_id = r.id 
-        WHERE u.username = ?
-    `;
-    const [rows] = await pool.query<any[]>(query, [username]);
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where('username', '==', username).get();
     
-    if (rows.length === 0) {
+    if (snapshot.empty) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
     }
 
-    const user = rows[0];
+    const userDoc = snapshot.docs[0];
+    const user = userDoc.data();
 
     // Vérifier le mot de passe (Comparaison directe, sans hachage)
-    // AVANT : const isPasswordValid = await bcrypt.compare(password, user.password as string);
     const isPasswordValid = (password === user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
     }
 
-    // Le rôle peut être null si la jointure échoue (ne devrait pas arriver avec FK)
-    const userRole = user.role_name || 'user';
+    const userRole = user.role || 'user';
 
     // Générer le token
-    const token = generateToken(user.id, userRole);
+    const token = generateToken(userDoc.id, userRole);
 
-    // Retourner les infos
     res.json({
         message: 'Connexion réussie.',
         token,
         user: { 
-            id: user.id, 
+            id: userDoc.id, 
             username: user.username, 
             role: userRole 
         }

@@ -12,6 +12,7 @@ import { fr } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Subscription } from 'rxjs';
+import { parseDate } from '../shared/utils/date.utils';
 
 @Component({
   selector: 'app-plannings',
@@ -127,7 +128,7 @@ export class Plannings implements OnInit, OnDestroy {
   }
 
   getPlanningsForDay(day: Date): Planning[] {
-    return this.plannings.filter((p) => p.date && isSameDay(parseISO(p.date), day));
+    return this.plannings.filter((p) => p.date && isSameDay(parseDate(p.date), day));
   }
 
   formatDateHeader(date: Date): { dayName: string; dayDate: string } {

@@ -120,7 +120,7 @@ export class UsersComponent implements OnInit {
   }
 
   confirmDelete() {
-    if (this.userToDelete) {
+    if (this.userToDelete && this.userToDelete.id) {
       this.userService.delete(this.userToDelete.id).subscribe({
         next: () => {
           this.loadUsers();

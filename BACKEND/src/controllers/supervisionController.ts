@@ -1,7 +1,6 @@
 
 import { Request, Response } from 'express';
-import { pool } from '../config/db';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { db } from '../config/db';
 import { AuthRequest } from '../middleware/authMiddleware';
 
 export const createSupervision = async (req: AuthRequest, res: Response) => {
@@ -21,33 +20,33 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: 'Les champs nom enseignant, module et date sont obligatoires.' });
     }
 
-    const query = `
-      INSERT INTO supervision_forms (
-        user_id, teacher_name, module, level, session_number, visit_date, start_time, end_time, platform,
-        teacher_id, ue_id,
-        present_count, total_students,
-        tech_internet, tech_audio_video, tech_punctuality,
-        ped_objectives, ped_content_mastery, ped_interaction, ped_tools_usage,
-        observations, supervisor_name,
-        supervisor_signature, teacher_signature
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    const newSupervision = {
+        user_id: userId,
+        teacher_name: teacherName,
+        module, level, session_number: sessionNumber, 
+        visit_date: date, // stored as string YYYY-MM-DD usually? or keep consistent date obj
+        start_time: startTime, end_time: endTime, platform,
+        teacher_id: teacherId || null,
+        ue_id: ueId || null,
+        present_count: presentCount, total_students: totalStudents,
+        tech_internet: technical?.internet,
+        tech_audio_video: technical?.audioVideo,
+        tech_punctuality: technical?.punctuality,
+        ped_objectives: pedagogical?.objectives,
+        ped_content_mastery: pedagogical?.contentMastery,
+        ped_interaction: pedagogical?.interaction,
+        ped_tools_usage: pedagogical?.toolsUsage,
+        observations, supervisor_name: supervisorName,
+        supervisor_signature: supervisorSignature,
+        teacher_signature: teacherSignature,
+        created_at: new Date()
+    };
 
-    const values = [
-      userId, teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
-      teacherId || null, ueId || null,
-      presentCount, totalStudents,
-      technical?.internet, technical?.audioVideo, technical?.punctuality,
-      pedagogical?.objectives, pedagogical?.contentMastery, pedagogical?.interaction, pedagogical?.toolsUsage,
-      observations, supervisorName,
-      supervisorSignature, teacherSignature
-    ];
-
-    const [result] = await pool.query<ResultSetHeader>(query, values);
+    const docRef = await db.collection('supervisions').add(newSupervision);
 
     res.status(201).json({ 
       message: 'Fiche de supervision enregistrée avec succès.',
-      id: result.insertId 
+      id: docRef.id 
     });
 
   } catch (error) {
@@ -61,28 +60,37 @@ export const getAllSupervisions = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
     const userRole = req.user?.role;
     
-    let query = `
-      SELECT sf.*, u.username as creator_username,
-             t.first_name as teacher_firstname, t.last_name as teacher_lastname,
-             ue.name as ue_real_name, ue.code as ue_code
-      FROM supervision_forms sf
-      LEFT JOIN users u ON sf.user_id = u.id
-      LEFT JOIN teachers t ON sf.teacher_id = t.id
-      LEFT JOIN ues ue ON sf.ue_id = ue.id
-    `;
-    
-    const params: any[] = [];
+    let query: FirebaseFirestore.Query = db.collection('supervisions');
 
     // If not admin, only show own supervisions
     if (userRole !== 'admin') {
-        query += ` WHERE sf.user_id = ?`;
-        params.push(userId);
+        query = query.where('user_id', '==', userId);
+    }
+    
+    // Sort needs index manually created for combinations. 
+    // Fallback to simpler query + in-memory sort or user must create index in Firebase Console
+    try {
+        query = query.orderBy('visit_date', 'desc');
+    } catch (e) {
+         console.warn("Sorting skipped or failed, check Firestore Indexes");
     }
 
-    query += ` ORDER BY sf.visit_date DESC, sf.created_at DESC`;
+    const snapshot = await query.get();
+    
+    let supervisions = snapshot.docs.map(doc => {
+       const data = doc.data(); 
+       return {
+            id: doc.id,
+            ...data,
+            // Mocked joins to prevent breaking frontend
+            creator_username: 'Chargement...', 
+            ue_real_name: data.module, 
+            teacher_firstname: '',
+            teacher_lastname: data.teacher_name
+        };
+    });
 
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
+    res.json(supervisions);
   } catch (error) {
     console.error('Erreur getAllSupervisions:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des fiches.' });
@@ -92,26 +100,21 @@ export const getAllSupervisions = async (req: AuthRequest, res: Response) => {
 export const getSupervisionById = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const query = `
-      SELECT sf.*, u.username as creator_username,
-             t.first_name as teacher_firstname, t.last_name as teacher_lastname,
-             ue.name as ue_real_name, ue.code as ue_code
-      FROM supervision_forms sf
-      LEFT JOIN users u ON sf.user_id = u.id
-      LEFT JOIN teachers t ON sf.teacher_id = t.id
-      LEFT JOIN ues ue ON sf.ue_id = ue.id
-      WHERE sf.id = ?
-    `;
-    const [rows] = await pool.query<RowDataPacket[]>(query, [id]);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Fiche non trouvée.' });
+    const docRef = await db.collection('supervisions').doc(id).get();
+    
+    if (!docRef.exists) return res.status(404).json({ message: "Non trouvée" });
+    
+    const data = docRef.data();
+    
+    // Check perm
+    if (req.user?.role !== 'admin' && data?.user_id !== req.user?.id) {
+        return res.status(403).json({ message: "Non autorisé" });
     }
 
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Erreur getSupervisionById:', error);
-    res.status(500).json({ message: 'Erreur lors de la récupération de la fiche.' });
+    res.json({ id: docRef.id, ...data });
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
@@ -121,10 +124,13 @@ export const updateSupervision = async (req: AuthRequest, res: Response) => {
         const userId = req.user?.id;
         const userRole = req.user?.role;
         
-        // Check if exists and ownership
-        const [existing] = await pool.query<RowDataPacket[]>('SELECT user_id FROM supervision_forms WHERE id = ?', [id]);
-        if (existing.length === 0) return res.status(404).json({ message: 'Fiche non trouvée.' });
-        if (userRole !== 'admin' && existing[0].user_id !== userId) {
+        const docRef = db.collection('supervisions').doc(id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) return res.status(404).json({ message: 'Fiche non trouvée.' });
+        
+        const data = doc.data();
+        if (userRole !== 'admin' && data?.user_id !== userId) {
             return res.status(403).json({ message: 'Non autorisé à modifier cette fiche.' });
         }
 
@@ -137,30 +143,40 @@ export const updateSupervision = async (req: AuthRequest, res: Response) => {
           supervisorSignature, teacherSignature
         } = req.body;
     
-        const query = `
-          UPDATE supervision_forms 
-          SET teacher_name=?, module=?, level=?, session_number=?, visit_date=?, start_time=?, end_time=?, platform=?,
-              teacher_id=?, ue_id=?,
-              present_count=?, total_students=?,
-              tech_internet=?, tech_audio_video=?, tech_punctuality=?,
-              ped_objectives=?, ped_content_mastery=?, ped_interaction=?, ped_tools_usage=?,
-              observations=?, supervisor_name=?,
-              supervisor_signature=?, teacher_signature=?
-          WHERE id=?
-        `;
-    
-        const values = [
-          teacherName, module, level, sessionNumber, date, startTime, endTime, platform,
-          teacherId || null, ueId || null,
-          presentCount, totalStudents,
-          technical?.internet, technical?.audioVideo, technical?.punctuality,
-          pedagogical?.objectives, pedagogical?.contentMastery, pedagogical?.interaction, pedagogical?.toolsUsage,
-          observations, supervisorName,
-          supervisorSignature, teacherSignature,
-          id
-        ];
-    
-        await pool.query(query, values);
+        const updateData: any = {};
+        if (teacherName) updateData.teacher_name = teacherName;
+        if (module) updateData.module = module;
+        if (level) updateData.level = level;
+        if (sessionNumber) updateData.session_number = sessionNumber;
+        if (date) updateData.visit_date = date;
+        if (startTime) updateData.start_time = startTime;
+        if (endTime) updateData.end_time = endTime;
+        if (platform) updateData.platform = platform;
+        if (teacherId !== undefined) updateData.teacher_id = teacherId;
+        if (ueId !== undefined) updateData.ue_id = ueId;
+        if (presentCount !== undefined) updateData.present_count = presentCount;
+        if (totalStudents !== undefined) updateData.total_students = totalStudents;
+        
+        if (technical) {
+            if (technical.internet !== undefined) updateData.tech_internet = technical.internet;
+            if (technical.audioVideo !== undefined) updateData.tech_audio_video = technical.audioVideo;
+            if (technical.punctuality !== undefined) updateData.tech_punctuality = technical.punctuality;
+        }
+
+        if (pedagogical) {
+             if (pedagogical.objectives !== undefined) updateData.ped_objectives = pedagogical.objectives;
+             if (pedagogical.contentMastery !== undefined) updateData.ped_content_mastery = pedagogical.contentMastery;
+             if (pedagogical.interaction !== undefined) updateData.ped_interaction = pedagogical.interaction;
+             if (pedagogical.toolsUsage !== undefined) updateData.ped_tools_usage = pedagogical.toolsUsage;
+        }
+
+        if (observations !== undefined) updateData.observations = observations;
+        if (supervisorName) updateData.supervisor_name = supervisorName;
+        // Signatures usually not updated but if needed:
+        if (supervisorSignature !== undefined) updateData.supervisor_signature = supervisorSignature;
+        if (teacherSignature !== undefined) updateData.teacher_signature = teacherSignature;
+
+        await docRef.update(updateData);
     
         res.json({ message: 'Fiche mise à jour avec succès.', id });
     } catch (error) {
@@ -172,15 +188,22 @@ export const updateSupervision = async (req: AuthRequest, res: Response) => {
 export const deleteSupervision = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    
-    // Vérifier si l'utilisateur est admin ou propriétaire (optionnel, ici admin only selon route)
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM supervision_forms WHERE id = ?', [id]);
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Fiche non trouvée.' });
+    const docRef = db.collection('supervisions').doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).json({ message: 'Fiche non trouvée.' });
+
+    const data = doc.data();
+    if (userRole !== 'admin' && data?.user_id !== userId) {
+        return res.status(403).json({ message: 'Non autorisé à supprimer cette fiche.' });
     }
+    
+    await docRef.delete();
 
-    res.json({ message: 'Fiche supprimée avec succès.' });
+    res.json({ message: 'Fiche supprimée.' });
   } catch (error) {
     console.error('Erreur deleteSupervision:', error);
     res.status(500).json({ message: 'Erreur lors de la suppression.' });

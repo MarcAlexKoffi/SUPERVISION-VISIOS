@@ -1,15 +1,16 @@
 
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
-import { Observable, Subject, from } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeacherService {
-  private firestore: Firestore = inject(Firestore);
-  private teachersCollection = collection(this.firestore, 'teachers');
+  private http = inject(HttpClient);
+  private apiUrl = `${environment.apiUrl}/teachers`;
   
   private _refreshNeeded$ = new Subject<void>();
 
@@ -20,17 +21,15 @@ export class TeacherService {
   constructor() { }
 
   getAll(): Observable<any[]> {
-    return collectionData(this.teachersCollection, { idField: 'id' });
+    return this.http.get<any[]>(this.apiUrl);
   }
 
   getById(id: string): Observable<any> {
-    const docRef = doc(this.firestore, `teachers/${id}`);
-    return docData(docRef, { idField: 'id' });
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
   create(teacher: any): Observable<any> {
-    const { id, ...data } = teacher;
-    return from(addDoc(this.teachersCollection, data)).pipe(
+    return this.http.post<any>(this.apiUrl, teacher).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
@@ -38,9 +37,7 @@ export class TeacherService {
   }
 
   update(id: string, teacher: any): Observable<any> {
-    const docRef = doc(this.firestore, `teachers/${id}`);
-    const { id: _, ...data } = teacher;
-    return from(updateDoc(docRef, data)).pipe(
+    return this.http.put<any>(`${this.apiUrl}/${id}`, teacher).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })
@@ -48,8 +45,7 @@ export class TeacherService {
   }
 
   delete(id: string): Observable<any> {
-    const docRef = doc(this.firestore, `teachers/${id}`);
-    return from(deleteDoc(docRef)).pipe(
+    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
         this._refreshNeeded$.next();
       })

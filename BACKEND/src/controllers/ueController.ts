@@ -1,30 +1,31 @@
 
 import { Request, Response } from 'express';
-import { pool } from '../config/db';
-import { ResultSetHeader, RowDataPacket } from 'mysql2';
+import { db } from '../config/db';
 import { AuthRequest } from '../middleware/authMiddleware';
 
 export const getAllUEs = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const userRole = req.user?.role;
-
-    // console.log('Fetching all UEs for user:', userId, 'Role:', userRole);
     
-    // Base Select
-    let query = 'SELECT * FROM ues';
-    const params: any[] = [];
+    // Firestore Query
+    let uesRef = db.collection('ues');
+    let snapshot;
 
-    // Filter if not admin
-    if (userRole !== 'admin') {
-       query += ' WHERE user_id = ?';
-       params.push(userId);
+    if (userRole === 'admin') {
+         snapshot = await uesRef.orderBy('created_at', 'desc').get();
+    } else {
+         snapshot = await uesRef.where('user_id', '==', userId).orderBy('created_at', 'desc').get();
+    }
+    
+    // Handle index requirement error or empty
+    if (snapshot.empty) {
+        // Fallback or just empty
+        res.json([]);
+        return;
     }
 
-    query += ' ORDER BY created_at DESC';
-
-    const [rows] = await pool.query(query, params);
-    // console.log(`Found ${Array.isArray(rows) ? rows.length : 0} UEs`);
+    const rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(rows);
   } catch (error) {
     console.error('Error in getAllUEs:', error);
@@ -41,17 +42,24 @@ export const createUE = async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const query = `
-      INSERT INTO ues (code, name, responsible, students_count, modules_count, level, semester, phase, department, user_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    const [result] = await pool.query<ResultSetHeader>(query, [code, name, responsible, students_count, modules_count, level, semester, phase, department, userId]);
+    const uesRef = db.collection('ues');
     
-    res.status(201).json({ id: result.insertId, ...req.body, user_id: userId });
-  } catch (error: any) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ message: 'Ce code UE existe déjà' });
+    const existing = await uesRef.where('code', '==', code).get();
+    if (!existing.empty) {
+        return res.status(409).json({ message: 'Ce code UE existe déjà' });
     }
+
+    const newUE = {
+        code, name, responsible, students_count, modules_count, level, semester, phase, department,
+        user_id: userId,
+        created_at: new Date()
+    };
+
+    const docRef = await uesRef.add(newUE);
+    
+    // On retourne l'ID document firestore
+    res.status(201).json({ id: docRef.id, ...newUE });
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({ message: 'Erreur lors de la création de l\'UE' });
   }
@@ -64,27 +72,29 @@ export const updateUE = async (req: AuthRequest, res: Response) => {
   const { code, name, responsible, students_count, modules_count, level, semester, phase, department } = req.body;
 
   try {
-    // Check ownership if not admin
+    const ueRef = db.collection('ues').doc(id);
+    const ueDoc = await ueRef.get();
+
+    if (!ueDoc.exists) {
+        return res.status(404).json({ message: 'UE non trouvée' });
+    }
+
+    // Check ownership
     if (userRole !== 'admin') {
-        const [existing] = await pool.query<RowDataPacket[]>('SELECT user_id FROM ues WHERE id = ?', [id]);
-        if (existing.length === 0) return res.status(404).json({ message: 'UE non trouvée' });
-        // Assuming undefined user_id (legacy data) is editable only by admin if we want strict mode, or maybe user? 
-        // Let's assume user_id must match.
-        if (existing[0].user_id !== userId) {
+        const data = ueDoc.data();
+        if (data?.user_id !== userId) {
             return res.status(403).json({ message: 'Non autorisé à modifier cette UE' });
         }
     }
 
-    const query = `
-      UPDATE ues 
-      SET code=?, name=?, responsible=?, students_count=?, modules_count=?, level=?, semester=?, phase=?, department=?
-      WHERE id=?
-    `;
+    const updateData = {
+        code, name, responsible, students_count, modules_count, level, semester, phase, department,
+        updated_at: new Date()
+    };
     
-    // Note: We don't update user_id here.
-    await pool.query(query, [code, name, responsible, students_count, modules_count, level, semester, phase, department, id]);
+    await ueRef.update(updateData);
     
-    res.json({ message: 'UE mise à jour avec succès', id, ...req.body });
+    res.json({ message: 'UE mise à jour avec succès', id, ...updateData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'UE' });
@@ -97,19 +107,26 @@ export const deleteUE = async (req: AuthRequest, res: Response) => {
   const userRole = req.user?.role;
 
   try {
-    // Check ownership if not admin
+    const ueRef = db.collection('ues').doc(id);
+    const ueDoc = await ueRef.get();
+
+    if (!ueDoc.exists) {
+        return res.status(404).json({ message: 'UE non trouvée' });
+    }
+
+    // Check ownership
     if (userRole !== 'admin') {
-        const [existing] = await pool.query<RowDataPacket[]>('SELECT user_id FROM ues WHERE id = ?', [id]);
-        if (existing.length === 0) return res.status(404).json({ message: 'UE non trouvée' });
-        if (existing[0].user_id !== userId) {
+        const data = ueDoc.data();
+        if (data?.user_id !== userId) {
             return res.status(403).json({ message: 'Non autorisé à supprimer cette UE' });
         }
     }
+    
+    await ueRef.delete();
+    res.json({ message: 'UE supprimée' });
 
-    await pool.query('DELETE FROM ues WHERE id = ?', [id]);
-    res.json({ message: 'UE supprimée avec succès' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erreur lors de la suppression de l\'UE' });
+      console.error(error);
+      res.status(500).json({ message: 'Erreur lors de la suppression' });
   }
 };

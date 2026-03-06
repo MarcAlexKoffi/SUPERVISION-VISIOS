@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupervisionService } from '../services/supervision.service';
 import { UeService } from '../services/ue.service';
-import { TeacherService } from '../services/teacher.service'; // Import TeacherService
+import { TeacherService } from '../services/teacher.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { ClasseService } from '../services/classe.service';
@@ -20,7 +20,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('supervisorCanvas') supervisorCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('teacherCanvas') teacherCanvas!: ElementRef<HTMLCanvasElement>;
   
-  editingId: number | null = null;
+  editingId: string | null = null;
   private routeSub: Subscription | null = null;
 
   currentDate = new Date();
@@ -33,14 +33,14 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   errorMessage = '';
 
   ues: any[] = [];
-  teachers: any[] = []; // List of teachers
-  classesList: any[] = []; // List of classes
+  teachers: any[] = [];
+  classesList: any[] = [];
   selectedUECode: string = '';
-  selectedTeacherId: number | null = null; // Store selected teacher ID
+  selectedTeacherId: number | null = null;
 
   formData = {
-    teacherId: null, // New field for ID
-    ueId: null,      // New field for ID
+    teacherId: null as number | null,
+    ueId: null as number | null,
     teacherName: '', 
     module: '',
     level: '',
@@ -74,7 +74,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   constructor(
     private supervisionService: SupervisionService,
     private ueService: UeService,
-    private teacherService: TeacherService, // Inject TeacherService
+    private teacherService: TeacherService,
     private classeService: ClasseService,
     private authService: AuthService,
     private router: Router,
@@ -84,7 +84,6 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   ngOnInit() {
     this.scriptLoader();
 
-    // Auto-fill supervisor name if logged in (only if not editing, handled later)
     const user = this.authService.currentUserValue;
     if (user && user.username) {
         this.formData.supervisorName = user.username;
@@ -92,8 +91,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
     this.routeSub = this.route.queryParams.subscribe(params => {
       if (params['id']) {
-        this.editingId = +params['id'];
-        this.loadSupervision(this.editingId);
+        this.editingId = params['id'];
+        if (this.editingId) this.loadSupervision(this.editingId);
       }
     });
   }
@@ -106,61 +105,54 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
   scriptLoader() {
     this.loadUEs();
-    this.loadTeachers(); // Load teachers
+    this.loadTeachers();
     this.loadClasses();
   }
 
-  loadSupervision(id: number) {
+  loadSupervision(id: string) {
     this.supervisionService.getById(id).subscribe({
       next: (data) => {
         if (!data) return;
         
-        // Map backend data to formData
-        // Adjust field mapping as necessary based on your backend response structure
-        this.selectedTeacherId = (data.teacher && data.teacher.id) ? data.teacher.id : data.teacherId; 
+        this.selectedTeacherId = (data.teacher && data.teacher.id) ? Number(data.teacher.id) : null; 
         
-        // Ensure formData matches the structure
         this.formData = {
-          teacherId: data.teacherId || (data.teacher ? data.teacher.id : null),
-          ueId: data.ueId || (data.course ? data.course.id : null),
-          teacherName: data.teacherName || (data.teacher ? data.teacher.name : ''),
-          module: data.module || (data.course ? data.course.name : ''),
-          level: data.level || (data.course ? data.course.level : ''), // Or from backend directly
-          sessionNumber: data.sessionNumber || 1,
-          date: data.date ? data.date.split('T')[0] : new Date().toISOString().split('T')[0],
-          startTime: data.startTime || data.startTimeStr,
-          endTime: data.endTime || data.endTimeStr,
-          platform: data.platform,
-          presentCount: data.presentCount || 0,
-          totalStudents: data.totalStudents || 0,
-          technical: data.technical || { internet: '', audioVideo: '', punctuality: '' },
-          pedagogical: data.pedagogical || { objectives: '', contentMastery: '', interaction: '', toolsUsage: '' },
+          teacherId: this.selectedTeacherId as any,
+          ueId: (data.ue && data.ue.id) ? Number(data.ue.id) : null,
+          teacherName: data.teacher?.name || '',
+          module: data.ue?.name || '',
+          
+          level: data.session?.level || data.level || '',
+          sessionNumber: data.session?.number || data.sessionNumber || 1,
+          platform: data.session?.platform || data.platform || 'Zoom',
+          presentCount: data.session?.students?.present ?? data.presentCount ?? 0,
+          totalStudents: data.session?.students?.total ?? data.totalStudents ?? 0,
+          
+          date: data.visit_date || data.date || new Date().toISOString().split('T')[0],
+          startTime: data.start_time || data.startTime || '',
+          endTime: data.end_time || data.endTime || '',
+          
+          technical: data.evaluation?.technical || data.technical || { internet: '', audioVideo: '', punctuality: '' },
+          pedagogical: data.evaluation?.pedagogical || data.pedagogical || { objectives: '', contentMastery: '', interaction: '', toolsUsage: '' },
+          
           observations: data.observations || '',
-          supervisorName: data.supervisorName || (this.authService.currentUserValue?.username || '')
+          supervisorName: data.supervisor?.name || data.supervisorName || (this.authService.currentUserValue?.username || '')
         };
 
-        // Trigger change detection for selects if needed
         if (this.selectedTeacherId) {
-             // force update
              this.onTeacherChange();
         }
 
-        // Load signatures if they exist (assuming stored as base64 or URL in backend)
-        // If they are not in the main object, adjust accordingly.
-        // Assuming backend might not return full base64 for performance unless requested, 
-        // OR it returns them. Let's assume they are in data.supervisorSignature and data.teacherSignature
-        if (data.supervisorSignature) {
-            setTimeout(() => this.loadSignature('supervisor', data.supervisorSignature), 100);
+        if (data.signatures) {
+             if (data.signatures.supervisor) {
+                 this.loadSignature('supervisor', data.signatures.supervisor);
+             }
+             if (data.signatures.teacher) {
+                 this.loadSignature('teacher', data.signatures.teacher);
+             }
         }
-        if (data.teacherSignature) {
-            setTimeout(() => this.loadSignature('teacher', data.teacherSignature), 100);
-        }
-
       },
-      error: (err) => {
-        console.error('Error loading supervision', err);
-        // this.router.navigate(['/admin/history']);
-      }
+      error: (e) => console.error(e)
     });
   }
 
@@ -183,7 +175,6 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   ngAfterViewInit() {
     this.setupCanvas(this.supervisorCanvas.nativeElement, 'supervisor');
     this.setupCanvas(this.teacherCanvas.nativeElement, 'teacher');
-    // Only load from localStorage if not editing an existing supervision
     if (!this.editingId) {
         this.loadSavedData();
     }
@@ -203,7 +194,6 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     if (selectedUE) {
       this.formData.ueId = selectedUE.id;
       this.formData.module = selectedUE.name || '';
-      // We no longer set level or totalStudents from UE, it comes from the Classe selection
     }
   }
 
@@ -236,12 +226,9 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        // Restore form fields
         this.formData = { ...this.formData, ...data };
-        // Remove signatures from formData if they were merged in (cleanup)
         delete (this.formData as any).signatures;
 
-        // Restore signatures to canvas
         if (data.signatures) {
           this.loadSignature('supervisor', data.signatures.supervisor);
           this.loadSignature('teacher', data.signatures.teacher);
@@ -269,10 +256,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     
     this.contexts[type] = ctx;
     
-    // Set canvas size to match display size
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      // Set actual size in memory (scaled to account for extra pixel density if needed)
       canvas.width = rect.width;
       canvas.height = rect.height;
       
@@ -282,18 +267,15 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
       ctx.strokeStyle = '#000';
     };
     
-    // Initial resize
     setTimeout(resize, 0);
     window.addEventListener('resize', resize);
     
-    // Drawing event handlers
     const startDrawing = (e: MouseEvent | TouchEvent) => {
       this.isDrawing = true;
       const pos = this.getPos(e, canvas);
       this.lastX = pos.x;
       this.lastY = pos.y;
       
-      // Prevent scrolling on touch devices
       if (e.type === 'touchstart') {
           e.preventDefault(); 
       }
@@ -318,16 +300,14 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     
     const stopDrawing = () => {
       this.isDrawing = false;
-      ctx.beginPath(); // Reset path to prevent connectinglines
+      ctx.beginPath();
     };
 
-    // Mouse Events
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('mouseout', stopDrawing);
     
-    // Touch Events
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing);
@@ -335,8 +315,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   
   private getPos(e: MouseEvent | TouchEvent, canvas: HTMLCanvasElement) {
     const rect = canvas.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+    const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
     return {
       x: clientX - rect.left,
       y: clientY - rect.top
@@ -361,23 +341,18 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
           const canvas = type === 'supervisor' ? this.supervisorCanvas.nativeElement : this.teacherCanvas.nativeElement;
           const ctx = this.contexts[type] || canvas.getContext('2d');
           if (ctx) {
-            // Clear current canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Calculate scale to fit image within canvas while maintaining aspect ratio
             const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
             const w = img.width * scale;
             const h = img.height * scale;
             const x = (canvas.width - w) / 2;
             const y = (canvas.height - h) / 2;
-            
             ctx.drawImage(img, x, y, w, h);
           }
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
-      // Reset input value to allow selecting same file again
       event.target.value = '';
     }
   }
@@ -395,15 +370,50 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     this.isSaving = true;
     this.saveMessage = 'Sauvegarde...';
     
-    // Convert canvases to base64
     const supervisorSig = this.supervisorCanvas.nativeElement?.toDataURL() || '';
     const teacherSig = this.teacherCanvas.nativeElement?.toDataURL() || '';
 
+    const currentUser = this.authService.currentUserValue;
+
     const payload = {
-        ...this.formData,
+        // Champs plats attendus par le backend MySQL
+        date: this.formData.date,
+        startTime: this.formData.startTime,
+        endTime: this.formData.endTime,
+        
+        teacherName: this.formData.teacherName,
+        teacherId: this.formData.teacherId,
+        
+        module: this.formData.module, // ue name
+        ueId: this.formData.ueId,
+        
+        level: this.formData.level,
+        sessionNumber: this.formData.sessionNumber,
+        platform: this.formData.platform,
+        
+        presentCount: this.formData.presentCount,
+        totalStudents: this.formData.totalStudents,
+        
+        supervisorName: this.formData.supervisorName,
+        
+        // Objets imbriqués (le backend les gère aussi si destructuré correctement, 
+        // ou on peut aplatir si nécessaire, mais le controller semble attendre technical/pedagogical objets)
+        technical: this.formData.technical,
+        pedagogical: this.formData.pedagogical,
+        
+        observations: this.formData.observations,
+        
         supervisorSignature: supervisorSig,
-        teacherSignature: teacherSig
+        teacherSignature: teacherSig,
+
+        // On garde la structure nested pour compatibilité legacy si besoin, ou on l'enlève.
+        // Pour l'instant, le backend MySQL ne regarde que les champs plats ci-dessus.
+        updated_at: new Date()
     };
+    
+    if (!this.editingId) {
+        (payload as any).created_at = new Date();
+    }
 
     if (this.editingId) {
       this.supervisionService.update(this.editingId, payload).subscribe({
@@ -430,9 +440,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
       this.isSaving = false;
       this.showSuccessModal = true;
       this.saveMessage = 'Enregistrer la fiche';
-      // Clear localStorage draft if any
       localStorage.removeItem('supervisionFormData');
-      // this.resetForm(false); // Don't reset immediately, let user click OK
   }
 
   handleError(err: any) {
@@ -461,7 +469,6 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
       return;
     }
     
-    // Clear draft from storage
     localStorage.removeItem('supervisionFormData');
 
     this.formData = {
@@ -492,7 +499,6 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
         supervisorName: ''
       };
 
-      // Restore supervisor name
       const user = this.authService.currentUserValue;
       if (user && user.username) {
           this.formData.supervisorName = user.username;

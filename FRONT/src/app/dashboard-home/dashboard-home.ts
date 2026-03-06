@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { ParcoursService } from '../services/parcours.service';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { parseDate } from '../shared/utils/date.utils';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -96,7 +97,11 @@ export class DashboardHome implements OnInit, OnDestroy {
               // The backend filters by userId for non-admins already
               const mySupervisions = data; 
               this.recentSupervisions = mySupervisions
-                .sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime())
+                .sort((a: any, b: any) => {
+                    const dateA = parseDate(a.visit_date || a.date);
+                    const dateB = parseDate(b.visit_date || b.date);
+                    return dateB.getTime() - dateA.getTime();
+                })
                 .slice(0, 3);
 
               // Only update if we have user stats array (for user dashboard view)
@@ -105,12 +110,11 @@ export class DashboardHome implements OnInit, OnDestroy {
               }
               
               if (mySupervisions.length > 0) {
-                  // Sort by date desc already done above for recentSupervisions
-                  // mySupervisions.sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime());
-                  
                   if (this.userStats && this.userStats.length > 1) {
                       const lastSup = mySupervisions[0];
-                      this.userStats[1].value = new Date(lastSup.visit_date || lastSup.date).toLocaleDateString();
+                      // Handle Firestore Timestamps or Dates
+                      const dateObj = parseDate(lastSup.visit_date || lastSup.date);
+                      this.userStats[1].value = dateObj.toLocaleDateString();
                   }
               }
           },
@@ -142,7 +146,7 @@ export class DashboardHome implements OnInit, OnDestroy {
          next: (supervisionsData) => {
              this.userDashboardStats.activeSupervisions = supervisionsData.length;
              this.recentSupervisions = supervisionsData
-                .sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime())
+                .sort((a: any, b: any) => parseDate(b.visit_date || b.date).getTime() - parseDate(a.visit_date || a.date).getTime())
                 .slice(0, 3);
          },
          error: (err) => console.error('Failed to load supervisions for stats', err)
@@ -299,7 +303,7 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   ngOnInit() {
       const user = this.authService.currentUserValue;
-      this.currentUser = user?.user;
+      this.currentUser = user;
       this.isAdmin = this.currentUser?.role === 'admin';
 
       this.checkLocalStorage(); // Check for any local backups
@@ -339,18 +343,33 @@ export class DashboardHome implements OnInit, OnDestroy {
   }
 
   loadData() {
+    console.log('Tentative de chargement des données...');
+    
     // 1. Load UEs from API
     this.ueService.getAll().subscribe({
         next: (data) => {
-            console.log('UEs loaded:', data);
+            console.log('UEs chargées avec succès:', data);
+            if (data.length === 0) {
+                 console.warn('Attention: Aucune UE trouvée dans la base de données.');
+            }
             this.ues = data;
             this.updateStats();
         },
         error: (err) => {
-            console.error('Error loading UEs', err);
-            if (err.status === 401 || err.status === 403) {
+            console.error('Erreur lors du chargement des UEs:', err);
+            
+            // Check for Firestore permission denied
+            if (err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions')) {
+                 const confirmLogin = confirm('Session invalide ou expirée. Vous devez vous reconnecter pour accéder à la nouvelle base de données Firebase.\n\nVoulez-vous aller à la page de connexion ?');
+                 if (confirmLogin) {
+                     this.authService.logout();
+                 }
+            } else if (err.status === 401 || err.status === 403) {
                  // Token might be invalid after DB reset
                  alert('Session expirée ou invalide. Veuillez vous reconnecter.');
+                 this.authService.logout();
+            } else {
+                 alert('Erreur de connexion à la base de données. Vérifiez votre connexion internet.');
             }
         }
     });
@@ -358,16 +377,21 @@ export class DashboardHome implements OnInit, OnDestroy {
     // 2. Load Supervision Stats
     this.supervisionService.getAll().subscribe({
         next: (data) => {
+             console.log('Supervisions chargées:', data.length);
              this.stats[2].value = data.length.toString();
              
              // Also load recent supervisions for admin
              if (this.isAdmin) {
                  this.recentSupervisions = data
-                    .sort((a: any, b: any) => new Date(b.visit_date || b.date).getTime() - new Date(a.visit_date || a.date).getTime())
+                    .sort((a: any, b: any) => {
+                        const dateA = parseDate(a.visit_date || a.date);
+                        const dateB = parseDate(b.visit_date || b.date);
+                        return dateB.getTime() - dateA.getTime();
+                    })
                     .slice(0, 3);
              }
         },
-        error: (err) => console.error('Error loading supervisions', err)
+        error: (err) => console.error('Erreur chargement supervisions', err)
     });
   }
 

@@ -26,7 +26,7 @@ export class Admindashboard {
   }
 
   get user(): any {
-    return this.authService.currentUserValue?.user;
+    return this.authService.currentUserValue;
   }
 
   get isAdmin(): boolean {

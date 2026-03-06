@@ -59,31 +59,46 @@ export const getPlannings = async (req: AuthRequest, res: Response) => {
     
     let query: FirebaseFirestore.Query = db.collection('plannings');
 
-    // Ideally use composite indexes for multiple where clauses
-    if (parcours) query = query.where('parcours', '==', parcours);
-    
-    if (status) query = query.where('status', '==', status);
+    // Stratégie pour éviter les erreurs d'Index manquant (Composite Index) :
+    // Si on filtre par une plage de dates (Range), on ne doit pas ajouter de filtre d'égalité (Equality)
+    // sur d'autres champs sans avoir créé un index composite. 
+    // Pour éviter cela, on privilégie le filtre par date en base, et on filtre le reste (parcours, status) en mémoire.
 
-    if (startDate && endDate) {
+    const hasDateRange = startDate && endDate;
+
+    if (hasDateRange) {
         query = query.where('date', '>=', startDate).where('date', '<=', endDate);
-    }
-    
-    // Sort needs index manually created for combinations. 
-    // Fallback to simpler query + in-memory sort or user must create index in Firebase Console
-    try {
-        // En Firestore, trier sur plusieurs champs nécessite un index composite.
-        // On simplifie ici pour trier d'abord par date.
-        query = query.orderBy('date', 'asc');
-    } catch (e) {
-        // If index missing, sorting might fail or return partial
-         console.warn("Sorting skipped or failed, check Firestore Indexes");
+    } else {
+        // Si pas de dates, on peut utiliser les filtres d'égalité directement
+        if (parcours) query = query.where('parcours', '==', parcours);
+        if (status) query = query.where('status', '==', status);
     }
 
+    // On évite le query.orderBy('date') ici qui peut aussi nécessiter un index composite
+    // On fera le tri complet en mémoire
+    
     const snapshot = await query.get();
+    
     let rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Tri en mémoire pour le second champ (start_time)
+    // Filtrage en mémoire si on est passés par la requête Date Range
+    if (hasDateRange) {
+        if (parcours) {
+            rows = rows.filter((r: any) => r.parcours === parcours);
+        }
+        if (status) {
+            rows = rows.filter((r: any) => r.status === status);
+        }
+    }
+
+    // Tri en mémoire (Date puis Heure)
     rows.sort((a: any, b: any) => {
+         const dateA = a.date || '';
+         const dateB = b.date || '';
+         const dateCompare = dateA.localeCompare(dateB);
+         
+         if (dateCompare !== 0) return dateCompare;
+
          const timeA = a.start_time || '';
          const timeB = b.start_time || '';
          return timeA.localeCompare(timeB);

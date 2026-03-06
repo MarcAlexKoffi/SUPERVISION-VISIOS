@@ -675,32 +675,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.supervisionToDelete = null;
   }
 
-  exportCSV() {
-    if (this.filteredSupervisions.length === 0) return;
 
-    const headers = ['Date', 'Heure Debut', 'Heure Fin', 'Enseignant', 'UE/Module', 'Plateforme', 'Statut'];
-    const rows = this.filteredSupervisions.map(s => [
-      s.date.toLocaleDateString(),
-      s.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      s.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      s.teacher.name,
-      s.course.name,
-      s.platform,
-      s.status
-    ]);
-
-    let csvContent = "data:text/csv;charset=utf-8,"
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `supervisions_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
 
   viewDetails(supervision: any) {
     // 1. Find all supervisions for this specific UE/Course

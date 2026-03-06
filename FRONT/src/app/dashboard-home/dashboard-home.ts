@@ -37,7 +37,6 @@ export class DashboardHome implements OnInit, OnDestroy {
     name: '',
     level: '', // Mapped to 'dept' in UI for now
     responsible: '',
-    students_count: 0,
     modules_count: 0,
     semester: '',
     phase: '',
@@ -46,7 +45,6 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   stats: any[] = [
     { label: 'Total UE Actives', value: '0', icon: 'library_books', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
-    { label: 'Étudiants Inscrits', value: '0', icon: 'groups', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' },
     { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' }
   ];
   
@@ -128,14 +126,11 @@ export class DashboardHome implements OnInit, OnDestroy {
          next: (uesData) => {
              this.ues = uesData;
              const totalUEs = uesData.length;
-             // Calculate total students from UEs (assuming each UE has students_count)
-             const totalStudents = uesData.reduce((acc, ue) => acc + (ue.students_count || 0), 0);
              
              // Update the stats visible to the user (Student Totals, Active Supervisions, Teaching Units)
              // Note: In HTML, these are hardcoded numbers in the template for !isAdmin view. 
              // We need to bind them to variables.
              
-             this.userDashboardStats.totalStudents = totalStudents;
              this.userDashboardStats.ueCount = totalUEs;
          },
          error: (err) => console.error('Failed to load UEs for stats', err)
@@ -154,7 +149,6 @@ export class DashboardHome implements OnInit, OnDestroy {
   }
   
   userDashboardStats = {
-      totalStudents: 0,
       activeSupervisions: 0,
       ueCount: 0
   };
@@ -398,10 +392,6 @@ export class DashboardHome implements OnInit, OnDestroy {
   updateStats() {
     // 1. Count Active UEs
     this.stats[0].value = this.ues.length.toString();
-
-    // 2. Count Total Students (Sum of students in all UEs)
-    const totalStudents = this.ues.reduce((sum, ue) => sum + (parseInt(ue.students_count) || 0), 0);
-    this.stats[1].value = totalStudents.toLocaleString('fr-FR');
   }
 
   openModal(ue: any = null) {
@@ -416,7 +406,6 @@ export class DashboardHome implements OnInit, OnDestroy {
         name: '',
         level: '',
         responsible: '',
-        students_count: 0,
         modules_count: 0,
         semester: '',
         phase: '',

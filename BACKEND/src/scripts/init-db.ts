@@ -82,7 +82,6 @@ async function initDB() {
         name VARCHAR(255) NOT NULL,
         responsible VARCHAR(255),
         department VARCHAR(100),
-        students_count INT DEFAULT 0,
         modules_count INT DEFAULT 0,
         level VARCHAR(50),
         semester VARCHAR(10),

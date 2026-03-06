@@ -35,7 +35,7 @@ export const getAllUEs = async (req: AuthRequest, res: Response) => {
 
 export const createUE = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
-  const { code, name, responsible, students_count, modules_count, level, semester, phase, department } = req.body;
+  const { code, name, responsible, modules_count, level, semester, phase, department } = req.body;
   
   if (!code || !name) {
     return res.status(400).json({ message: 'Code et Nom sont obligatoires' });
@@ -50,7 +50,7 @@ export const createUE = async (req: AuthRequest, res: Response) => {
     }
 
     const newUE = {
-        code, name, responsible, students_count, modules_count, level, semester, phase, department,
+        code, name, responsible, modules_count, level, semester, phase, department,
         user_id: userId,
         created_at: new Date()
     };
@@ -69,7 +69,7 @@ export const updateUE = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const userId = req.user?.id;
   const userRole = req.user?.role;
-  const { code, name, responsible, students_count, modules_count, level, semester, phase, department } = req.body;
+  const { code, name, responsible, modules_count, level, semester, phase, department } = req.body;
 
   try {
     const ueRef = db.collection('ues').doc(id);
@@ -88,7 +88,7 @@ export const updateUE = async (req: AuthRequest, res: Response) => {
     }
 
     const updateData = {
-        code, name, responsible, students_count, modules_count, level, semester, phase, department,
+        code, name, responsible, modules_count, level, semester, phase, department,
         updated_at: new Date()
     };
     

@@ -209,3 +209,43 @@ export const deleteSupervision = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Erreur lors de la suppression.' });
   }
 };
+
+import { sendEmail } from '../utils/emailService';
+
+export const sendSupervisionReport = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { pdfBase64, teacherEmail, subject, message } = req.body;
+
+    if (!pdfBase64 || !teacherEmail) {
+      return res.status(400).json({ message: 'Le PDF et l\'email du destinataire sont requis.' });
+    }
+
+    // Decode base64
+    const buffer = Buffer.from(pdfBase64, 'base64');
+
+    await sendEmail(
+      teacherEmail,
+      subject || 'Rapport de Supervision',
+      message || 'Veuillez trouver ci-joint le rapport de votre supervision.',
+      `
+      <h3>Rapport de Supervision</h3>
+      <p>${message || 'Veuillez trouver ci-joint le rapport de votre supervision.'}</p>
+      <hr>
+      <small>Ceci est un message automatique, merci de ne pas y répondre.</small>
+      `,
+      [
+        {
+          filename: `Rapport-Supervision-${id}.pdf`,
+          content: buffer,
+          contentType: 'application/pdf'
+        }
+      ]
+    );
+
+    res.json({ message: 'Rapport envoyé par email avec succès.' });
+  } catch (error: any) {
+    console.error('Erreur sendSupervisionReport:', error);
+    res.status(500).json({ message: 'Erreur lors de l\'envoi de l\'email.', error: error.message });
+  }
+};

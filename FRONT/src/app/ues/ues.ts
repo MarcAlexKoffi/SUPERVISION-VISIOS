@@ -41,7 +41,6 @@ export class UesComponent implements OnInit {
     level: '',
     semester: '',
     phase: '',
-    students_count: 0,
     modules_count: 0
   };
 
@@ -161,7 +160,6 @@ export class UesComponent implements OnInit {
         level: '', 
         semester: '', 
         phase: '',
-        students_count: 0,
         modules_count: 0
       };
     }

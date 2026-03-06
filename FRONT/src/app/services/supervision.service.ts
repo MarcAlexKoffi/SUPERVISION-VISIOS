@@ -50,5 +50,9 @@ export class SupervisionService {
       })
     );
   }
+
+  sendReport(id: string, data: { pdfBase64: string, teacherEmail: string, subject?: string, message?: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/send-report`, data);
+  }
 }
 

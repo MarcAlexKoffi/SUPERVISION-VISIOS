@@ -4,8 +4,9 @@ import {
   createSupervision, 
   getAllSupervisions, 
   getSupervisionById, 
-  deleteSupervision,
-  updateSupervision
+  deleteSupervision, 
+  updateSupervision,
+  sendSupervisionReport 
 } from '../controllers/supervisionController';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware';
 
@@ -17,7 +18,8 @@ router.use(authenticateToken);
 router.post('/', createSupervision);
 router.get('/', getAllSupervisions);
 router.get('/:id', getSupervisionById);
-router.put('/:id', updateSupervision); // Add PUT route
+router.put('/:id', updateSupervision);
+router.post('/:id/send-report', sendSupervisionReport);
 
 // Seul un administrateur peut supprimer une fiche (à adapter selon vos règles métier)
 router.delete('/:id', requireAdmin, deleteSupervision);

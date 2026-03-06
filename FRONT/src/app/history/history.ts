@@ -4,9 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
+import { TeacherService } from '../services/teacher.service';
+import { ToastService } from '../services/toast.service';
 import { Subscription } from 'rxjs';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 import { parseDate } from '../shared/utils/date.utils';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-history',
@@ -34,6 +38,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
   // Filters Options
   teachers: string[] = [];
   courses: string[] = [];
+  
+  // Teachers data for email lookup
+  teachersData: any[] = [];
 
   // Modal
   selectedSupervision: any = null;
@@ -54,6 +61,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
   constructor(
     private supervisionService: SupervisionService,
     private authService: AuthService,
+    private teacherService: TeacherService,
+    private toastService: ToastService,
     private router: Router
   ) { }
 
@@ -61,6 +70,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.currentUser = this.authService.currentUserValue;
     this.isAdmin = this.currentUser?.role === 'admin';
     this.loadHistory();
+    this.loadTeachers();
 
     this.subscriptions.add(
       this.supervisionService.refreshNeeded$.subscribe(() => {
@@ -72,12 +82,304 @@ export class HistoryComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
   }
-editSupervision(supervision: any) {
+
+  loadTeachers() {
+    this.teacherService.getAll().subscribe({
+      next: (data) => this.teachersData = data,
+      error: () => console.error('Error loading teachers for email lookup')
+    });
+  }
+
+  editSupervision(supervision: any) {
     // Navigate to supervision-form with an ID parameter or state
     this.router.navigate(['/admin/supervision-form'], { queryParams: { id: supervision.id } });
   }
-
   
+  async sendReport(supervision: any) {
+    // 1. Find Teacher Email
+    let teacherEmail = '';
+    
+    // Try to find via teacher_id in original data
+    if (supervision.originalData?.teacher_id) {
+        const teacher = this.teachersData.find(t => t.id === supervision.originalData.teacher_id);
+        if (teacher && teacher.email) {
+            teacherEmail = teacher.email;
+        }
+    }
+
+    // Try finding via name if teacher_id failed
+    if (!teacherEmail && supervision.teacher?.name) {
+        // This is fuzzy since names might not be unique, but better than nothing
+        // Or we rely on user input
+    }
+    
+    // Prompt for email if not found or allows editing
+    const emailPrompt = prompt("Veuillez confirmer l'email de l'enseignant pour l'envoi du rapport:", teacherEmail);
+    
+    if (emailPrompt === null) return; // User cancelled
+    if (!emailPrompt.trim()) {
+        this.toastService.error("L'adresse email est requise.");
+        return;
+    }
+    
+    teacherEmail = emailPrompt.trim();
+
+    this.toastService.info("Génération du rapport et envoi en cours...");
+
+    try {
+        const pdfBase64 = await this.generateReportPDF(supervision);
+        
+        this.supervisionService.sendReport(supervision.id, {
+            pdfBase64: pdfBase64.split(',')[1], // Remove 'data:application/pdf;base64,' prefix
+            teacherEmail: teacherEmail,
+            subject: `Rapport de Supervision - ${supervision.course?.name || 'Visio'} - ${new Date(supervision.date).toLocaleDateString()}`,
+            message: `Bonjour ${supervision.teacher?.name},\n\nVeuillez trouver ci-joint le rapport de supervision concernant la séance du ${new Date(supervision.date).toLocaleDateString()}.\n\nCordialement,\nL'Administration`
+        }).subscribe({
+            next: () => this.toastService.success("Rapport envoyé avec succès !"),
+            error: (err) => {
+                console.error(err);
+                this.toastService.error("Erreur lors de l'envoi du rapport.");
+            }
+        });
+
+    } catch (e) {
+        console.error(e);
+        this.toastService.error("Erreur lors de la génération du PDF.");
+    }
+  }
+
+  async generateReportPDF(s: any): Promise<string> {
+      const doc = new jsPDF();
+      
+      // -- Header --
+      doc.setFillColor(248, 250, 252);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 66, 165); // #0f42a5
+      doc.text("FICHE DE SUPERVISION", 105, 20, { align: 'center' });
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text("Séance de visioconférence / Classe virtuelle", 105, 28, { align: 'center' });
+      
+      // -- General Info Box --
+      let y = 50;
+      doc.setDrawColor(200);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(14, y, 182, 45, 3, 3);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+      
+      // Left Col
+      doc.setFont('helvetica', 'bold');
+      doc.text("Enseignant:", 20, y + 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(s.teacher?.name || '-', 50, y + 10);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text("UE / Module:", 20, y + 20);
+      doc.setFont('helvetica', 'normal');
+      const moduleName = s.course?.name || '-';
+      // Truncate if too long
+      const splitModule = doc.splitTextToSize(moduleName, 120);
+      doc.text(splitModule, 50, y + 20);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text("Classe:", 20, splitModule.length > 1 ? y + 35 : y + 30);
+      doc.setFont('helvetica', 'normal');
+      doc.text(s.teacher?.department || '-', 50, splitModule.length > 1 ? y + 35 : y + 30);
+
+      // Right Col
+      const xRight = 120;
+      doc.setFont('helvetica', 'bold');
+      doc.text("Date:", xRight, y + 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(new Date(s.date).toLocaleDateString('fr-FR'), xRight + 30, y + 10);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text("Heure:", xRight, y + 20);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${s.startTimeStr} - ${s.endTimeStr}`, xRight + 30, y + 20);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text("Plateforme:", xRight, splitModule.length > 1 ? y + 35 : y + 30);
+      doc.setFont('helvetica', 'normal');
+      doc.text(s.platform || '-', xRight + 30, splitModule.length > 1 ? y + 35 : y + 30);
+
+      y += 55;
+
+      // -- Technical --
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 66, 165);
+      doc.text("1. Aspects Techniques & Logistiques", 14, y);
+      y += 5;
+
+      const techData = [
+          ["Connexion internet (stabilité)", this.formatEval(s.originalData.tech_internet || s.originalData.technical?.internet)],
+          ["Qualité audio et vidéo", this.formatEval(s.originalData.tech_audio_video || s.originalData.technical?.audioVideo)],
+          ["Ponctualité (démarrage/fin)", this.formatEval(s.originalData.tech_punctuality || s.originalData.technical?.punctuality)]
+      ];
+
+      autoTable(doc, {
+          startY: y,
+          head: [['Critères', 'Évaluation']],
+          body: techData,
+          theme: 'grid',
+          headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontSize: 9 },
+          bodyStyles: { fontSize: 9 },
+          columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 'auto', halign: 'center' } }
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 15;
+
+      // -- Pedagogical --
+      doc.setFontSize(12);
+      doc.setTextColor(15, 66, 165);
+      doc.text("2. Aspects Pédagogiques", 14, y);
+      y += 5;
+
+      const pedData = [
+          ["Clarté des objectifs", this.formatEval(s.originalData.ped_objectives || s.originalData.pedagogical?.objectives)],
+          ["Maîtrise du contenu", this.formatEval(s.originalData.ped_content_mastery || s.originalData.pedagogical?.contentMastery)],
+          ["Interaction étudiants", this.formatEval(s.originalData.ped_interaction || s.originalData.pedagogical?.interaction)],
+          ["Utilisation outils", this.formatEval(s.originalData.ped_tools_usage || s.originalData.pedagogical?.toolsUsage)]
+      ];
+
+      autoTable(doc, {
+          startY: y,
+          head: [['Critères', 'Évaluation']],
+          body: pedData,
+          theme: 'grid',
+          headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontSize: 9 },
+          bodyStyles: { fontSize: 9 },
+          columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 'auto', halign: 'center' } }
+      });
+      
+      y = (doc as any).lastAutoTable.finalY + 15;
+
+      // -- Observations -- 
+      // Check for page break space
+      if (y > 240) {
+          doc.addPage();
+          y = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setTextColor(15, 66, 165);
+      doc.text("Observations & Recommandations", 14, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+      doc.setFont('helvetica', 'normal');
+      const obs = s.originalData.observations || "Aucune observation particulière.";
+      const splitObs = doc.splitTextToSize(obs, 180);
+      doc.text(splitObs, 14, y);
+      
+      y += (splitObs.length * 5) + 20;
+
+      // -- Signatures --
+      if (y > 220) {
+          doc.addPage();
+          y = 20;
+      }
+      
+      // Line separator
+      doc.setDrawColor(200);
+      doc.line(14, y, 196, y);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      
+      // Supervisor Sig
+      doc.text("Le Superviseur", 30, y);
+      doc.text(s.originalData.supervisor_name || "Date et Signature", 30, y + 5);
+      if (s.originalData.supervisor_signature) {
+          try {
+              doc.addImage(s.originalData.supervisor_signature, 'PNG', 30, y + 10, 40, 20);
+          } catch (e) { console.warn('Error adding sup signature', e); }
+      }
+
+      // Teacher Sig
+      doc.text("L'Enseignant", 130, y);
+      doc.text("Lu et pris connaissance", 130, y + 5);
+      if (s.originalData.teacher_signature) {
+          try {
+             doc.addImage(s.originalData.teacher_signature, 'PNG', 130, y + 10, 40, 20);
+          } catch (e) { console.warn('Error adding teacher signature', e); }
+      }
+
+      // Footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(`Généré le ${new Date().toLocaleDateString()} - Page ${i}/${pageCount}`, 105, 290, { align: 'center' });
+      }
+
+      return doc.output('datauristring');
+  }
+
+  formatEval(val: string): string {
+      if (!val) return '-';
+      const map: any = {
+          'conforme': 'Conforme', 'a_ameliorer': 'À améliorer', 'non_conforme': 'Non Conforme',
+          'excellent': 'Excellent', 'satisfaisant': 'Satisfaisant', 'insuffisant': 'Insuffisant'
+      };
+      return map[val] || val;
+  }
+  
+  exportCSV() {
+    if (this.filteredSupervisions.length === 0) return;
+    
+    const data = this.filteredSupervisions.map(s => ({
+      Date: new Date(s.date).toLocaleDateString(),
+      Heure_Debut: s.startTimeStr,
+      Heure_Fin: s.endTimeStr,
+      Enseignant: s.teacher.name,
+      Departement: s.teacher.department,
+      Cours: s.course.name,
+      Code_UE: s.course.code,
+      Plateforme: s.platform,
+      Connexion: this.formatEval(s.originalData.tech_internet || s.originalData.technical?.internet),
+      Audio_Video: this.formatEval(s.originalData.tech_audio_video || s.originalData.technical?.audioVideo),
+      Ponctualité: this.formatEval(s.originalData.tech_punctuality || s.originalData.technical?.punctuality),
+      Objectifs: this.formatEval(s.originalData.ped_objectives || s.originalData.pedagogical?.objectives),
+      Maitrise_Contenu: this.formatEval(s.originalData.ped_content_mastery || s.originalData.pedagogical?.contentMastery),
+      Interaction: this.formatEval(s.originalData.ped_interaction || s.originalData.pedagogical?.interaction),
+      Outils: this.formatEval(s.originalData.ped_tools_usage || s.originalData.pedagogical?.toolsUsage),
+      Superviseur: s.originalData.supervisor_name
+    }));
+
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => headers.map(header => {
+        const cell = (row as any)[header] || '';
+        return `"${cell.toString().replace(/"/g, '""')}"`;
+      }).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `supervisions_export_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
   printHistory() {
     this.isPrinting = true;
     setTimeout(() => {

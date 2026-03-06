@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { SupervisionService } from '../services/supervision.service';
+import { ClasseService } from '../services/classe.service';
 import { AuthService } from '../services/auth.service';
 import { ParcoursService } from '../services/parcours.service';
 import { RouterLink } from '@angular/router';
@@ -78,7 +79,8 @@ export class DashboardHome implements OnInit, OnDestroy {
     private ueService: UeService,
     private supervisionService: SupervisionService,
     private authService: AuthService,
-    private parcoursService: ParcoursService
+    private parcoursService: ParcoursService,
+    private classeService: ClasseService
   ) {}
 
   loadParcours() {
@@ -146,11 +148,21 @@ export class DashboardHome implements OnInit, OnDestroy {
          },
          error: (err) => console.error('Failed to load supervisions for stats', err)
      });
+
+     // Fetch Classes to count Total Students
+     this.classeService.getAll().subscribe({
+         next: (classes) => {
+             const totalStudents = classes.reduce((acc, cls) => acc + (cls.effectif || 0), 0);
+             this.userDashboardStats.totalStudents = totalStudents;
+         },
+         error: (err) => console.error('Failed to load classes for stats', err)
+     });
   }
   
   userDashboardStats = {
       activeSupervisions: 0,
-      ueCount: 0
+      ueCount: 0,
+      totalStudents: 0
   };
 
   checkLocalStorage() {

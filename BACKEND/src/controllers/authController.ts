@@ -1,7 +1,7 @@
 // src/controllers/authController.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { db } from '../config/db';
+import { db, admin } from '../config/db';
 import { generateToken } from '../utils/token';
 
 // interface User removed as no longer needed for MySQL typing
@@ -14,20 +14,31 @@ export const register = async (req: Request, res: Response) => {
   }
 
   try {
-    // Check if user exists
     const usersRef = db.collection('users');
-    const existingUser = await usersRef.where('username', '==', username).get();
     
-    if (!existingUser.empty) {
-      return res.status(409).json({ message: 'Cet utilisateur existe déjà.' });
+    // Vérification existence (username)
+    const existingUserUsername = await usersRef.where('username', '==', username).get();
+    if (!existingUserUsername.empty) {
+      return res.status(409).json({ message: 'Ce nom d\'utilisateur existe déjà.' });
+    }
+
+    // Vérification existence (email si fourni)
+    if (email) {
+        const existingUserEmail = await usersRef.where('email', '==', email).get();
+        if (!existingUserEmail.empty) {
+            return res.status(409).json({ message: 'Cet email est déjà utilisé.' });
+        }
     }
 
     const roleName = role || 'user';
     
-    // Create new user (Storing plain password as per previous logic, but should be hashed)
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
     const newUser = {
       username,
-      password, // Ideally hash this
+      password: passwordHash,
       email: email || null,
       role: roleName,
       created_at: new Date()
@@ -38,7 +49,7 @@ export const register = async (req: Request, res: Response) => {
     const userData = userDoc.data();
 
     // Generate token
-    const token = generateToken(docRef.id, roleName); // Uses string ID
+    const token = generateToken(docRef.id, roleName); 
 
     res.status(201).json({ 
         message: 'Utilisateur créé avec succès.',
@@ -53,7 +64,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body; // 'username' contient l'input de login (email ou username)
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Nom d\'utilisateur et mot de passe requis.' });
@@ -61,7 +72,14 @@ export const login = async (req: Request, res: Response) => {
 
   try {
     const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('username', '==', username).get();
+    
+    // Recherche par username OU email
+    const snapshot = await usersRef.where(
+        admin.firestore.Filter.or(
+            admin.firestore.Filter.where('username', '==', username),
+            admin.firestore.Filter.where('email', '==', username)
+        )
+    ).get();
     
     if (snapshot.empty) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
@@ -70,8 +88,20 @@ export const login = async (req: Request, res: Response) => {
     const userDoc = snapshot.docs[0];
     const user = userDoc.data();
 
-    // Vérifier le mot de passe (Comparaison directe, sans hachage)
-    const isPasswordValid = (password === user.password);
+    if (!user.password) {
+         return res.status(401).json({ message: 'Identifiants incorrects (compte invalide).' });
+    }
+
+    // Vérifier le mot de passe
+    let isPasswordValid = false;
+
+    // 1. Essayer comme hash bcrypt
+    if (typeof user.password === 'string' && user.password.startsWith('$2')) {
+        isPasswordValid = await bcrypt.compare(password, user.password);
+    } else {
+        // 2. Fallback: Comparaison texte brut
+        isPasswordValid = (password === user.password);
+    }
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
@@ -79,7 +109,6 @@ export const login = async (req: Request, res: Response) => {
 
     const userRole = user.role || 'user';
 
-    // Générer le token
     const token = generateToken(userDoc.id, userRole);
 
     res.json({
@@ -88,6 +117,7 @@ export const login = async (req: Request, res: Response) => {
         user: { 
             id: userDoc.id, 
             username: user.username, 
+            email: user.email,
             role: userRole 
         }
     });

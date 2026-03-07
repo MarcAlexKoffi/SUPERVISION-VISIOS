@@ -565,6 +565,11 @@ export class HistoryComponent implements OnInit, OnDestroy {
       teacherName = `${data.teacher_firstname} ${data.teacher_lastname}`;
     }
 
+    // Correction nom enseignant
+    if (teacherName === 'Mireille Bobi') {
+      teacherName = 'Mireille Bobi Epse Tah';
+    }
+
     let moduleName = data.ue?.name || data.module || 'Non spécifié';
     // If we have relate UE data, prioritize it
     if (data.ue?.code) {

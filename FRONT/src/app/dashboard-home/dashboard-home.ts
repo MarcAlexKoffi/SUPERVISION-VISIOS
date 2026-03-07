@@ -46,7 +46,8 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   stats: any[] = [
     { label: 'Total UE Actives', value: '0', icon: 'library_books', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
-    { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' }
+    { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' },
+    { label: 'Total Étudiants', value: '0', icon: 'groups', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' }
   ];
   
   // User Stats
@@ -384,7 +385,7 @@ export class DashboardHome implements OnInit, OnDestroy {
     this.supervisionService.getAll().subscribe({
         next: (data) => {
              console.log('Supervisions chargées:', data.length);
-             this.stats[2].value = data.length.toString();
+             this.stats[1].value = data.length.toString();
              
              // Also load recent supervisions for admin
              if (this.isAdmin) {
@@ -398,6 +399,15 @@ export class DashboardHome implements OnInit, OnDestroy {
              }
         },
         error: (err) => console.error('Erreur chargement supervisions', err)
+    });
+
+    // 3. Load Classes Stats (Total Students)
+    this.classeService.getAll().subscribe({
+        next: (classes) => {
+            const totalStudents = classes.reduce((acc, cls) => acc + (cls.effectif || 0), 0);
+            this.stats[2].value = totalStudents.toLocaleString('fr-FR');
+        },
+        error: (err) => console.error('Erreur chargement classes', err)
     });
   }
 

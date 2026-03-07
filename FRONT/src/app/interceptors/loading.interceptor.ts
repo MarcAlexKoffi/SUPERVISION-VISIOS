@@ -6,7 +6,12 @@ import { LoadingService } from '../services/loading.service';
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoadingService);
   
-  // Don't show loader for background requests if needed, but for now show for all
+  // Skip loader for specific headers (e.g. background sync or ping)
+  if (req.headers.has('X-Skip-Loading')) {
+      const newReq = req.clone({ headers: req.headers.delete('X-Skip-Loading') });
+      return next(newReq);
+  }
+  
   loadingService.show();
 
   return next(req).pipe(

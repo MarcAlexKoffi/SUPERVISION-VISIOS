@@ -140,13 +140,21 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
 
     const supervision = this.supervisionToSend;
+    if (!supervision || !supervision.id) {
+        console.error('Supervision ID manquante:', supervision);
+        this.toastService.error("Erreur interne : ID de supervision manquant.");
+        return;
+    }
+
     const teacherEmail = this.emailToConfirm.trim();
     
     this.isSendingEmail = true;
 
     try {
-        const pdfBase64 = await this.generateReportPDF(supervision);
+        const pdfBase64 = await this.generateReportPDF(supervision); // Assume this method exists or is imported
         
+        console.log(`Envoi du rapport pour ID=${supervision.id} à ${teacherEmail}`);
+
         this.supervisionService.sendReport(supervision.id, {
             pdfBase64: pdfBase64.split(',')[1],
             teacherEmail: teacherEmail,

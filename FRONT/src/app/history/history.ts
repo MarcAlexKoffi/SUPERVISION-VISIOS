@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -47,6 +47,15 @@ export class HistoryComponent implements OnInit, OnDestroy {
   filteredHistoryForUE: any[] = [];
   showModal = false;
 
+  // Email Modal
+  showEmailModal = false;
+  emailToConfirm = '';
+  supervisionToSend: any = null;
+  isSendingEmail = false;
+
+  // Actions Menu
+  activeMenuId: string | null = null;
+
   // Delete Modal
   showDeleteModal = false;
   supervisionToDelete: any = null;
@@ -91,12 +100,14 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   editSupervision(supervision: any) {
+    this.activeMenuId = null;
     // Navigate to supervision-form with an ID parameter or state
     this.router.navigate(['/admin/supervision-form'], { queryParams: { id: supervision.id } });
   }
   
-  async sendReport(supervision: any) {
-    // 1. Find Teacher Email
+
+  openEmailModal(supervision: any) {
+    // 1. Find Teacher Email logic
     let teacherEmail = '';
     
     // Try to find via teacher_id in original data
@@ -106,47 +117,74 @@ export class HistoryComponent implements OnInit, OnDestroy {
             teacherEmail = teacher.email;
         }
     }
+    
+    // Set state
+    this.supervisionToSend = supervision;
+    this.emailToConfirm = teacherEmail || '';
+    this.showEmailModal = true;
+    
+    this.activeMenuId = null; // Close menu if open
+  }
 
-    // Try finding via name if teacher_id failed
-    if (!teacherEmail && supervision.teacher?.name) {
-        // This is fuzzy since names might not be unique, but better than nothing
-        // Or we rely on user input
-    }
-    
-    // Prompt for email if not found or allows editing
-    const emailPrompt = prompt("Veuillez confirmer l'email de l'enseignant pour l'envoi du rapport:", teacherEmail);
-    
-    if (emailPrompt === null) return; // User cancelled
-    if (!emailPrompt.trim()) {
+  cancelEmailModal() {
+    this.showEmailModal = false;
+    this.supervisionToSend = null;
+    this.emailToConfirm = '';
+    this.isSendingEmail = false;
+  }
+
+  async confirmSendReport() {
+    if (!this.emailToConfirm.trim()) {
         this.toastService.error("L'adresse email est requise.");
         return;
     }
-    
-    teacherEmail = emailPrompt.trim();
 
-    this.toastService.info("Génération du rapport et envoi en cours...");
+    const supervision = this.supervisionToSend;
+    const teacherEmail = this.emailToConfirm.trim();
+    
+    this.isSendingEmail = true;
 
     try {
         const pdfBase64 = await this.generateReportPDF(supervision);
         
         this.supervisionService.sendReport(supervision.id, {
-            pdfBase64: pdfBase64.split(',')[1], // Remove 'data:application/pdf;base64,' prefix
+            pdfBase64: pdfBase64.split(',')[1],
             teacherEmail: teacherEmail,
             subject: `Rapport de Supervision - ${supervision.course?.name || 'Visio'} - ${new Date(supervision.date).toLocaleDateString()}`,
             message: `Bonjour ${supervision.teacher?.name},\n\nVeuillez trouver ci-joint le rapport de supervision concernant la séance du ${new Date(supervision.date).toLocaleDateString()}.\n\nCordialement,\nL'Administration`
         }).subscribe({
-            next: () => this.toastService.success("Rapport envoyé avec succès !"),
+            next: () => {
+                this.toastService.success("Rapport envoyé avec succès !");
+                this.cancelEmailModal();
+            },
             error: (err) => {
                 console.error(err);
                 this.toastService.error("Erreur lors de l'envoi du rapport.");
+                this.isSendingEmail = false;
             }
         });
 
     } catch (e) {
         console.error(e);
         this.toastService.error("Erreur lors de la génération du PDF.");
+        this.isSendingEmail = false;
     }
   }
+
+  // --- Action Menu Logic ---
+  toggleActionMenu(event: Event, id: string) {
+    event.stopPropagation();
+    this.activeMenuId = this.activeMenuId === id ? null : id;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    // Close menu when clicking outside
+    if (this.activeMenuId) {
+      this.activeMenuId = null;
+    }
+  }
+
 
   async generateReportPDF(s: any): Promise<string> {
       const doc = new jsPDF();
@@ -644,6 +682,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   deleteSupervision(supervision: any) {
+    this.activeMenuId = null;
     this.supervisionToDelete = supervision;
     this.showDeleteModal = true;
   }

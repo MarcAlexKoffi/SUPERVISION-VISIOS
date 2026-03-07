@@ -240,27 +240,41 @@
                             </span>
                         </td>
                         <td class="p-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
+                            <div class="flex items-center justify-end gap-2 relative">
                                 <button (click)="viewDetails(s)"
                                     class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all focus:ring-2 focus:ring-slate-100"
                                     title="Voir les détails">
                                     <span class="material-symbols-outlined text-[18px]">visibility</span>
                                 </button>
-                                <button (click)="sendReport(s)"
-                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all focus:ring-2 focus:ring-emerald-100"
-                                    title="Envoyer par email">
-                                    <span class="material-symbols-outlined text-[18px]">send</span>
+                                
+                                <button (click)="toggleActionMenu($event, s.id)"
+                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-600 hover:border-slate-300 transition-all focus:ring-2 focus:ring-slate-100"
+                                    title="Actions">
+                                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
                                 </button>
-                                <button (click)="editSupervision(s)"
-                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all focus:ring-2 focus:ring-blue-100"
-                                    title="Modifier">
-                                    <span class="material-symbols-outlined text-[18px]">edit</span>
-                                </button>
-                                <button (click)="deleteSupervision(s)"
-                                    class="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all focus:ring-2 focus:ring-red-100"
-                                    title="Supprimer">
-                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <div *ngIf="activeMenuId === s.id" 
+                                     class="absolute right-0 top-10 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden text-left"
+                                     (click)="$event.stopPropagation()">
+                                    
+                                    <button (click)="openEmailModal(s)" class="w-full text-left px-4 py-3 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-[#0f42a5] flex items-center gap-2 transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">send</span>
+                                        Envoyer rapport
+                                    </button>
+                                    
+                                    <button (click)="editSupervision(s)" class="w-full text-left px-4 py-3 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 flex items-center gap-2 transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                        Modifier
+                                    </button>
+                                    
+                                    <div class="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                    
+                                    <button (click)="deleteSupervision(s)" class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                        Supprimer
+                                    </button>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -543,3 +557,51 @@
         confirmText="Supprimer" cancelText="Annuler" type="danger" (confirm)="confirmDelete()"
         (cancel)="cancelDelete()">
     </app-confirmation-modal>
+
+    <!-- Email Confirmation Modal -->
+    <div *ngIf="showEmailModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" (click)="cancelEmailModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden transform transition-all scale-100 opacity-100">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[#0f42a5] dark:text-blue-400">
+                         <span class="material-symbols-outlined text-[24px]">send</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Confirmer l'envoi</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Rapport de supervision</p>
+                    </div>
+                </div>
+
+                <p class="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                    Veuillez confirmer l'adresse email de l'enseignant pour l'envoi du rapport.
+                </p>
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email de l'enseignant</label>
+                        <input type="email" [(ngModel)]="emailToConfirm" 
+                               (keydown.enter)="emailToConfirm && confirmSendReport()"
+                               class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#0f42a5]/20 focus:border-[#0f42a5] outline-none transition-all text-slate-900 dark:text-white"
+                               placeholder="exemple@email.com">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button (click)="cancelEmailModal()" 
+                            class="flex-1 px-4 py-3 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-2 focus:ring-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700 transition-colors">
+                        Annuler
+                    </button>
+                    <button (click)="confirmSendReport()" 
+                            [disabled]="isSendingEmail || !emailToConfirm"
+                            class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-lg shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all">
+                        <span *ngIf="isSendingEmail" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        <span *ngIf="!isSendingEmail">Envoyer le rapport</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>

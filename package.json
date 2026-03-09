@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "build:front": "cd FRONT && npm run build",
+    "deploy": "npm run build:front && npx firebase deploy --only hosting"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",

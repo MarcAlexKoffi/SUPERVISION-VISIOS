@@ -565,8 +565,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
       teacherName = `${data.teacher_firstname} ${data.teacher_lastname}`;
     }
 
-    // Correction nom enseignant
-    if (teacherName === 'Mireille Bobi') {
+    // Correction nom enseignant (avec trim pour éviter les erreurs d'espace)
+    if (teacherName && teacherName.trim() === 'Mireille Bobi') {
       teacherName = 'Mireille Bobi Epse Tah';
     }
 

@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
 
 export interface Parcours {
   id?: string;
@@ -14,37 +12,29 @@ export interface Parcours {
   providedIn: 'root'
 })
 export class ParcoursService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/parcours`;
+  private firestore = inject(Firestore);
   
-  private _refreshNeeded$ = new Subject<void>();
-
-  get refreshNeeded$() {
-    return this._refreshNeeded$;
-  }
-
   constructor() {}
 
   getAll(): Observable<Parcours[]> {
-    return this.http.get<Parcours[]>(this.apiUrl);
+    const parcoursCollection = collection(this.firestore, 'parcours');
+    const q = query(parcoursCollection, orderBy('name', 'asc'));
+    return collectionData(q, { idField: 'id' }) as Observable<Parcours[]>;
   }
 
   create(parcours: Parcours): Observable<any> {
-    return this.http.post<any>(this.apiUrl, parcours).pipe(
-        tap(() => this._refreshNeeded$.next())
-    );
+    const parcoursCollection = collection(this.firestore, 'parcours');
+    return from(addDoc(parcoursCollection, parcours));
   }
 
-  update(id: string, parcours: Parcours): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, parcours).pipe(
-        tap(() => this._refreshNeeded$.next())
-    );
+  update(id: string, parcours: Parcours): Observable<void> {
+    const docRef = doc(this.firestore, `parcours/${id}`);
+    return from(updateDoc(docRef, { ...parcours }));
   }
 
-  delete(id: string): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
-        tap(() => this._refreshNeeded$.next())
-    );
+  delete(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `parcours/${id}`);
+    return from(deleteDoc(docRef));
   }
 }
 

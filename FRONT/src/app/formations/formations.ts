@@ -72,8 +72,6 @@ export class Formations implements OnInit {
         next: () => {
           this.toastService.success('Parcours mis à jour avec succès');
           this.cancelEditParcours();
-          this.loadParcours();
-          this.loadClasses();
         },
         error: () => this.toastService.error('Erreur lors de la mise à jour du parcours')
       });
@@ -82,7 +80,6 @@ export class Formations implements OnInit {
         next: () => {
           this.toastService.success('Parcours ajouté avec succès');
           this.cancelEditParcours();
-          this.loadParcours();
         },
         error: () => this.toastService.error('Erreur lors de l\'ajout du parcours')
       });

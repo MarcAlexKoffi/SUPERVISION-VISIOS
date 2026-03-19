@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -72,7 +72,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private teacherService: TeacherService,
     private toastService: ToastService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -80,12 +81,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.isAdmin = this.currentUser?.role === 'admin';
     this.loadHistory();
     this.loadTeachers();
-
-    this.subscriptions.add(
-      this.supervisionService.refreshNeeded$.subscribe(() => {
-        this.loadHistory();
-      })
-    );
   }
 
   ngOnDestroy() {
@@ -501,6 +496,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
         console.log('Mapped History Data:', this.supervisions);
         this.updateFilters();
         this.applyFilters();
+        this.cdr.detectChanges(); // Force update just in case
       },
       error: (err) => console.error('Failed to load history', err)
     });
@@ -662,7 +658,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       observations: data.observations || '',
       supervisorName: data.supervisor_name || data.supervisorName || '',
       signatures: signatures,
-      createdAt: data.created_at ? new Date(data.created_at) : new Date() // Ajout de la date d'enregistrement
+      createdAt: parseDate(data.created_at) // Utilisation de parseDate pour gérer les Timestamps
     };
   }
 

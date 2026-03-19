@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { environment } from '../../environments/environment';
 
 export interface User {
@@ -8,37 +10,82 @@ export interface User {
   username: string;
   email?: string;
   role: string;
-  password?: string;
+  // password intentionally omitted as it's handled by Auth
   created_at?: any;
-  old_mysql_id?: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/users`;
+  private firestore = inject(Firestore);
 
   constructor() { }
 
   getAll(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
+    const colRef = collection(this.firestore, 'users');
+    const q = query(colRef, orderBy('created_at', 'desc'));
+    return collectionData(q, { idField: 'id' }) as Observable<User[]>;
   }
 
+  // Create a new user in BOTH Firebase Auth and Firestore
+  // Uses a secondary app instance to avoid logging out the current admin
   create(user: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, user);
+    const creationPromise = async () => {
+        const { email, password, username, role } = user;
+        
+        // Create a unique name for the secondary app instance
+        const secondaryAppName = `secondaryApp-${Date.now()}`;
+        const secondaryApp = initializeApp(environment.firebase, secondaryAppName);
+        const secondaryAuth = getAuth(secondaryApp);
+
+        try {
+            // 1. Create user in Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+            const uid = userCredential.user.uid;
+
+            // 2. Create user profile in Firestore with the same UID
+            const userDocRef = doc(this.firestore, `users/${uid}`);
+            const userData = {
+                username,
+                email,
+                role: role || 'enseignant',
+                created_at: new Date()
+            };
+            
+            await setDoc(userDocRef, userData);
+            
+            // 3. Cleanup: Sign out from the secondary app
+            await signOut(secondaryAuth);
+            
+            return { id: uid, ...userData };
+        } catch (error) {
+            console.error('Error creating user:', error);
+            throw error;
+        } finally {
+            // 4. Delete the secondary app instance to free resources
+            await deleteApp(secondaryApp);
+        }
+    };
+
+    return from(creationPromise());
   }
 
-  update(id: string, user: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, user);
+  update(id: string, user: any): Observable<void> {
+    const docRef = doc(this.firestore, `users/${id}`);
+    // Exclude password if present in user object
+    const { password, ...userData } = user; 
+    return from(updateDoc(docRef, userData));
   }
 
-  delete(id: string): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  // NOTE: This only deletes the Firestore document. The Auth user remains.
+  delete(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `users/${id}`);
+    return from(deleteDoc(docRef));
   }
 
   getById(id: string): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+    const docRef = doc(this.firestore, `users/${id}`);
+    return docData(docRef, { idField: 'id' }) as Observable<User>;
   }
 }

@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './login.scss',
 })
 export class Login implements OnInit {
-  username = '';
+  email = '';
   password = '';
   errorMessage = '';
   isLoading = false;
@@ -36,9 +36,6 @@ export class Login implements OnInit {
           if (this.returnUrl) {
              this.router.navigateByUrl(this.returnUrl);
           } else {
-             // Let the regular flow decide based on role? Or just stay put?
-             // Usually redirection is better
-             const user = this.authService.currentUserValue;
              this.router.navigate(['/admin/dashboard']);
           }
       }
@@ -58,8 +55,8 @@ export class Login implements OnInit {
     this.isLoading = true;
 
     const authObs = this.isLoginMode 
-        ? this.authService.login(this.username, this.password)
-        : this.authService.register(this.username, this.password);
+        ? this.authService.login(this.email, this.password)
+        : this.authService.register(this.email, this.password);
 
     authObs.subscribe({
       next: (res) => {
@@ -73,17 +70,17 @@ export class Login implements OnInit {
         }
 
         this.router.navigate(['/admin/dashboard']);
-
-
       },
       error: (err) => {
         this.isLoading = false;
-        if (this.isLoginMode && err.status === 401) {
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
           this.errorMessage = 'Identifiants incorrects. Veuillez réessayer.';
-        } else if (!this.isLoginMode && err.status === 409) {
-          this.errorMessage = 'Ce nom d\'utilisateur est déjà pris.';
+        } else if (err.code === 'auth/email-already-in-use') {
+          this.errorMessage = 'Cet email est déjà utilisé.';
+        } else if (err.code === 'auth/invalid-email') {
+          this.errorMessage = 'Format d\'email invalide.';
         } else {
-          this.errorMessage = 'Une erreur est survenue. Veuillez réessayer plus tard.';
+          this.errorMessage = 'Une erreur est survenue (' + err.code + ').';
         }
         console.error(err);
       }

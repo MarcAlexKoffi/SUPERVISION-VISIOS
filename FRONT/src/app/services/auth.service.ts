@@ -1,16 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, of, catchError } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { BehaviorSubject, Observable, from, of } from 'rxjs';
+import { map, switchMap, tap, catchError } from 'rxjs/operators';
+import { Auth, authState, signInWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
+import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
   private router = inject(Router);
-  private apiUrl = environment.apiUrl + '/auth';
 
   private currentUserSubject: BehaviorSubject<any>;
   public currentUser$: Observable<any>; // Internal observable
@@ -23,56 +24,93 @@ export class AuthService {
   constructor() {
     this.currentUserSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('currentUser') || 'null'));
     this.currentUser$ = this.currentUserSubject.asObservable();
+
+    // Listen to Firebase Auth state
+    authState(this.auth).pipe(
+      switchMap(async (firebaseUser) => {
+        if (firebaseUser) {
+           // User is signed in. Fetch profile from Firestore.
+           const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+           try {
+             const userSnapshot = await getDoc(userDocRef);
+             if (userSnapshot.exists()) {
+               const userData = userSnapshot.data();
+               const token = await firebaseUser.getIdToken();
+               return {
+                 uid: firebaseUser.uid,
+                 email: firebaseUser.email,
+                 token: token,
+                 ...userData // username, role, etc.
+               };
+             } else {
+               // Fallback if no firestore doc
+               return {
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email,
+                  username: firebaseUser.displayName || 'User',
+                  role: 'user'
+               };
+             }
+           } catch (e) {
+             console.error('Error fetching user profile', e);
+             return { uid: firebaseUser.uid, email: firebaseUser.email };
+           }
+        } else {
+          return null;
+        }
+      })
+    ).subscribe(user => {
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      } else {
+        localStorage.removeItem('currentUser');
+        this.currentUserSubject.next(null);
+      }
+    });
   }
 
   login(email: string, password: string): Observable<any> {
-    
-    // Pour le backend local MySQL, on utilise 'username'
-    // On envoie ce que l'utilisateur a saisi directement
-    const username = email; 
-
-    // MODE LOCAL ADMIN (BYPASS)
-    if (username === 'admin' && password === 'admin') {
-         const fakeAdmin = {
-             uid: 'local-admin-id',
-             email: 'admin@supervision.local',
-             role: 'admin',
-             username: 'Admin Local',
-             token: 'fake-jwt-token-for-local-testing'
+    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+      switchMap(async userCredential => {
+         const uid = userCredential.user.uid;
+         const userDocRef = doc(this.firestore, `users/${uid}`);
+         const snapshot = await getDoc(userDocRef);
+         const userData = snapshot.exists() ? snapshot.data() : {};
+         const token = await userCredential.user.getIdToken();
+         
+         const user = {
+             uid,
+             email: userCredential.user.email,
+             token,
+             ...userData
          };
-         localStorage.setItem('currentUser', JSON.stringify(fakeAdmin));
-         this.currentUserSubject.next(fakeAdmin);
-         return of(fakeAdmin);
-    }
-
-    // Le backend attend { username, password } et non { email, password }
-    return this.http.post<any>(`${this.apiUrl}/login`, { username, password }).pipe(
-      tap(response => {
-           // Adapt response based on your backend structure
-           const user = response.user || response;
-           const userProfile = {
-                 ...user,
-                 token: response.token || user.token,
-                 uid: user.id // Mapping for frontend compat
-           };
-           localStorage.setItem('currentUser', JSON.stringify(userProfile));
-           this.currentUserSubject.next(userProfile);
+         // Update local storage immediately for faster feedback if needed, 
+         // though authState subscription will also do it.
+         localStorage.setItem('currentUser', JSON.stringify(user));
+         this.currentUserSubject.next(user);
+         return user;
       })
     );
   }
 
   // Not used in this context but kept for interface compatibility
   register(email: string, password: string, username?: string): Observable<any> {
-     return this.http.post(`${this.apiUrl}/register`, { email, password, username });
+     // TODO: Implement registration logic with createUserWithEmailAndPassword + setDoc
+     return of(null);
   }
 
   logout(returnUrl?: string) {
-    localStorage.removeItem('currentUser');
-    this.currentUserSubject.next(null);
-    if (returnUrl) {
-        this.router.navigate(['/login'], { queryParams: { returnUrl: returnUrl }});
-    } else {
-        this.router.navigate(['/login']);
-    }
+    signOut(this.auth).then(() => {
+        // Manually clear the user state to avoid race conditions with authState
+        localStorage.removeItem('currentUser');
+        this.currentUserSubject.next(null);
+        
+        if (returnUrl) {
+            this.router.navigate(['/login'], { queryParams: { returnUrl: returnUrl }});
+        } else {
+            this.router.navigate(['/login']);
+        }
+    });
   }
 }

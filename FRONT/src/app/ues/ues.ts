@@ -56,12 +56,7 @@ export class UesComponent implements OnInit {
     this.loadParcours();
     this.loadTeachers();
     
-    // Subscribe to refresh events if available
-    if (this.ueService.refreshNeeded$) {
-      this.ueService.refreshNeeded$.subscribe(() => {
-        this.loadUEs();
-      });
-    }
+    // Firestore updates are realtime, no need for manual refresh subscription
   }
 
   loadParcours() {

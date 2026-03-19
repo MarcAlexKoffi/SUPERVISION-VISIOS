@@ -1,54 +1,40 @@
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeacherService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/teachers`;
+  private firestore = inject(Firestore);
   
-  private _refreshNeeded$ = new Subject<void>();
-
-  get refreshNeeded$() {
-    return this._refreshNeeded$;
-  }
-
   constructor() { }
 
   getAll(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+    const teachersCollection = collection(this.firestore, 'teachers');
+    const q = query(teachersCollection, orderBy('last_name', 'asc'));
+    return collectionData(q, { idField: 'id' }) as Observable<any[]>;
   }
 
   getById(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+     const docRef = doc(this.firestore, `teachers/${id}`);
+     return docData(docRef, { idField: 'id' }) as Observable<any>;
   }
 
   create(teacher: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, teacher).pipe(
-      tap(() => {
-        this._refreshNeeded$.next();
-      })
-    );
+    const teachersCollection = collection(this.firestore, 'teachers');
+    const newTeacher = { ...teacher, created_at: new Date() };
+    return from(addDoc(teachersCollection, newTeacher));
   }
 
-  update(id: string, teacher: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, teacher).pipe(
-      tap(() => {
-        this._refreshNeeded$.next();
-      })
-    );
+  update(id: string, teacher: any): Observable<void> {
+    const docRef = doc(this.firestore, `teachers/${id}`);
+    return from(updateDoc(docRef, teacher));
   }
 
-  delete(id: string): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => {
-        this._refreshNeeded$.next();
-      })
-    );
+  delete(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `teachers/${id}`);
+    return from(deleteDoc(docRef));
   }
 }

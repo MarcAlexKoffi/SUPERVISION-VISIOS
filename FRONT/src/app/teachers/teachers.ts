@@ -39,22 +39,18 @@ export class TeachersComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loadTeachers();
-    this.loadParcours();
-    this.teacherService.refreshNeeded$.subscribe(() => {
-      this.loadTeachers();
-    });
-  }
-
-  loadParcours() {
+    this.loadTeachers(); // Starts the realtime listener
+    // Parcours are also loaded via realtime listener if migrated
+    // this.loadParcours(); 
+    // Actually, loadParcours calls getAll.
     this.parcoursService.getAll().subscribe({
-        next: (data) => {
-          this.parcoursList = data;
-        },
-        error: (err) => console.error('Erreur chargement parcours', err)
+      next: (data) => this.parcoursList = data
     });
   }
 
+  // loadParcours removed as separate method if simple enough or keep it but change logic
+  // Let's keep loadParcours separate if needed but I'll inline for clarity in replacement
+  
   loadTeachers() {
     this.teacherService.getAll().subscribe({
       next: (data) => {

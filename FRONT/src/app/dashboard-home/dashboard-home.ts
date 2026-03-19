@@ -326,23 +326,6 @@ export class DashboardHome implements OnInit, OnDestroy {
           this.loadStats();
       }
 
-      // Auto-refresh subscriptions
-      this.subscriptions.add(
-        this.ueService.refreshNeeded$.subscribe(() => {
-          this.loadData();
-          if (!this.isAdmin) this.loadStats();
-        })
-      );
-
-      this.subscriptions.add(
-        this.supervisionService.refreshNeeded$.subscribe(() => {
-           this.loadData(); // To update recent supervisions or active supervisions stats
-           if (!this.isAdmin) {
-             this.loadUserData();
-             this.loadStats();
-           }
-        })
-      );
   }
 
   ngOnDestroy() {

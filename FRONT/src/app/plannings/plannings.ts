@@ -52,7 +52,7 @@ export class Plannings implements OnInit, OnDestroy {
   modalData: Partial<Planning> = this.getEmptyPlanning();
 
   daysOfWeek: Date[] = [];
-  calendarHours = Array.from({ length: 14 }, (_, i) => i + 8); // 8:00 to 21:00
+  calendarHours = Array.from({ length: 16 }, (_, i) => i + 8); // 8:00 to 24:00
 
   constructor(
     private planningService: PlanningService,
@@ -315,7 +315,7 @@ export class Plannings implements OnInit, OnDestroy {
         
         // Define day start and end time limits
         const startHour = 8;
-        const endHour = 21;
+        const endHour = 24;
         const totalHours = endHour - startHour;
         const rowHeight = gridHeight / totalHours;
 
@@ -463,7 +463,8 @@ export class Plannings implements OnInit, OnDestroy {
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(15, 23, 42); // slate-900
-                    const ueLines = doc.splitTextToSize(plan.ue_name || 'Sans titre', textMaxWidth);
+                    const titleText = plan.ue_name || plan.title || 'Sans titre';
+                    const ueLines = doc.splitTextToSize(titleText, textMaxWidth);
                     
                     ueLines.forEach((line: string) => {
                         if (textY < yStart + heightCard - 2) {
@@ -529,7 +530,7 @@ export class Plannings implements OnInit, OnDestroy {
         return [
           p.date ? format(parseISO(p.date), 'dd/MM/yyyy') : '',
           timeStr,
-          p.ue_name || '',
+          p.ue_name || p.title || '',
           `${p.teacher_first_name} ${p.teacher_last_name}`,
           p.session_type || '',
           p.status || '',

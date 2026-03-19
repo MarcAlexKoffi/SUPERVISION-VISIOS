@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
+import { Observable, from } from 'rxjs';
 
 export interface Classe {
   id?: string;
@@ -15,24 +14,28 @@ export interface Classe {
   providedIn: 'root'
 })
 export class ClasseService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/classes`;
+  private firestore = inject(Firestore);
 
   constructor() {}
 
   getAll(): Observable<Classe[]> {
-    return this.http.get<Classe[]>(this.apiUrl);
+    const classesCollection = collection(this.firestore, 'classes');
+    const q = query(classesCollection, orderBy('name', 'asc'));
+    return collectionData(q, { idField: 'id' }) as Observable<Classe[]>;
   }
 
   create(classe: Classe): Observable<any> {
-    return this.http.post<any>(this.apiUrl, classe);
+    const classesCollection = collection(this.firestore, 'classes');
+    return from(addDoc(classesCollection, classe));
   }
 
-  update(id: string, classe: Classe): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, classe);
+  update(id: string, classe: Classe): Observable<void> {
+    const docRef = doc(this.firestore, `classes/${id}`);
+    return from(updateDoc(docRef, { ...classe }));
   }
 
-  delete(id: string): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  delete(id: string): Observable<void> {
+    const docRef = doc(this.firestore, `classes/${id}`);
+    return from(deleteDoc(docRef));
   }
 }

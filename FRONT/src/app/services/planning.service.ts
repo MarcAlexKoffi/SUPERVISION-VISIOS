@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc, query, where, getDoc, orderBy } from '@angular/fire/firestore';
+import { Observable, from, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 export interface Planning {
   id?: string;
@@ -30,44 +29,96 @@ export interface Planning {
   providedIn: 'root'
 })
 export class PlanningService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/plannings`;
+  private firestore = inject(Firestore);
 
   constructor() {}
 
   getPlannings(filters?: { parcours?: string; startDate?: string; endDate?: string; status?: string }): Observable<Planning[]> {
-    let params = new HttpParams();
+    const planningsCollection = collection(this.firestore, 'plannings');
+    let constraints: any[] = [orderBy('date', 'desc')];
+    
     if (filters) {
-      if (filters.parcours) params = params.set('parcours', filters.parcours);
-      if (filters.startDate) params = params.set('startDate', filters.startDate);
-      if (filters.endDate) params = params.set('endDate', filters.endDate);
-      if (filters.status) params = params.set('status', filters.status);
+       if (filters.parcours) constraints.push(where('parcours', '==', filters.parcours));
+       if (filters.startDate) constraints.push(where('date', '>=', filters.startDate));
+       if (filters.endDate) constraints.push(where('date', '<=', filters.endDate));
+       if (filters.status) constraints.push(where('status', '==', filters.status));
     }
-
-    return this.http.get<any[]>(this.apiUrl, { params }).pipe(
-      map(plannings => plannings.map(p => ({
+    
+    // Note: Multiple range filters or mixed equality/range might require specific indexes in Firestore
+    const q = query(planningsCollection, ...constraints);
+    
+    return collectionData(q, { idField: 'id' }).pipe(
+      map((plannings: any[]) => plannings.map(p => ({
         ...p,
-        // Map backend flat structure to frontend nested structure if needed
         ue: p.ue_code ? { code: p.ue_code, name: p.ue_name } : undefined,
         teacher: p.teacher_first_name ? { 
             first_name: p.teacher_first_name, 
-            last_name: p.teacher_last_name, 
+            last_name: p.teacher_last_name,
             email: p.teacher_email 
         } : undefined
       })))
     );
   }
 
-  createPlanning(planning: Planning): Observable<any> {
-    return this.http.post<any>(this.apiUrl, planning);
+  create(planning: any): Observable<any> {
+      // We need to fetch UE and Teacher details to denormalize them
+      const fetchDetails = async () => {
+          let ueData: any = {};
+          if (planning.ue_id) {
+              const ueSnap = await getDoc(doc(this.firestore, `ues/${planning.ue_id}`));
+              if (ueSnap.exists()) {
+                  const d = ueSnap.data();
+                  ueData = { ue_code: d['code'], ue_name: d['name'] };
+              }
+          }
+
+          let teacherData: any = {};
+          if (planning.teacher_id) {
+              const tSnap = await getDoc(doc(this.firestore, `teachers/${planning.teacher_id}`));
+              if (tSnap.exists()) {
+                  const d = tSnap.data();
+                  teacherData = { 
+                      teacher_first_name: d['first_name'], 
+                      teacher_last_name: d['last_name'],
+                      teacher_email: d['email']
+                  };
+              }
+          }
+
+          const newPlanning = {
+              ...planning,
+              ...ueData,
+              ...teacherData,
+              created_at: new Date()
+          };
+
+          return addDoc(collection(this.firestore, 'plannings'), newPlanning);
+      };
+
+      return from(fetchDetails());
   }
 
-  updatePlanning(id: string, planning: Partial<Planning>): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, planning);
+  update(id: string, planning: any): Observable<void> {
+      const docRef = doc(this.firestore, `plannings/${id}`);
+      return from(updateDoc(docRef, planning));
+  }
+  
+  delete(id: string): Observable<void> {
+      const docRef = doc(this.firestore, `plannings/${id}`);
+      return from(deleteDoc(docRef));
   }
 
-  deletePlanning(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  // Aliases for compatibility with old API OR rename them
+  createPlanning(planning: any): Observable<any> {
+    return this.create(planning);
+  }
+
+  updatePlanning(id: string, planning: any): Observable<any> {
+    return this.update(id, planning);
+  }
+
+  deletePlanning(id: string): Observable<any> {
+    return this.delete(id);
   }
 }
 

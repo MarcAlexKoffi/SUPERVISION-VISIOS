@@ -1,4 +1,20 @@
 /* You can add global styles to this file, and also import other style files */
 @tailwind base;
 @tailwind components;
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  /* font-size: 24px;  Removed to allow Tailwind utilities like text-4xl to override */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
 @tailwind utilities;
+

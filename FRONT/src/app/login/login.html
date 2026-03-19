@@ -27,18 +27,17 @@
                 <span class="block sm:inline">{{ errorMessage }}</span>
             </div>
 
-            <!-- Email/Username -->
+            <!-- Email -->
             <div class="space-y-2">
-                <label for="email" class="text-xs font-bold uppercase tracking-wider text-slate-700 ml-1">Username /
-                    Email</label>
+                <label for="email" class="text-xs font-bold uppercase tracking-wider text-slate-700 ml-1">Email</label>
                 <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <span
-                            class="material-symbols-outlined text-slate-500 group-focus-within:text-[#0f42a5] transition-colors">person</span>
+                            class="material-symbols-outlined text-slate-500 group-focus-within:text-[#0f42a5] transition-colors">email</span>
                     </div>
-                    <input type="text" id="email" name="username" [(ngModel)]="username"
+                    <input type="email" id="email" name="email" [(ngModel)]="email"
                         class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-[#0f42a5] focus:ring-1 focus:ring-[#0f42a5] transition-all font-medium sm:text-sm"
-                        placeholder="Username" required>
+                        placeholder="nom@exemple.com" required>
                 </div>
             </div>
 

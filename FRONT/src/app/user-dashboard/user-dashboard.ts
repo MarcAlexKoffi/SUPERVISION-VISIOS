@@ -32,7 +32,7 @@ export class UserDashboard implements OnInit {
             return;
         }
 
-        this.supervisionService.getAll().subscribe({
+        this.supervisionService.getAll(this.currentUser.id).subscribe({
             next: (data) => {
                 // Filter by current user ID
                 this.mySupervisions = data

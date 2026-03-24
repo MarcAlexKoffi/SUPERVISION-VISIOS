@@ -25,8 +25,8 @@ export class TeachersComponent implements OnInit {
 
   currentTeacher: any = {
     id: null,
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     email: '',
     department: '',
     status: 'active'
@@ -65,15 +65,15 @@ export class TeachersComponent implements OnInit {
       this.isEditing = true;
       this.currentTeacher = {
         id: teacher.id,
-        firstName: teacher.first_name,
-        lastName: teacher.last_name,
+        first_name: teacher.first_name,
+        last_name: teacher.last_name,
         email: teacher.email,
         department: teacher.department,
         status: teacher.status || 'active'
       };
     } else {
       this.isEditing = false;
-      this.currentTeacher = { firstName: '', lastName: '', email: '', department: '', status: 'active' };
+      this.currentTeacher = { first_name: '', last_name: '', email: '', department: '', status: 'active' };
     }
     this.showModal = true;
   }

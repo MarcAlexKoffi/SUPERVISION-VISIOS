@@ -93,7 +93,7 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   loadUserData() {
       // Load user specific stats (supervisions)
-      this.supervisionService.getAll().subscribe({
+      this.supervisionService.getAll(this.currentUser.id).subscribe({
           next: (data) => {
               // The backend filters by userId for non-admins already
               const mySupervisions = data; 
@@ -140,7 +140,8 @@ export class DashboardHome implements OnInit, OnDestroy {
      });
 
      // Fetch Supervisions for "Active Supervisions" count (which is basically total supervisions for the user)
-     this.supervisionService.getAll().subscribe({
+     const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
+     this.supervisionService.getAll(userId).subscribe({
          next: (supervisionsData) => {
              this.userDashboardStats.activeSupervisions = supervisionsData.length;
              this.recentSupervisions = supervisionsData
@@ -365,7 +366,8 @@ export class DashboardHome implements OnInit, OnDestroy {
     });
 
     // 2. Load Supervision Stats
-    this.supervisionService.getAll().subscribe({
+    const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
+    this.supervisionService.getAll(userId).subscribe({
         next: (data) => {
              console.log('Supervisions chargées:', data.length);
              this.stats[1].value = data.length.toString();

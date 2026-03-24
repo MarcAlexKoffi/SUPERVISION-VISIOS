@@ -485,13 +485,11 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   loadHistory() {
     // Call API instead of localStorage
-    this.supervisionService.getAll().subscribe({
+    const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
+    
+    this.supervisionService.getAll(userId).subscribe({
       next: (data) => {
         console.log('Raw History Data:', data);
-        // Backend handles filtering, but we enforce it here proactively just in case or for immediate UI feedback
-        if (!this.isAdmin && this.currentUser) {
-          // data = data.filter((item: any) => item.user_id === this.currentUser.id);
-        }
         this.supervisions = data.map((item: any) => this.mapToView(item));
         console.log('Mapped History Data:', this.supervisions);
         this.updateFilters();

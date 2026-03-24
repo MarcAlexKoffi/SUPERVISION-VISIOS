@@ -122,20 +122,13 @@ export class UserHistoryComponent implements OnInit {
   }
 
   loadHistory() {
-    // Call API instead of localStorage
-    this.supervisionService.getAll().subscribe({
+    if (!this.currentUser) return;
+
+    // Load only current user history
+    this.supervisionService.getAll(this.currentUser.id).subscribe({
       next: (data) => {
-        console.log('Raw History Data:', data);
-
-        // Backend handles filtering, but we enforce it here proactively just in case or for immediate UI feedback
-        /*
-        if (!this.isAdmin && this.currentUser) {
-             // data = data.filter((item: any) => item.user_id === this.currentUser.id);
-        }
-        */
-
+        console.log('Raw User History Data:', data);
         this.supervisions = data.map((item: any) => this.mapToView(item));
-        console.log('Mapped History Data:', this.supervisions);
         this.updateFilters();
         this.applyFilters();
       },

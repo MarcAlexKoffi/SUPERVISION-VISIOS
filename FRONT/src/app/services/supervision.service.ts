@@ -1,7 +1,8 @@
 
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy, where } from '@angular/fire/firestore';
 import { Observable, from, throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -29,10 +30,30 @@ export class SupervisionService {
     return from(updateDoc(docRef, data));
   }
 
-  getAll(): Observable<any[]> {
+  getAll(userId?: string): Observable<any[]> {
     const colRef = collection(this.firestore, 'supervisions');
-    const q = query(colRef, orderBy('created_at', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<any[]>;
+    let q;
+
+    if (userId) {
+      // Filter by user_id
+      // Note: Composite index required for where() + orderBy().
+      // To avoid index issues immediately, we order on client side if filtering by user, 
+      // or we assume index exists. Let's rely on client side sorting for safety if index missing.
+      q = query(colRef, where('user_id', '==', userId));
+    } else {
+      q = query(colRef, orderBy('created_at', 'desc'));
+    }
+
+    return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      map(data => {
+        // Sort manually by created_at desc to ensure order even if query didn't sort
+        return data.sort((a, b) => {
+          const dateA = a.created_at ? (a.created_at.seconds ? a.created_at.seconds * 1000 : new Date(a.created_at).getTime()) : 0;
+          const dateB = b.created_at ? (b.created_at.seconds ? b.created_at.seconds * 1000 : new Date(b.created_at).getTime()) : 0;
+          return dateB - dateA;
+        });
+      })
+    );
   }
 
   getById(id: string): Observable<any> {

@@ -1,7 +1,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { Observable, of, from } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 
@@ -23,14 +23,15 @@ export class UeService {
         let q;
         
         // Requête conditionnelle selon le rôle
-        // Note: Nécessitera des index composés dans Firestore
         if (user.role === 'admin') {
-          q = query(uesCollection, orderBy('created_at', 'desc'));
+          q = query(uesCollection);
         } else {
-          q = query(uesCollection, where('user_id', '==', user.uid), orderBy('created_at', 'desc'));
+          q = query(uesCollection, where('user_id', '==', user.uid));
         }
         
-        return collectionData(q, { idField: 'id' }) as Observable<any[]>;
+        return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+          map(ues => ues.sort((a, b) => (a.name || '').localeCompare(b.name || '')))
+        );
       })
     );
   }

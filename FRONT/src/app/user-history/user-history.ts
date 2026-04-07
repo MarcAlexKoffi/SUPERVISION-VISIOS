@@ -226,8 +226,8 @@ export class UserHistoryComponent implements OnInit {
     }
 
     const signatures = {
-      supervisor: data.supervisor_signature || (data.signatures && data.signatures.supervisor),
-      teacher: data.teacher_signature || (data.signatures && data.signatures.teacher)
+      supervisor: data.supervisorSignature || data.supervisor_signature || (data.signatures && data.signatures.supervisor),
+      teacher: data.teacherSignature || data.teacher_signature || (data.signatures && data.signatures.teacher)
     };
 
     const technical = {
@@ -246,13 +246,13 @@ export class UserHistoryComponent implements OnInit {
     return {
       id: data.id,
       originalData: data,
-      date: new Date(dateStr), // Keep just the date part for filtering/sorting if needed, or full datetime
+      date: startDateTime, // Keep just the date part for filtering/sorting if needed, or full datetime
       endTime: endDateTime, // Used for display duration/end time
       startTimeStr: formatTime(startTimeStr),
       endTimeStr: formatTime(endTimeStr),
       teacher: {
         name: teacherName,
-        department: data.level || 'Niveau non spécifié',
+        department: data.level || 'Classe non spécifiée',
         initials: this.getInitials(teacherName),
         color: this.getRandomColor(teacherName)
       },
@@ -453,7 +453,7 @@ export class UserHistoryComponent implements OnInit {
                 <div class="value">${s.course.name}</div>
               </div>
               <div class="field">
-                <div class="label">Niveau</div>
+                <div class="label">Classe</div>
                 <div class="value">${s.teacher.department}</div>
               </div>
               <div class="field">

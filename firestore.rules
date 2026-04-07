@@ -36,9 +36,7 @@ service cloud.firestore {
     // - Delete: Admin only
     match /users/{userId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow create: if isAuthenticated() && request.auth.uid == userId; 
-      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow delete: if isAdmin();
+      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // 2. Resources (Teachers, Parcours, Classes, UEs)
@@ -94,6 +92,22 @@ service cloud.firestore {
       allow read: if isAdmin() || isResourceOwner();
       allow create: if isAuthenticated() && (isAdmin() || assignsToSelf());
       allow update, delete: if isAdmin() || isResourceOwner();
+    }
+
+    // 4.1 Async Supervisions
+    match /async_supervisions/{supervisionId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.supervisor_id == request.auth.uid);
+      allow create: if isAuthenticated() && (isAdmin() || request.resource.data.supervisor_id == request.auth.uid);
+      allow update, delete: if isAuthenticated() && (isAdmin() || resource.data.supervisor_id == request.auth.uid);
+    }
+
+    // 5. Notifications
+    // - Read: Owner of notification
+    // - Write: Admin (create notifications) or Owner (mark as read)
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated(); // For example, when a supervisor submits a report, they create a notification for the admin.
+      allow update, delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
     }
   }
 }

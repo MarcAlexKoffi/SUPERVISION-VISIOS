@@ -47,7 +47,7 @@ export class DashboardHome implements OnInit, OnDestroy {
   stats: any[] = [
     { label: 'Total UE Actives', value: '0', icon: 'library_books', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
     { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' },
-    { label: 'Total Étudiants', value: '0', icon: 'groups', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' }
+    { label: 'Nombre total de classes', value: '0', icon: 'apartment', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' }
   ];
   
   // User Stats
@@ -151,13 +151,12 @@ export class DashboardHome implements OnInit, OnDestroy {
          error: (err) => console.error('Failed to load supervisions for stats', err)
      });
 
-     // Fetch Classes to count Total Students
+     // Fetch Classes to count Total Classes (admin)
      this.classeService.getAll().subscribe({
-         next: (classes) => {
-             const totalStudents = classes.reduce((acc, cls) => acc + (cls.effectif || 0), 0);
-             this.userDashboardStats.totalStudents = totalStudents;
-         },
-         error: (err) => console.error('Failed to load classes for stats', err)
+       next: (classes) => {
+         this.stats[2].value = classes.length.toString();
+       },
+       error: (err) => console.error('Failed to load classes for stats', err)
      });
   }
   
@@ -386,13 +385,12 @@ export class DashboardHome implements OnInit, OnDestroy {
         error: (err) => console.error('Erreur chargement supervisions', err)
     });
 
-    // 3. Load Classes Stats (Total Students)
+    // 3. Load Classes Stats (Nombre total de classes)
     this.classeService.getAll().subscribe({
-        next: (classes) => {
-            const totalStudents = classes.reduce((acc, cls) => acc + (cls.effectif || 0), 0);
-            this.stats[2].value = totalStudents.toLocaleString('fr-FR');
-        },
-        error: (err) => console.error('Erreur chargement classes', err)
+      next: (classes) => {
+        this.stats[2].value = classes.length.toString();
+      },
+      error: (err) => console.error('Erreur chargement classes', err)
     });
   }
 

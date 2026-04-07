@@ -113,7 +113,15 @@ export class UsersComponent implements OnInit {
         },
         error: (err) => {
           console.error('Erreur création', err);
-          alert('Erreur lors de la création de l\'utilisateur');
+          let errorMsg = 'Erreur lors de la création de l\'utilisateur.';
+          if (err?.code === 'auth/email-already-in-use') {
+            errorMsg = 'Cet adresse email est déjà utilisée.';
+          } else if (err?.code === 'auth/weak-password') {
+            errorMsg = 'Le mot de passe doit contenir au moins 6 caractères.';
+          } else if (err?.code === 'auth/invalid-email') {
+            errorMsg = 'L\'adresse email est invalide.';
+          }
+          alert(errorMsg);
         }
       });
     }

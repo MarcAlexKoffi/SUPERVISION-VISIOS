@@ -2,9 +2,11 @@ import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { SupervisionService } from '../services/supervision.service'; // Import Service
+import { SupervisionService } from '../services/supervision.service';
+import { AsyncSupervisionService } from '../services/async-supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
 import { TeacherService } from '../services/teacher.service';
+import { UeService } from '../services/ue.service';
 import { ToastService } from '../services/toast.service';
 import { Subscription } from 'rxjs';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
@@ -27,6 +29,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
     endDate: ''
   };
 
+  activeTab: 'synchrone' | 'asynchrone' = 'synchrone';
+  asyncSupervisions: any[] = [];
+  filteredAsyncSupervisions: any[] = [];
+  
   supervisions: any[] = [];
   filteredSupervisions: any[] = [];
 
@@ -41,9 +47,12 @@ export class HistoryComponent implements OnInit, OnDestroy {
   
   // Teachers data for email lookup
   teachersData: any[] = [];
+  uesData: any[] = [];
 
   // Modal
   selectedSupervision: any = null;
+  selectedAsyncSupervision: any = null;
+  showAsyncModal: boolean = false;
   filteredHistoryForUE: any[] = [];
   showModal = false;
 
@@ -69,8 +78,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
   constructor(
     private supervisionService: SupervisionService,
+    private asyncSupervisionService: AsyncSupervisionService,
     private authService: AuthService,
     private teacherService: TeacherService,
+    private ueService: UeService,
     private toastService: ToastService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -80,11 +91,20 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.currentUser = this.authService.currentUserValue;
     this.isAdmin = this.currentUser?.role === 'admin';
     this.loadHistory();
+    this.loadAsyncHistory();
     this.loadTeachers();
+    this.loadUes();
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  loadUes() {
+    this.ueService.getAll().subscribe({
+      next: (data) => this.uesData = data,
+      error: () => console.error('Error loading UEs for lookup')
+    });
   }
 
   loadTeachers() {
@@ -146,14 +166,14 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.isSendingEmail = true;
 
     try {
-        const pdfBase64 = await this.generateReportPDF(supervision); // Assume this method exists or is imported
+        const pdfBase64 = supervision.week ? await this.generateAsyncReportPDF(supervision) : await this.generateReportPDF(supervision); // Assume this method exists or is imported
         
         console.log(`Envoi du rapport pour ID=${supervision.id} à ${teacherEmail}`);
 
         this.supervisionService.sendReport(supervision.id, {
             pdfBase64: pdfBase64.split(',')[1],
             teacherEmail: teacherEmail,
-            subject: `Rapport de Supervision - ${supervision.course?.name || 'Visio'} - ${new Date(supervision.date).toLocaleDateString()}`,
+            subject: supervision.week ? `Rapport Supervision Asynchrone - ${supervision.week}` : `Rapport de Supervision - ${supervision.course?.name || 'Visio'} - ${new Date(supervision.date).toLocaleDateString()}`,
             message: `Bonjour ${supervision.teacher?.name},\n\nVeuillez trouver ci-joint le rapport de supervision concernant la séance du ${new Date(supervision.date).toLocaleDateString()}.\n\nCordialement,\nL'Administration`
         }).subscribe({
             next: () => {
@@ -483,6 +503,31 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
   }
 
+  
+  loadAsyncHistory() {
+    this.subscriptions.add(
+      this.asyncSupervisionService.getAll().subscribe({
+        next: (data) => {
+          this.asyncSupervisions = data;
+          this.filteredAsyncSupervisions = [...this.asyncSupervisions];
+        },
+        error: (err: any) => console.error("Erreur chargement Async Supervisions", err)
+      })
+    );
+  }
+
+  get printAsyncSupervisions(): any[] {
+    return [...this.filteredAsyncSupervisions].map(s => {
+      const teacher = this.teachersData?.find(t => t.id === s.teacher_id);
+      return {
+        ...s,
+        teacher_name: teacher ? (teacher.name || teacher.first_name + ' ' + teacher.last_name) : s.teacher_id,
+        ue_name: s.ue_id
+      };
+    });
+  }
+
+
   loadHistory() {
     // Call API instead of localStorage
     const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
@@ -694,26 +739,53 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.showDeleteModal = true;
   }
 
+  deleteAsync(supervision: any) {
+    this.supervisionToDelete = supervision;
+    this.showDeleteModal = true;
+  }
+
+
+
+
   confirmDelete() {
     if (!this.supervisionToDelete) return;
 
-    this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
-      next: () => {
-        this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
-        this.updateFilters();
-        this.applyFilters();
-        this.cancelDelete();
-      },
-      error: (err) => {
-        console.error('Error deleting supervision', err);
-        if (err.status === 403) {
-          alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
-        } else {
-          alert('Erreur lors de la suppression');
+    if (this.activeTab === 'synchrone') {
+      this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
+        next: () => {
+          this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
+          this.updateFilters();
+          this.applyFilters();
+          this.cancelDelete();
+        },
+        error: (err) => {
+          console.error('Error deleting supervision', err);
+          if (err.status === 403) {
+            alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
+          } else {
+            alert('Erreur lors de la suppression');
+          }
+          this.cancelDelete();
         }
-        this.cancelDelete();
-      }
-    });
+      });
+    } else {
+      this.asyncSupervisionService.delete(this.supervisionToDelete.id).subscribe({
+        next: () => {
+          this.asyncSupervisions = this.asyncSupervisions.filter(s => s.id !== this.supervisionToDelete.id);
+          this.filteredAsyncSupervisions = [...this.asyncSupervisions];
+          this.cancelDelete();
+        },
+        error: (err) => {
+          console.error('Error deleting async supervision', err);
+          if (err.code === 'permission-denied') {
+            alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
+          } else {
+            alert('Erreur lors de la suppression');
+          }
+          this.cancelDelete();
+        }
+      });
+    }
   }
 
   cancelDelete() {
@@ -929,4 +1001,190 @@ export class HistoryComponent implements OnInit, OnDestroy {
     if (p.includes('meet')) return 'text-green-500';
     return 'text-slate-500';
   }
+
+  viewAsyncDetails(supervision: any) {
+    this.selectedAsyncSupervision = supervision;
+    this.showAsyncModal = true;
+  }
+
+  closeAsyncModal() {
+    this.showAsyncModal = false;
+    this.selectedAsyncSupervision = null;
+  }
+
+  editAsyncSupervision(supervision: any) {
+    this.activeMenuId = null;
+    this.router.navigate(['/admin/async-supervision'], { queryParams: { id: supervision.id } });
+  }
+
+  openAsyncEmailModal(supervision: any) {
+    let teacherEmail = '';
+    const teacherId = supervision.teacher_id || supervision.teacherId;
+    if (teacherId) {
+        const teacher = this.teachersData?.find(t => t.id === teacherId);
+        if (teacher && teacher.email) {
+            teacherEmail = teacher.email;
+        }
+    }
+    this.supervisionToSend = supervision;
+    this.emailToConfirm = teacherEmail || '';
+    this.showEmailModal = true;
+    this.activeMenuId = null;
+  }
+
+  async generateAsyncReportPDF(s: any): Promise<string> {
+      const doc = new jsPDF();
+      
+      // -- Header --
+      doc.setFillColor(248, 250, 252);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 66, 165); // #0f42a5
+      doc.text("FICHE DE SUPERVISION ASYNCHRONE", 105, 20, { align: 'center' });
+      
+      // -- General Info Box --
+      let y = 50;
+      doc.setDrawColor(200);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(14, y, 182, 45, 3, 3, 'FD');
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text("Informations GÃ©nÃ©rales", 20, y + 10);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      
+      const teacherName = s.teacher_name || s.teacherId || 'Non spÃ©cifiÃ©';
+      const ueName = s.ue_id || s.ueId || s.ue_name || 'Non spÃ©cifiÃ©';
+
+      doc.text(`Enseignant: ${teacherName}`, 20, y + 20);
+      doc.text(`Module / UE: ${ueName}`, 20, y + 28);
+      doc.text(`Semaine concernÃ©e: ${s.week}`, 20, y + 36);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Statut: ${s.status || '-'}`, 130, y + 20);
+      doc.setFont('helvetica', 'normal');
+
+      y += 55;
+      
+      // -- Observations --
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text("Observations et recommandations", 14, y);
+      
+      y += 6;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      const obsLines = doc.splitTextToSize(s.observations || "Aucune observation n'a Ã©tÃ© signalÃ©e.", 182);
+      doc.text(obsLines, 14, y);
+      
+      y += obsLines.length * 5 + 10;
+
+      // -- Footer Signatures --
+      y += 20;
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, y, 196, y);
+      
+      y += 10;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text("Signature Administration", 14, y);
+
+      return doc.output('datauristring');
+  }
+
+  printAsyncSupervision(supervision: any) {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Veuillez autoriser les pop-ups pour imprimer.');
+      return;
+    }
+
+    const s = supervision;
+    const teacherName = s.teacher_name || s.teacherId || 'N/A';
+    const ueName = s.ue_id || s.ueId || s.ue_name || 'N/A';
+
+    const content = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Fiche de Supervision Asynchrone - ${s.week}</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+          .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #0f42a5; }
+          .header h1 { color: #0f42a5; margin: 0 0 10px 0; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; }
+          .header p { color: #64748b; margin: 0; font-size: 14px; }
+          .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+          .info-item { margin-bottom: 15px; }
+          .info-label { font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 4px; }
+          .info-value { font-size: 16px; font-weight: 600; color: #0f172a; }
+          .section { margin-bottom: 30px; page-break-inside: avoid; }
+          .section-title { font-size: 18px; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; }
+          .observations-box { background-color: white; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 6px; min-height: 100px; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 50px; page-break-inside: avoid; }
+          .signature-box { border-top: 1px solid #cbd5e1; padding-top: 15px; text-align: center; font-weight: bold; color: #475569; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Fiche de Supervision Asynchrone</h1>
+          <p>Document officiel certifiant la vÃ©rification de suivi asynchrone</p>
+        </div>
+        
+        <div class="info-box">
+          <div class="info-item">
+            <div class="info-label">Enseignant</div>
+            <div class="info-value">${teacherName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Statut</div>
+            <div class="info-value" style="color: ${s.status === 'Fait' ? '#16a34a' : (s.status === 'Partiel' ? '#ca8a04' : '#dc2626')}">${s.status}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Modue / UE</div>
+            <div class="info-value">${ueName}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">PÃ©riode / Semaine</div>
+            <div class="info-value">${s.week}</div>
+          </div>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Observations et recommandations</div>
+          <div class="observations-box">
+            ${s.observations ? s.observations.replace(/\n/g, '<br>') : '<span style="color:#94a3b8;font-style:italic;">Aucune observation n\'a Ã©tÃ© rÃ©digÃ©e pour cette supervision.</span>'}
+          </div>
+        </div>
+
+        <div class="signatures">
+          <div class="signature-box">
+            Administration
+          </div>
+          <div class="signature-box">
+          </div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+  }
+
 }

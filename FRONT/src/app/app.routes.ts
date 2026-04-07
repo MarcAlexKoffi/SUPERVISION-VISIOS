@@ -11,6 +11,7 @@ import { UesComponent } from './ues/ues';
 import { UserDashboard } from './user-dashboard/user-dashboard'; // Import UserDashboard
 import { Plannings } from './plannings/plannings';
 import { Formations } from './formations/formations';
+import { AsyncSupervisionForm } from './async-supervision-form/async-supervision-form';
 import { authGuard } from './guards/auth.guard'; // Import AuthGuard
 
 export const routes: Routes = [
@@ -37,7 +38,8 @@ export const routes: Routes = [
             { path: 'formations', component: Formations },
             { path: 'history', component: HistoryComponent },
             { path: 'my-history', component: UserHistoryComponent },
-            { path: 'supervision-form', component: SupervisionForm }
+            { path: 'supervision-form', component: SupervisionForm },
+            { path: 'async-supervision', component: AsyncSupervisionForm }
         ]
     },
     // Redirect old user-dashboard to admin dashboard for unified layout

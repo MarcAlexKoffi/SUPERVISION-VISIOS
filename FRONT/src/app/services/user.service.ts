@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
+import { filter, take, switchMap, map } from 'rxjs/operators';
 import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { Auth, authState } from '@angular/fire/auth';
+import { getAuth, createUserWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence, inMemoryPersistence } from 'firebase/auth';
 import { environment } from '../../environments/environment';
 
 export interface User {
@@ -19,13 +21,23 @@ export interface User {
 })
 export class UserService {
   private firestore = inject(Firestore);
+  private auth = inject(Auth);
 
   constructor() { }
 
   getAll(): Observable<User[]> {
     const colRef = collection(this.firestore, 'users');
     const q = query(colRef, orderBy('created_at', 'desc'));
-    return collectionData(q, { idField: 'id' }) as Observable<User[]>;
+    return authState(this.auth).pipe(
+      filter(user => !!user),
+      switchMap(() => collectionData(q, { idField: 'id' }) as Observable<any[]>),
+      map(users => users.map(user => {
+        if (user.created_at && typeof user.created_at.toDate === 'function') {
+          user.created_at = user.created_at.toDate();
+        }
+        return user as User;
+      }))
+    );
   }
 
   // Create a new user in BOTH Firebase Auth and Firestore
@@ -40,6 +52,8 @@ export class UserService {
         const secondaryAuth = getAuth(secondaryApp);
 
         try {
+            await setPersistence(secondaryAuth, inMemoryPersistence);
+            
             // 1. Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
             const uid = userCredential.user.uid;

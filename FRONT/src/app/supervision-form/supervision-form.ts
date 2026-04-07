@@ -7,6 +7,7 @@ import { TeacherService } from '../services/teacher.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { ClasseService } from '../services/classe.service';
+import { NotificationService } from '../services/notification.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -77,6 +78,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     private teacherService: TeacherService,
     private classeService: ClasseService,
     private authService: AuthService,
+    private notificationService: NotificationService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -418,7 +420,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     if (this.editingId) {
       this.supervisionService.update(this.editingId, payload).subscribe({
         next: (res) => {
-            this.handleSuccess();
+            this.handleSuccess(!!this.editingId);
         },
         error: (err) => {
            this.handleError(err);
@@ -427,7 +429,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     } else {
       this.supervisionService.create(payload).subscribe({
           next: (res) => {
-              this.handleSuccess();
+              this.handleSuccess(!!this.editingId);
           },
           error: (err) => {
               this.handleError(err);
@@ -436,7 +438,20 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
-  handleSuccess() {
+  handleSuccess(isEdit: boolean = false) {
+      const currentUser = this.authService.currentUserValue;
+      if (!isEdit && currentUser?.role !== 'admin') {
+          // Notify admins of new supervision by user
+          this.notificationService.createNotification({
+              role: 'admin',
+              type: 'success',
+              title: 'Nouvelle Supervision',
+              message: `${currentUser?.username || 'Un utilisateur'} a soumis un rapport (${this.formData.module}).`,
+              read: false,
+              link: '/admin/history'
+          }).catch(console.error);
+      }
+
       this.isSaving = false;
       this.showSuccessModal = true;
       this.saveMessage = 'Enregistrer la fiche';

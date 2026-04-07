@@ -3,7 +3,7 @@
     <!-- Print Header -->
     <div class="border-b-2 border-black pb-6 mb-8">
         <div class="flex items-center justify-between mb-8">
-            <h1 class="text-2xl font-bold uppercase tracking-wider text-black">Relevé de Supervisions</h1>
+            <h1 class="text-2xl font-bold uppercase tracking-wider text-black">{{ activeTab === 'synchrone' ? 'Relevé de Supervisions Synchrones' : 'Relevé de Supervisions Asynchrones' }}</h1>
             <div class="text-right text-xs text-gray-600">
                 <p>Imprimé le {{ currentDate | date:'dd/MM/yyyy à HH:mm' }}</p>
             </div>
@@ -22,13 +22,16 @@
                 <p class="mb-2 border-b border-gray-200 pb-1"><span class="font-bold text-gray-700">Période:</span> {{
                     (filters.startDate | date:'dd/MM/yyyy') || 'Début' }} - {{ (filters.endDate | date:'dd/MM/yyyy') ||
                     'Maintenant' }}</p>
-                <p class="text-xl font-bold text-black mt-2">Total Durée: {{ totalDuration }}</p>
+                <p *ngIf="activeTab === 'synchrone'" class="text-xl font-bold text-black mt-2">Total Durée: {{ totalDuration }}</p><p *ngIf="activeTab === 'asynchrone'" class="text-xl font-bold text-black mt-2">Total: {{ printAsyncSupervisions.length }}</p>
             </div>
         </div>
     </div>
 
     <!-- Print Table -->
-    <table class="w-full text-left border-collapse text-sm mb-8 border border-black">
+    
+    <!-- Print Table Synchrone -->
+    <table *ngIf="activeTab === 'synchrone'" class="w-full text-left border-collapse text-sm mb-8 border border-black">
+
         <thead>
             <tr class="bg-gray-100 border-b border-black font-bold uppercase text-xs tracking-wider">
                 <th class="py-3 px-2 border-r border-black">Date</th>
@@ -70,6 +73,36 @@
         </tfoot>
     </table>
 
+    <!-- Print Table Asynchrone -->
+    <table *ngIf="activeTab === 'asynchrone'" class="w-full text-left border-collapse text-sm mb-8 border border-black">
+        <thead>
+            <tr class="bg-gray-100 border-b border-black font-bold uppercase text-xs tracking-wider">
+                <th class="py-3 px-2 border-r border-black">Semaine</th>
+                <th class="py-3 px-2 border-r border-black" *ngIf="!filters.teacher">Enseignant</th>
+                <th class="py-3 px-2 border-r border-black text-center">Module/UE</th>
+                <th class="py-3 px-2 border-r border-black text-center">Statut</th>
+                <th class="py-3 px-2 text-left">Observations</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-800">
+            <tr *ngFor="let s of printAsyncSupervisions; let i = index" [class.bg-gray-50]="i % 2 !== 0"
+                class="border-b border-black">
+                <td class="py-2 px-2 border-r border-black font-medium">{{ s.week }}</td>
+                <td class="py-2 px-2 border-r border-black uppercase text-xs" *ngIf="!filters.teacher">{{ s.teacher_name || 'N/A' }}</td>
+                <td class="py-2 px-2 border-r border-black font-bold text-xs">{{ s.ue_id || s.ue_name || 'N/A' }}</td>
+                <td class="py-2 px-2 border-r border-black text-center text-xs">
+                    <span [class.text-green-600]="s.status === 'Fait'" [class.text-yellow-600]="s.status === 'Partiel'" [class.text-red-600]="s.status === 'Non fait'">{{ s.status }}</span>
+                </td>
+                <td class="py-2 px-2 text-left text-xs">{{ s.observations || '-' }}</td>
+            </tr>
+            <tr *ngIf="printAsyncSupervisions.length === 0">
+                <td [attr.colspan]="!filters.teacher ? 5 : 4"
+                    class="p-8 text-center text-gray-500 italic border-l border-r border-black">Aucune supervision asynchrone pour ces critères.</td>
+            </tr>
+        </tbody>
+    </table>
+
+
     <div
         class="mt-12 flex justify-between text-xs text-gray-500 uppercase tracking-widest pt-8 border-t border-gray-300">
         <div>Visa de l'enseignant</div>
@@ -104,6 +137,22 @@
                 Nouveau Rapport
             </button>
         </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit shadow-inner">
+        <button (click)="activeTab = 'synchrone'"
+            [class.bg-white]="activeTab === 'synchrone'" [class.shadow-sm]="activeTab === 'synchrone'" [class.text-indigo-600]="activeTab === 'synchrone'"
+            [class.text-slate-500]="activeTab !== 'synchrone'"
+            class="px-6 py-2.5 text-sm font-semibold rounded-lg transition-all">
+            Synchrone
+        </button>
+        <button (click)="activeTab = 'asynchrone'"
+            [class.bg-white]="activeTab === 'asynchrone'" [class.shadow-sm]="activeTab === 'asynchrone'" [class.text-indigo-600]="activeTab === 'asynchrone'"
+            [class.text-slate-500]="activeTab !== 'asynchrone'"
+            class="px-6 py-2.5 text-sm font-semibold rounded-lg transition-all">
+            Asynchrone
+        </button>
     </div>
 
     <!-- Filters Section -->
@@ -153,7 +202,7 @@
     </div>
 
     <!-- Data Table / List -->
-    <div class="overflow-x-auto pb-4"> <!-- pb-4 for potential shadow clipping -->
+    <div class="overflow-x-auto pb-4" *ngIf="activeTab === 'synchrone'"> <!-- pb-4 for potential shadow clipping -->
         <table class="w-full text-left border-separate border-spacing-0 border-spacing-y-3">
             <thead>
                 <tr class="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -307,8 +356,100 @@
         </table>
     </div>
 
+    
+    <!-- Data Table / List ASYNCHRONE -->
+    <div class="overflow-x-auto pb-4" *ngIf="activeTab === 'asynchrone'">
+        <table class="w-full text-left border-separate border-spacing-0 border-spacing-y-3">
+            <thead>
+                <tr class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <th class="px-6 py-2">Semaine</th>
+                    <th class="px-6 py-2 text-center">Statut</th>
+                    <th class="px-6 py-2 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                <tr *ngIf="filteredAsyncSupervisions.length === 0">
+                    <td colspan="5" class="text-center py-12">
+                        <div class="flex flex-col items-center justify-center text-slate-400">
+                            <span class="material-symbols-outlined text-6xl mb-4 text-slate-200">history_edu</span>
+                            <p class="text-lg font-medium text-slate-500">Aucun rapport asynchrone trouvé</p>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr *ngFor="let s of filteredAsyncSupervisions" 
+                    class="group transition-all duration-200 hover:transform hover:scale-[1.002]">
+                    <td class="bg-white dark:bg-slate-800 border-y border-l border-slate-100 dark:border-slate-700 rounded-l-2xl py-4 px-6 shadow-sm group-hover:shadow-md transition-shadow">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ s.week }}</span>
+                            <div class="flex items-center gap-1 mt-1">
+                                <span class="material-symbols-outlined text-[14px] text-slate-400">person</span>
+                                <span class="text-xs text-slate-500">{{ s.teacher_name || s.teacherId || 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td class="bg-white dark:bg-slate-800 border-y border-slate-100 dark:border-slate-700 py-4 px-6 shadow-sm group-hover:shadow-md transition-shadow text-center">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                            [ngClass]="{
+                                'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400': s.status === 'Fait',
+                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400': s.status === 'Partiel',
+                                'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400': s.status === 'Non fait'
+                            }">
+                            {{ s.status }}
+                        </span>
+                    </td>
+                    
+                    
+                    <td class="bg-white dark:bg-slate-800 border-y border-r border-slate-100 dark:border-slate-700 rounded-r-2xl py-4 px-6 shadow-sm group-hover:shadow-md transition-shadow text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <button (click)="viewAsyncDetails(s)" 
+                                class="p-2 rounded-full text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                                title="Voir les détails">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                            
+                            <div class="relative">
+                                <button (click)="toggleActionMenu($event, s.id)" 
+                                    class="p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                                    [class.bg-slate-100]="activeMenuId === s.id"
+                                    [class.text-slate-600]="activeMenuId === s.id">
+                                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                </button>
+                                
+                                <!-- Dropdown Menu -->
+                                <div *ngIf="activeMenuId === s.id" 
+                                    class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden text-left origin-top-right ring-1 ring-black ring-opacity-5 focus:outline-none"
+                                    (click)="$event.stopPropagation()">
+                                    <div class="py-1">
+                                        <button (click)="openAsyncEmailModal(s)" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 flex items-center gap-3 transition-colors group/item">
+                                            <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover/item:text-indigo-500">send</span>
+                                            Envoyer le rapport
+                                        </button>
+                                        <button (click)="editAsyncSupervision(s)" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-indigo-600 flex items-center gap-3 transition-colors group/item">
+                                            <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover/item:text-indigo-500">edit</span>
+                                            Modifier
+                                        </button>
+                                    </div>
+                                    <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                                    <div class="py-1">
+                                        <button (click)="deleteAsync(s)" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 transition-colors group/item">
+                                            <span class="material-symbols-outlined text-[18px] text-red-400 group-hover/item:text-red-500">delete</span>
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Pagination -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200/60 dark:border-slate-700">
+    <div *ngIf="activeTab === 'synchrone'" class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200/60 dark:border-slate-700">
         <div class="text-sm text-slate-500 dark:text-slate-400">
             Affichage de <span class="font-bold text-slate-900 dark:text-white">{{ startItem }}</span> à <span class="font-bold text-slate-900 dark:text-white">{{ Math.min(startItem + itemsPerPage - 1, filteredSupervisions.length) }}</span> sur <span class="font-bold text-slate-900 dark:text-white">{{ filteredSupervisions.length }}</span> résultats
         </div>
@@ -341,6 +482,94 @@
         </div>
     </div>
 </div>
+
+    <!-- Async Supervision Details Modal -->
+    <div *ngIf="showAsyncModal && selectedAsyncSupervision"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="relative flex flex-col w-full max-w-4xl overflow-hidden shadow-2xl bg-white dark:bg-slate-800 rounded-3xl max-h-[90vh]">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center justify-center w-12 h-12 text-indigo-600 bg-indigo-100 rounded-2xl dark:bg-indigo-500/20 dark:text-indigo-400">
+                        <span class="material-symbols-outlined text-2xl">visibility</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Détails Supervision Asynchrone</h3>
+                        <p class="text-sm text-slate-500 mt-0.5">Réf: #{{ selectedAsyncSupervision.id ? selectedAsyncSupervision.id.substring(0, 8) : '' }} - Semaine {{ selectedAsyncSupervision.week }}</p>
+                    </div>
+                </div>
+                <button (click)="closeAsyncModal()" class="p-2.5 transition-colors rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 dark:hover:bg-slate-700">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 p-6 md:p-8 space-y-8 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Column 1 -->
+                    <div class="space-y-6">
+                        <!-- Enseignant & UE -->
+                        <div class="p-5 space-y-4 border border-slate-100 rounded-2xl bg-slate-50/50 dark:bg-slate-800/50 dark:border-slate-700">
+                            <div>
+                                <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Enseignant</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.teacher_name || selectedAsyncSupervision.teacherId || 'N/A' }}</div>
+                            </div>
+                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Module / UE</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.ue_name || selectedAsyncSupervision.ue_id || selectedAsyncSupervision.ueId || 'N/A' }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <h4 class="text-sm font-bold tracking-wider text-slate-500 uppercase flex items-center gap-2 mb-3">
+                                <span class="material-symbols-outlined text-lg">assignment</span>
+                                Statut
+                            </h4>
+                            <div class="p-4 border border-slate-100 rounded-2xl dark:border-slate-700 bg-white dark:bg-slate-800">
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold"
+                                    [ngClass]="{
+                                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400': selectedAsyncSupervision.status === 'Fait',
+                                        'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400': selectedAsyncSupervision.status === 'Partiel',
+                                        'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400': selectedAsyncSupervision.status === 'Non fait'
+                                    }">
+                                    {{ selectedAsyncSupervision.status || 'Non spécifié' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2 (Observations) -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-bold tracking-wider text-slate-500 uppercase flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg">comment</span>
+                            Observations et Recommandations
+                        </h4>
+                        <div class="p-5 border border-slate-100 dark:border-slate-700 rounded-2xl leading-relaxed text-[15px] text-slate-700 dark:text-slate-300 min-h-[240px] whitespace-pre-wrap bg-white dark:bg-slate-800">{{ selectedAsyncSupervision.observations || 'Aucune observation enregistrée.' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex flex-col-reverse sm:flex-row items-center justify-between p-6 gap-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80">
+                <button (click)="closeAsyncModal()" class="w-full sm:w-auto px-6 py-2.5 font-semibold text-slate-600 transition-colors bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white focus:ring-2 focus:ring-slate-200 outline-none">
+                    Fermer
+                </button>
+                <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
+                    <button (click)="printAsyncSupervision(selectedAsyncSupervision)"
+                        class="flex items-center justify-center px-6 py-2.5 font-semibold text-slate-700 transition-colors bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 focus:ring-2 focus:ring-slate-200 outline-none dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white">
+                        <span class="material-symbols-outlined text-[20px] mr-2">print</span>
+                        Imprimer
+                    </button>
+                    <button (click)="generateAsyncReportPDF(selectedAsyncSupervision)"
+                        class="flex items-center justify-center px-6 py-2.5 font-semibold text-white transition-all shadow-sm bg-indigo-600 rounded-xl hover:bg-indigo-700 hover:shadow shadow-indigo-200 dark:shadow-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 outline-none disabled:opacity-70 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[20px] mr-2">download</span>
+                        Télécharger PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- View Details Modal -->
     <div *ngIf="showModal && selectedSupervision"

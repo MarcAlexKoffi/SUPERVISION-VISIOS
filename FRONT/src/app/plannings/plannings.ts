@@ -7,6 +7,7 @@ import { TeacherService } from '../services/teacher.service';
 import { ToastService } from '../services/toast.service';
 import { ParcoursService } from '../services/parcours.service';
 import { ClasseService } from '../services/classe.service';
+import { NotificationService } from '../services/notification.service';
 import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -60,6 +61,7 @@ export class Plannings implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private toastService: ToastService,
     private parcoursService: ParcoursService,
+    private notificationService: NotificationService,
     private classeService: ClasseService
   ) {}
 

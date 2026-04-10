@@ -581,7 +581,7 @@
                         <span class="material-symbols-outlined text-[20px] mr-2">print</span>
                         Imprimer
                     </button>
-                    <button (click)="generateAsyncReportPDF(selectedAsyncSupervision)"
+                    <button (click)="downloadPDF(selectedAsyncSupervision)"
                         class="flex items-center justify-center px-6 py-2.5 font-semibold text-white transition-all shadow-sm bg-indigo-600 rounded-xl hover:bg-indigo-700 hover:shadow shadow-indigo-200 dark:shadow-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 outline-none disabled:opacity-70 disabled:cursor-not-allowed">
                         <span class="material-symbols-outlined text-[20px] mr-2">download</span>
                         Télécharger PDF
@@ -826,7 +826,7 @@
                         <span class="material-symbols-outlined text-[18px] mr-2 align-middle">print</span>
                         Imprimer
                     </button>
-                    <button (click)="printSupervision(selectedSupervision)"
+                    <button (click)="downloadPDF(selectedSupervision)"
                         class="px-5 py-2.5 font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a]">
                         <span class="material-symbols-outlined text-[18px] mr-2 align-middle">download</span>
                         Télécharger PDF

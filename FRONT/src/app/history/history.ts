@@ -215,6 +215,25 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
 
+  async downloadPDF(supervision: any) {
+    const isAsync = !!supervision.week;
+    if (isAsync) {
+      const dataUri = await this.generateAsyncReportPDF(supervision);
+      const link = document.createElement('a');
+      link.href = dataUri;
+      const safeWeek = (supervision.week || '').replace(/\//g, '-');
+      link.download = `Supervision_Asynchrone_${safeWeek}.pdf`;
+      link.click();
+    } else {
+      const dataUri = await this.generateReportPDF(supervision);
+      const link = document.createElement('a');
+      link.href = dataUri;
+      const dateStr = supervision.date ? new Date(supervision.date).toISOString().slice(0, 10) : 'Rapport';
+      link.download = `Supervision_${dateStr}.pdf`;
+      link.click();
+    }
+  }
+
   async generateReportPDF(s: any): Promise<string> {
       const doc = new jsPDF();
       
@@ -1182,7 +1201,6 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
 
     const safeWeek = (s.week || '').replace(/\//g, '-');
-    doc.save(`Supervision_Asynchrone_${safeWeek}.pdf`);
     return doc.output('datauristring');
   }
 

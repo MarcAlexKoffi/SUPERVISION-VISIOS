@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../services/user.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-users',
@@ -13,11 +14,13 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })
-export class UsersComponent implements OnInit {
+export class UsersComponent implements OnInit, OnDestroy {
   isModalOpen = false;
   isDeleteModalOpen = false;
   showPassword = false;
   isEditMode = false;
+
+  private subscriptions: Subscription = new Subscription();
 
   newUser: any = {
     username: '',
@@ -47,13 +50,19 @@ export class UsersComponent implements OnInit {
     this.loadUsers();
   }
 
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
   loadUsers() {
-    this.userService.getAll().subscribe({
-      next: (data) => {
-        this.users = data;
-      },
-      error: (err) => console.error('Erreur chargement utilisateurs', err)
-    });
+    this.subscriptions.add(
+      this.userService.getAll().subscribe({
+        next: (data) => {
+          this.users = data;
+        },
+        error: (err) => console.error('Erreur chargement utilisateurs', err)
+      })
+    );
   }
 
   openModal(user?: User) {
@@ -95,50 +104,56 @@ export class UsersComponent implements OnInit {
     }
 
     if (this.isEditMode) {
-      this.userService.update(this.newUser.id, this.newUser).subscribe({
-        next: () => {
-          this.loadUsers();
-          this.closeModal();
-        },
-        error: (err) => {
-          console.error('Erreur modification', err);
-          alert('Erreur lors de la modification de l\'utilisateur');
-        }
-      });
-    } else {
-      this.userService.create(this.newUser).subscribe({
-        next: () => {
-          this.loadUsers();
-          this.closeModal();
-        },
-        error: (err) => {
-          console.error('Erreur création', err);
-          let errorMsg = 'Erreur lors de la création de l\'utilisateur.';
-          if (err?.code === 'auth/email-already-in-use') {
-            errorMsg = 'Cet adresse email est déjà utilisée.';
-          } else if (err?.code === 'auth/weak-password') {
-            errorMsg = 'Le mot de passe doit contenir au moins 6 caractères.';
-          } else if (err?.code === 'auth/invalid-email') {
-            errorMsg = 'L\'adresse email est invalide.';
+      this.subscriptions.add(
+        this.userService.update(this.newUser.id, this.newUser).subscribe({
+          next: () => {
+            this.loadUsers();
+            this.closeModal();
+          },
+          error: (err) => {
+            console.error('Erreur modification', err);
+            alert('Erreur lors de la modification de l\'utilisateur');
           }
-          alert(errorMsg);
-        }
-      });
+        })
+      );
+    } else {
+      this.subscriptions.add(
+        this.userService.create(this.newUser).subscribe({
+          next: () => {
+            this.loadUsers();
+            this.closeModal();
+          },
+          error: (err) => {
+            console.error('Erreur création', err);
+            let errorMsg = 'Erreur lors de la création de l\'utilisateur.';
+            if (err?.code === 'auth/email-already-in-use') {
+              errorMsg = 'Cet adresse email est déjà utilisée.';
+            } else if (err?.code === 'auth/weak-password') {
+              errorMsg = 'Le mot de passe doit contenir au moins 6 caractères.';
+            } else if (err?.code === 'auth/invalid-email') {
+              errorMsg = 'L\'adresse email est invalide.';
+            }
+            alert(errorMsg);
+          }
+        })
+      );
     }
   }
 
   confirmDelete() {
     if (this.userToDelete && this.userToDelete.id) {
-      this.userService.delete(this.userToDelete.id).subscribe({
-        next: () => {
-          this.loadUsers();
-          this.closeDeleteModal();
-        },
-        error: (err) => {
-          console.error(err);
-          alert('Erreur lors de la suppression');
-        }
-      });
+      this.subscriptions.add(
+        this.userService.delete(this.userToDelete.id).subscribe({
+          next: () => {
+            this.loadUsers();
+            this.closeDeleteModal();
+          },
+          error: (err) => {
+            console.error(err);
+            alert('Erreur lors de la suppression');
+          }
+        })
+      );
     }
   }
 

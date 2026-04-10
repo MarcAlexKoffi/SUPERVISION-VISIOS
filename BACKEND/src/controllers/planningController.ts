@@ -15,17 +15,20 @@ export const createPlanning = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Les champs requis sont manquants (Classe, Enseignant, Date, Heure de fin).' });
     }
 
-    // Prepare denormalized data
+    // Prepare denormalized data concurrently to avoid N+1 delay
+    const [ueDoc, tDoc] = await Promise.all([
+      ue_id ? db.collection('ues').doc(ue_id).get() : Promise.resolve(null),
+      teacher_id ? db.collection('teachers').doc(teacher_id).get() : Promise.resolve(null)
+    ]);
+
     let ueData: any = {};
-    if (ue_id) {
-        const ueDoc = await db.collection('ues').doc(ue_id).get();
-        if (ueDoc.exists) ueData = { ue_code: ueDoc.data()?.code, ue_name: ueDoc.data()?.name };
+    if (ueDoc && ueDoc.exists) {
+        ueData = { ue_code: ueDoc.data()?.code, ue_name: ueDoc.data()?.name };
     }
 
     let teacherData: any = {};
-    if (teacher_id) {
-        const tDoc = await db.collection('teachers').doc(teacher_id).get();
-        if (tDoc.exists) teacherData = { teacher_first_name: tDoc.data()?.first_name, teacher_last_name: tDoc.data()?.last_name };
+    if (tDoc && tDoc.exists) {
+        teacherData = { teacher_first_name: tDoc.data()?.first_name, teacher_last_name: tDoc.data()?.last_name };
     }
 
     const newPlanning = {
@@ -77,7 +80,8 @@ export const getPlannings = async (req: AuthRequest, res: Response) => {
     // On évite le query.orderBy('date') ici qui peut aussi nécessiter un index composite
     // On fera le tri complet en mémoire
     
-    const snapshot = await query.get();
+    const limitParam = parseInt(req.query.limit as string) || 300;
+    const snapshot = await query.limit(limitParam).get();
     
     let rows = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 

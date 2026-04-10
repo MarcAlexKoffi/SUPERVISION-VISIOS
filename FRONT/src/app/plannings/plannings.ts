@@ -55,6 +55,8 @@ export class Plannings implements OnInit, OnDestroy {
   daysOfWeek: Date[] = [];
   calendarHours = Array.from({ length: 16 }, (_, i) => i + 8); // 8:00 to 24:00
 
+  private subscriptions: Subscription = new Subscription();
+
   constructor(
     private planningService: PlanningService,
     private ueService: UeService,
@@ -73,19 +75,22 @@ export class Plannings implements OnInit, OnDestroy {
   
   ngOnDestroy() {
       if (this.planningsSubscription) { this.planningsSubscription.unsubscribe(); }
+      this.subscriptions.unsubscribe();
   }
 
   loadParcours() {
-    this.parcoursService.getAll().subscribe({
-      next: (data) => {
-        this.parcoursList = data.map(p => p.name);
-        if (this.parcoursList.length > 0 && !this.selectedParcours) {
-            this.selectedParcours = this.parcoursList[0];
-            this.loadPlannings();
-        }
-      },
-      error: () => this.toastService.error('Erreur lors du chargement des parcours')
-    });
+    this.subscriptions.add(
+      this.parcoursService.getAll().subscribe({
+        next: (data) => {
+          this.parcoursList = data.map(p => p.name);
+          if (this.parcoursList.length > 0 && !this.selectedParcours) {
+              this.selectedParcours = this.parcoursList[0];
+              this.loadPlannings();
+          }
+        },
+        error: () => this.toastService.error('Erreur lors du chargement des parcours')
+      })
+    );
   }
 
   getEmptyPlanning(): Partial<Planning> {
@@ -97,18 +102,24 @@ export class Plannings implements OnInit, OnDestroy {
   }
 
   loadUesAndTeachers() {
-    this.ueService.getAll().subscribe({
-      next: (data) => (this.ues = data),
-      error: () => this.toastService.error('Erreur de chargement des UEs'),
-    });
-    this.teacherService.getAll().subscribe({
-      next: (data) => (this.teachers = data),
-      error: () => this.toastService.error('Erreur de chargement des enseignants'),
-    });
-    this.classeService.getAll().subscribe({
-      next: (data) => (this.databaseClasses = data),
-      error: () => this.toastService.error('Erreur de chargement des classes'),
-    });
+    this.subscriptions.add(
+      this.ueService.getAll().subscribe({
+        next: (data) => (this.ues = data),
+        error: () => this.toastService.error('Erreur de chargement des UEs'),
+      })
+    );
+    this.subscriptions.add(
+      this.teacherService.getAll().subscribe({
+        next: (data) => (this.teachers = data),
+        error: () => this.toastService.error('Erreur de chargement des enseignants'),
+      })
+    );
+    this.subscriptions.add(
+      this.classeService.getAll().subscribe({
+        next: (data) => (this.databaseClasses = data),
+        error: () => this.toastService.error('Erreur de chargement des classes'),
+      })
+    );
   }
 
   loadPlannings() {
@@ -231,6 +242,7 @@ export class Plannings implements OnInit, OnDestroy {
     }
 
     if (this.isEditMode && this.modalData.id) {
+      this.subscriptions.add(
       this.planningService.updatePlanning(this.modalData.id, this.modalData).subscribe({
         next: () => {
           this.toastService.success('Séance mise à jour');
@@ -238,8 +250,10 @@ export class Plannings implements OnInit, OnDestroy {
           this.loadPlannings();
         },
         error: () => this.toastService.error('Erreur lors de la mise à jour'),
-      });
+      })
+      );
     } else {
+      this.subscriptions.add(
       this.planningService.createPlanning(this.modalData as Planning).subscribe({
         next: () => {
           this.toastService.success('Séance ajoutée au planning');
@@ -247,31 +261,36 @@ export class Plannings implements OnInit, OnDestroy {
           this.loadPlannings();
         },
         error: () => this.toastService.error("Erreur lors de l'ajout de la séance"),
-      });
+      })
+      );
     }
   }
 
   deletePlanning(id: any) {
     if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
+      this.subscriptions.add(
       this.planningService.deletePlanning(String(id)).subscribe({
         next: () => {
           this.toastService.success('Séance supprimée');
           this.loadPlannings(); // This might be redundant if we use real-time listeners, but harmless for now.
         },
         error: () => this.toastService.error('Erreur de suppression'),
-      });
+      })
+      );
     }
   }
 
   changeStatus(planning: Planning, newStatus: Event | any) {
     const statusValue = (newStatus.target as HTMLSelectElement).value;
+    this.subscriptions.add(
     this.planningService.updatePlanning(planning.id!, { status: statusValue as any }).subscribe({
       next: () => {
         planning.status = statusValue as any;
         this.toastService.success('Statut mis à jour');
       },
       error: () => this.toastService.error('Erreur lors de la mise à jour du statut'),
-    });
+    })
+    );
   }
 
   // Exports and Print

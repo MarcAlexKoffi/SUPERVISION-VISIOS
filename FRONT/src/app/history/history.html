@@ -80,6 +80,7 @@
                 <th class="py-3 px-2 border-r border-black">Semaine</th>
                 <th class="py-3 px-2 border-r border-black" *ngIf="!filters.teacher">Enseignant</th>
                 <th class="py-3 px-2 border-r border-black text-center">Module/UE</th>
+                <th class="py-3 px-2 border-r border-black text-center">Classe</th>
                 <th class="py-3 px-2 border-r border-black text-center">Statut</th>
                 <th class="py-3 px-2 text-left">Observations</th>
             </tr>
@@ -88,15 +89,16 @@
             <tr *ngFor="let s of printAsyncSupervisions; let i = index" [class.bg-gray-50]="i % 2 !== 0"
                 class="border-b border-black">
                 <td class="py-2 px-2 border-r border-black font-medium">{{ s.week }}</td>
-                <td class="py-2 px-2 border-r border-black uppercase text-xs" *ngIf="!filters.teacher">{{ s.teacher_name || 'N/A' }}</td>
-                <td class="py-2 px-2 border-r border-black font-bold text-xs">{{ s.ue_id || s.ue_name || 'N/A' }}</td>
+                <td class="py-2 px-2 border-r border-black uppercase text-xs" *ngIf="!filters.teacher">{{ getAsyncTeacherName(s) }}</td>
+                <td class="py-2 px-2 border-r border-black font-bold text-xs">{{ getAsyncUeName(s) }}</td>
+                <td class="py-2 px-2 border-r border-black text-center text-xs">{{ s.classe_name || s.classe || 'Non spécifié' }}</td>
                 <td class="py-2 px-2 border-r border-black text-center text-xs">
-                    <span [class.text-green-600]="s.status === 'Fait'" [class.text-yellow-600]="s.status === 'Partiel'" [class.text-red-600]="s.status === 'Non fait'">{{ s.status }}</span>
+                    <span [class.text-green-600]="s.status === 'Réalisé' || s.status === 'Fait'" [class.text-yellow-600]="s.status === 'Partiellement réalisé' || s.status === 'Partiel'" [class.text-red-600]="s.status === 'Non réalisé' || s.status === 'Non fait'">{{ s.status === 'Fait' ? 'Réalisé' : (s.status === 'Partiel' ? 'Partiellement réalisé' : (s.status === 'Non fait' ? 'Non réalisé' : s.status)) }}</span>
                 </td>
                 <td class="py-2 px-2 text-left text-xs">{{ s.observations || '-' }}</td>
             </tr>
             <tr *ngIf="printAsyncSupervisions.length === 0">
-                <td [attr.colspan]="!filters.teacher ? 5 : 4"
+                <td [attr.colspan]="!filters.teacher ? 6 : 5"
                     class="p-8 text-center text-gray-500 italic border-l border-r border-black">Aucune supervision asynchrone pour ces critères.</td>
             </tr>
         </tbody>
@@ -384,7 +386,7 @@
                             <span class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ s.week }}</span>
                             <div class="flex items-center gap-1 mt-1">
                                 <span class="material-symbols-outlined text-[14px] text-slate-400">person</span>
-                                <span class="text-xs text-slate-500">{{ s.teacher_name || s.teacherId || 'N/A' }}</span>
+                                <span class="text-xs text-slate-500">{{ getAsyncTeacherName(s) }}</span>
                             </div>
                         </div>
                     </td>
@@ -392,11 +394,11 @@
                     <td class="bg-white dark:bg-slate-800 border-y border-slate-100 dark:border-slate-700 py-4 px-6 shadow-sm group-hover:shadow-md transition-shadow text-center">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
                             [ngClass]="{
-                                'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400': s.status === 'Fait',
-                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400': s.status === 'Partiel',
-                                'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400': s.status === 'Non fait'
+                                'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400': s.status === 'Réalisé' || s.status === 'Fait',
+                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400': s.status === 'Partiellement réalisé' || s.status === 'Partiel',
+                                'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400': s.status === 'Non réalisé' || s.status === 'Non fait'
                             }">
-                            {{ s.status }}
+                            {{ getStatusLabel(s.status) }}
                         </span>
                     </td>
                     
@@ -512,15 +514,21 @@
                         <div class="p-5 space-y-4 border border-slate-100 rounded-2xl bg-slate-50/50 dark:bg-slate-800/50 dark:border-slate-700">
                             <div>
                                 <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Enseignant</div>
-                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.teacher_name || selectedAsyncSupervision.teacherId || 'N/A' }}</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ getAsyncTeacherName(selectedAsyncSupervision) }}</div>
                             </div>
                             <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
                                 <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Module / UE</div>
-                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.ue_name || selectedAsyncSupervision.ue_id || selectedAsyncSupervision.ueId || 'N/A' }}</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ getAsyncUeName(selectedAsyncSupervision) }}</div>
+                            </div>
+                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Superviseur</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.supervisorName || 'Non spécifié' }}</div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Status -->
+                    <!-- Status & Information -->
+                    <div class="space-y-6">
                         <div>
                             <h4 class="text-sm font-bold tracking-wider text-slate-500 uppercase flex items-center gap-2 mb-3">
                                 <span class="material-symbols-outlined text-lg">assignment</span>
@@ -529,23 +537,35 @@
                             <div class="p-4 border border-slate-100 rounded-2xl dark:border-slate-700 bg-white dark:bg-slate-800">
                                 <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold"
                                     [ngClass]="{
-                                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400': selectedAsyncSupervision.status === 'Fait',
-                                        'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400': selectedAsyncSupervision.status === 'Partiel',
-                                        'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400': selectedAsyncSupervision.status === 'Non fait'
+                                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400': selectedAsyncSupervision.status === 'Réalisé' || selectedAsyncSupervision.status === 'Fait',
+                                        'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400': selectedAsyncSupervision.status === 'Partiellement réalisé' || selectedAsyncSupervision.status === 'Partiel',
+                                        'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400': selectedAsyncSupervision.status === 'Non réalisé' || selectedAsyncSupervision.status === 'Non fait'
                                     }">
-                                    {{ selectedAsyncSupervision.status || 'Non spécifié' }}
+                                      {{ getStatusLabel(selectedAsyncSupervision.status) }}
                                 </span>
+                            </div>
+                        </div>
+
+                        <!-- Extra details -->
+                        <div class="p-5 space-y-4 border border-slate-100 rounded-2xl bg-slate-50/50 dark:bg-slate-800/50 dark:border-slate-700">
+                            <div>
+                                <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Classe</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.classe || 'Non spécifiée' }}</div>
+                            </div>
+                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <div class="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Effectif</div>
+                                <div class="text-base font-semibold text-slate-900 dark:text-white">{{ selectedAsyncSupervision.effectif || 'Non spécifié' }}</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Column 2 (Observations) -->
-                    <div class="space-y-3">
+                    <!-- Column 1 (Observations) -->
+                    <div class="space-y-3 col-span-1 md:col-span-2">
                         <h4 class="text-sm font-bold tracking-wider text-slate-500 uppercase flex items-center gap-2">
                             <span class="material-symbols-outlined text-lg">comment</span>
                             Observations et Recommandations
                         </h4>
-                        <div class="p-5 border border-slate-100 dark:border-slate-700 rounded-2xl leading-relaxed text-[15px] text-slate-700 dark:text-slate-300 min-h-[240px] whitespace-pre-wrap bg-white dark:bg-slate-800">{{ selectedAsyncSupervision.observations || 'Aucune observation enregistrée.' }}</div>
+                        <div class="p-5 border border-slate-100 dark:border-slate-700 rounded-2xl leading-relaxed text-[15px] text-slate-700 dark:text-slate-300 min-h-[140px] whitespace-pre-wrap bg-white dark:bg-slate-800">{{ selectedAsyncSupervision.observations || 'Aucune observation enregistrée.' }}</div>
                     </div>
                 </div>
             </div>
@@ -605,7 +625,7 @@
                         </div>
                         <div class="flex items-center gap-2 text-xs text-slate-500">
                             <span class="material-symbols-outlined text-[14px]">schedule</span>
-                            {{ s.date | date:'HH:mm' }} - {{ s.endTime | date:'HH:mm' }}
+                            {{ s.startTimeStr }} - {{ s.endTimeStr }}
                         </div>
                     </div>
                 </div>
@@ -673,8 +693,7 @@
                             <div>
                                 <div class="text-xs font-bold text-slate-500 uppercase">Heure</div>
                                 <div class="font-medium text-slate-900 dark:text-white">
-                                    {{ selectedSupervision.date | date:'HH:mm' }} - {{ selectedSupervision.endTime |
-                                    date:'HH:mm' }}
+                                    {{ selectedSupervision.startTimeStr }} - {{ selectedSupervision.endTimeStr }}
                                 </div>
                             </div>
                             <!-- Participation -->

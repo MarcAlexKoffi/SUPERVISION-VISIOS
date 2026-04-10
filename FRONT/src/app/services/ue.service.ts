@@ -1,7 +1,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { Observable, of, from } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, shareReplay } from 'rxjs/operators';
 import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc, query, where, orderBy } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 
@@ -12,15 +12,18 @@ export class UeService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   
+  private cache$!: Observable<any[]>;
+
   constructor() { }
 
   getAll(): Observable<any[]> {
-    return this.authService.currentUser$.pipe(
-      switchMap(user => {
-        if (!user) return of([]);
-        
-        const uesCollection = collection(this.firestore, 'ues');
-        let q;
+    if (!this.cache$) {
+      this.cache$ = this.authService.currentUser$.pipe(
+        switchMap(user => {
+          if (!user) return of([]);
+          
+          const uesCollection = collection(this.firestore, 'ues');
+          let q;
         
         // Requête conditionnelle selon le rôle
         if (user.role === 'admin') {
@@ -32,8 +35,11 @@ export class UeService {
         return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
           map(ues => ues.sort((a, b) => (a.name || '').localeCompare(b.name || '')))
         );
-      })
+      }),
+      shareReplay(1)
     );
+    }
+    return this.cache$;
   }
 
   create(ue: any): Observable<any> {

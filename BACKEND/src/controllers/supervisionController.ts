@@ -59,6 +59,7 @@ export const getAllSupervisions = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const userRole = req.user?.role;
+    const limitParam = parseInt(req.query.limit as string) || 300; // Protège la RAM Node.js
     
     let query: FirebaseFirestore.Query = db.collection('supervisions');
 
@@ -74,6 +75,8 @@ export const getAllSupervisions = async (req: AuthRequest, res: Response) => {
     } catch (e) {
          console.warn("Sorting skipped or failed, check Firestore Indexes");
     }
+
+    query = query.limit(limitParam); // Exécution de la limite
 
     const snapshot = await query.get();
     

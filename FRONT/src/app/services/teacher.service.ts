@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -9,12 +10,19 @@ import { Observable, from } from 'rxjs';
 export class TeacherService {
   private firestore = inject(Firestore);
   
+  private cache$!: Observable<any[]>;
+
   constructor() { }
 
   getAll(): Observable<any[]> {
-    const teachersCollection = collection(this.firestore, 'teachers');
-    const q = query(teachersCollection, orderBy('last_name', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<any[]>;
+    if (!this.cache$) {
+      const teachersCollection = collection(this.firestore, 'teachers');
+      const q = query(teachersCollection, orderBy('last_name', 'asc'));
+      this.cache$ = (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.cache$;
   }
 
   getById(id: string): Observable<any> {

@@ -236,7 +236,7 @@
                             <span
                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs lg:text-sm font-bold {{ s.statusColor }}">
                                 <span class="w-1.5 h-1.5 rounded-full bg-current opacity-50"></span>
-                                {{ s.status }}
+                                {{ getStatusLabel(s.status) }}
                             </span>
                         </td>
                         <td class="p-4 text-right">
@@ -306,14 +306,14 @@
                         <div class="flex justify-between items-start mb-2">
                             <span class="text-xs font-bold text-slate-500">{{ s.date | date:'dd MMM yyyy' }}</span>
                             <span [class]="'px-2 py-0.5 rounded text-[10px] font-bold ' + s.statusColor">
-                                {{ s.status }}
+                                {{ getStatusLabel(s.status) }}
                             </span>
                         </div>
                         <div class="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1">{{ s.teacher.name }}
                         </div>
                         <div class="flex items-center gap-2 text-xs text-slate-500">
                             <span class="material-symbols-outlined text-[14px]">schedule</span>
-                            {{ s.date | date:'HH:mm' }} - {{ s.endTime | date:'HH:mm' }}
+                              {{ s.startTimeStr }} - {{ s.endTimeStr }}
                         </div>
                     </div>
                 </div>
@@ -381,8 +381,7 @@
                             <div>
                                 <div class="text-xs font-bold text-slate-500 uppercase">Heure</div>
                                 <div class="font-medium text-slate-900 dark:text-white">
-                                    {{ selectedSupervision.date | date:'HH:mm' }} - {{ selectedSupervision.endTime |
-                                    date:'HH:mm' }}
+                                    {{ selectedSupervision.startTimeStr }} - {{ selectedSupervision.endTimeStr }}
                                 </div>
                             </div>
                             <!-- Participation -->

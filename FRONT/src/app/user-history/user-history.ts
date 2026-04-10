@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-user-history',
@@ -13,7 +14,9 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
   templateUrl: './user-history.html',
   styleUrl: './user-history.scss',
 })
-export class UserHistoryComponent implements OnInit {
+export class UserHistoryComponent implements OnInit, OnDestroy {
+  private subscriptions: Subscription = new Subscription();
+  
   filters = {
     teacher: '',
     course: '',
@@ -121,19 +124,25 @@ export class UserHistoryComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
   loadHistory() {
     if (!this.currentUser) return;
 
     // Load only current user history
-    this.supervisionService.getAll(this.currentUser.id).subscribe({
-      next: (data) => {
-        console.log('Raw User History Data:', data);
-        this.supervisions = data.map((item: any) => this.mapToView(item));
-        this.updateFilters();
-        this.applyFilters();
-      },
-      error: (err) => console.error('Failed to load history', err)
-    });
+    this.subscriptions.add(
+      this.supervisionService.getAll(this.currentUser.id).subscribe({
+        next: (data) => {
+          console.log('Raw User History Data:', data);
+          this.supervisions = data.map((item: any) => this.mapToView(item));
+          this.updateFilters();
+          this.applyFilters();
+        },
+        error: (err) => console.error('Failed to load history', err)
+      })
+    );
   }
 
   updateFilters() {
@@ -316,23 +325,25 @@ export class UserHistoryComponent implements OnInit {
   confirmDelete() {
     if (!this.supervisionToDelete) return;
 
-    this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
-      next: () => {
-        this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
-        this.updateFilters();
-        this.applyFilters();
-        this.cancelDelete();
-      },
-      error: (err) => {
-        console.error('Error deleting supervision', err);
-        if (err.status === 403) {
-          alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
-        } else {
-          alert('Erreur lors de la suppression');
+    this.subscriptions.add(
+      this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
+        next: () => {
+          this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
+          this.updateFilters();
+          this.applyFilters();
+          this.cancelDelete();
+        },
+        error: (err) => {
+          console.error('Error deleting supervision', err);
+          if (err.status === 403) {
+            alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
+          } else {
+            alert('Erreur lors de la suppression');
+          }
+          this.cancelDelete();
         }
-        this.cancelDelete();
-      }
-    });
+      })
+    );
   }
 
   cancelDelete() {
@@ -572,5 +583,11 @@ export class UserHistoryComponent implements OnInit {
     if (p.includes('teams')) return 'bg-indigo-100 text-indigo-600';
     if (p.includes('meet')) return 'bg-green-100 text-green-600';
     return 'bg-gray-100 text-gray-600';
+  }
+  getStatusLabel(status: string): string {
+    if (status === 'Fait' || status === 'Réalisé') return 'Réalisé';
+    if (status === 'Partiel' || status === 'Partiellement réalisé') return 'Partiellement réalisé';
+    if (status === 'Non fait' || status === 'Non réalisé') return 'Non réalisé';
+    return status || 'Non spécifié';
   }
 } // End UserHistoryComponent

@@ -101,17 +101,21 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   loadUes() {
-    this.ueService.getAll().subscribe({
-      next: (data) => this.uesData = data,
-      error: () => console.error('Error loading UEs for lookup')
-    });
+    this.subscriptions.add(
+      this.ueService.getAll().subscribe({
+        next: (data) => this.uesData = data,
+        error: () => console.error('Error loading UEs for lookup')
+      })
+    );
   }
 
   loadTeachers() {
-    this.teacherService.getAll().subscribe({
-      next: (data) => this.teachersData = data,
-      error: () => console.error('Error loading teachers for email lookup')
-    });
+    this.subscriptions.add(
+      this.teacherService.getAll().subscribe({
+        next: (data) => this.teachersData = data,
+        error: () => console.error('Error loading teachers for email lookup')
+      })
+    );
   }
 
   editSupervision(supervision: any) {
@@ -170,6 +174,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
         
         console.log(`Envoi du rapport pour ID=${supervision.id} à ${teacherEmail}`);
 
+        this.subscriptions.add(
         this.supervisionService.sendReport(supervision.id, {
             pdfBase64: pdfBase64.split(',')[1],
             teacherEmail: teacherEmail,
@@ -185,7 +190,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
                 this.toastService.error("Erreur lors de l'envoi du rapport.");
                 this.isSendingEmail = false;
             }
-        });
+        })
+        );
 
     } catch (e) {
         console.error(e);
@@ -504,6 +510,28 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   
+  getAsyncTeacherName(s: any): string {
+    if (s.teacher_name && s.teacher_name !== s.teacher_id && s.teacher_name !== s.teacherId) return s.teacher_name;
+    const tId = s.teacherId || s.teacher_id;
+    if (!tId) return 'N/A';
+    const teacher = this.teachersData?.find(t => t.id === tId);
+    if (teacher) {
+        return teacher.name || (teacher.first_name ? teacher.first_name + ' ' + teacher.last_name : '') || tId;
+    }
+    return tId;
+  }
+
+  getAsyncUeName(s: any): string {
+    const uId = (typeof s === 'string' ? s : null) || s.ueId || s.ue_id;
+    if (s && s.ue_name && s.ue_name !== uId) return s.ue_name;
+    if (!uId) return 'N/A';
+    const ue = this.uesData?.find(u => u.id === uId || u.code === uId);
+    if (ue) {
+        return ue.name || ue.nom || ue.code || uId;
+    }
+    return uId;
+  }
+
   loadAsyncHistory() {
     this.subscriptions.add(
       this.asyncSupervisionService.getAll().subscribe({
@@ -522,7 +550,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
       return {
         ...s,
         teacher_name: teacher ? (teacher.name || teacher.first_name + ' ' + teacher.last_name) : s.teacher_id,
-        ue_name: s.ue_id
+        ue_name: s.ue_id || s.ueId
       };
     });
   }
@@ -532,9 +560,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
     // Call API instead of localStorage
     const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
     
-    this.supervisionService.getAll(userId).subscribe({
-      next: (data) => {
-        console.log('Raw History Data:', data);
+    this.subscriptions.add(
+      this.supervisionService.getAll(userId).subscribe({
+        next: (data) => {
+          console.log('Raw History Data:', data);
         this.supervisions = data.map((item: any) => this.mapToView(item));
         console.log('Mapped History Data:', this.supervisions);
         this.updateFilters();
@@ -542,7 +571,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges(); // Force update just in case
       },
       error: (err) => console.error('Failed to load history', err)
-    });
+      })
+    );
   }
 
   updateFilters() {
@@ -651,8 +681,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
 
     const signatures = {
-      supervisor: data.supervisor_signature || (data.signatures && data.signatures.supervisor),
-      teacher: data.teacher_signature || (data.signatures && data.signatures.teacher)
+      supervisor: data.supervisorSignature || data.supervisor_signature || (data.signatures && data.signatures.supervisor),
+      teacher: data.teacherSignature || data.teacher_signature || (data.signatures && data.signatures.teacher)
     };
 
     const technical = {
@@ -751,40 +781,44 @@ export class HistoryComponent implements OnInit, OnDestroy {
     if (!this.supervisionToDelete) return;
 
     if (this.activeTab === 'synchrone') {
-      this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
-        next: () => {
-          this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
-          this.updateFilters();
-          this.applyFilters();
-          this.cancelDelete();
-        },
-        error: (err) => {
-          console.error('Error deleting supervision', err);
-          if (err.status === 403) {
-            alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
-          } else {
-            alert('Erreur lors de la suppression');
+      this.subscriptions.add(
+        this.supervisionService.delete(this.supervisionToDelete.id).subscribe({
+          next: () => {
+            this.supervisions = this.supervisions.filter(s => s.id !== this.supervisionToDelete.id);
+            this.updateFilters();
+            this.applyFilters();
+            this.cancelDelete();
+          },
+          error: (err) => {
+            console.error('Error deleting supervision', err);
+            if (err.status === 403) {
+              alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
+            } else {
+              alert('Erreur lors de la suppression');
+            }
+            this.cancelDelete();
           }
-          this.cancelDelete();
-        }
-      });
+        })
+      );
     } else {
-      this.asyncSupervisionService.delete(this.supervisionToDelete.id).subscribe({
-        next: () => {
-          this.asyncSupervisions = this.asyncSupervisions.filter(s => s.id !== this.supervisionToDelete.id);
-          this.filteredAsyncSupervisions = [...this.asyncSupervisions];
-          this.cancelDelete();
-        },
-        error: (err) => {
-          console.error('Error deleting async supervision', err);
-          if (err.code === 'permission-denied') {
-            alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
-          } else {
-            alert('Erreur lors de la suppression');
+      this.subscriptions.add(
+        this.asyncSupervisionService.delete(this.supervisionToDelete.id).subscribe({
+          next: () => {
+            this.asyncSupervisions = this.asyncSupervisions.filter(s => s.id !== this.supervisionToDelete.id);
+            this.filteredAsyncSupervisions = [...this.asyncSupervisions];
+            this.cancelDelete();
+          },
+          error: (err) => {
+            console.error('Error deleting async supervision', err);
+            if (err.code === 'permission-denied') {
+              alert('Vous n\'avez pas les droits pour supprimer cet enregistrement.');
+            } else {
+              alert('Erreur lors de la suppression');
+            }
+            this.cancelDelete();
           }
-          this.cancelDelete();
-        }
-      });
+        })
+      );
     }
   }
 
@@ -1033,72 +1067,123 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   async generateAsyncReportPDF(s: any): Promise<string> {
-      const doc = new jsPDF();
-      
-      // -- Header --
-      doc.setFillColor(248, 250, 252);
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(15, 66, 165); // #0f42a5
-      doc.text("FICHE DE SUPERVISION ASYNCHRONE", 105, 20, { align: 'center' });
-      
-      // -- General Info Box --
-      let y = 50;
-      doc.setDrawColor(200);
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(14, y, 182, 45, 3, 3, 'FD');
-      
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 41, 59);
-      doc.text("Informations GÃ©nÃ©rales", 20, y + 10);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(71, 85, 105);
-      
-      const teacherName = s.teacher_name || s.teacherId || 'Non spÃ©cifiÃ©';
-      const ueName = s.ue_id || s.ueId || s.ue_name || 'Non spÃ©cifiÃ©';
+    const doc = new jsPDF() as any;
+    
+    // -- Header --
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 66, 165); // #0f42a5
+    doc.text("FICHE DE SUPERVISION ASYNCHRONE", 105, 20, { align: 'center' });
+    
+    // -- General Info Box --
+    let y = 50;
+    doc.setDrawColor(200);
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(14, y, 182, 55, 3, 3, 'FD');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text("Informations Générales", 20, y + 10);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    
+    const teacherName = this.getAsyncTeacherName(s.teacher_id) || s.teacher_name || s.teacherId || 'Non spécifié';
+    const ueName = this.getAsyncUeName(s) || s.ue_id || s.ueId || s.ue_name || 'Non spécifié';
+    const printedStatus = this.getStatusLabel(s.status);
 
-      doc.text(`Enseignant: ${teacherName}`, 20, y + 20);
-      doc.text(`Module / UE: ${ueName}`, 20, y + 28);
-      doc.text(`Semaine concernÃ©e: ${s.week}`, 20, y + 36);
+    doc.text(`Enseignant: ${teacherName}`, 20, y + 20);
+    doc.text(`Module / UE: ${ueName}`, 20, y + 28);
+    doc.text(`Semaine concernée: ${s.week}`, 20, y + 36);
+    doc.text(`Classe: ${s.classe_name || s.classe || 'Non spécifié'}`, 20, y + 44);
+    doc.text(`Effectif: ${s.effectif || 'Non spécifié'}`, 130, y + 44);
 
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Statut: ${s.status || '-'}`, 130, y + 20);
-      doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica', 'bold');
+    
+    let statusColor = [100, 116, 139]; // default
+    if (s.status === 'Réalisé' || s.status === 'Fait') {
+      statusColor = [22, 163, 74]; // green
+    } else if (s.status === 'Partiellement réalisé' || s.status === 'Partiel') {
+      statusColor = [202, 138, 4]; // yellow
+    } else if (s.status === 'Non réalisé' || s.status === 'Non fait') {
+      statusColor = [220, 38, 38]; // red
+    }
+    
+    doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+    doc.text(`Statut: ${printedStatus}`, 130, y + 20);
+    doc.setTextColor(71, 85, 105);
+    doc.setFont('helvetica', 'normal');
 
-      y += 55;
-      
-      // -- Observations --
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 41, 59);
-      doc.text("Observations et recommandations", 14, y);
-      
-      y += 6;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(71, 85, 105);
-      const obsLines = doc.splitTextToSize(s.observations || "Aucune observation n'a Ã©tÃ© signalÃ©e.", 182);
-      doc.text(obsLines, 14, y);
-      
-      y += obsLines.length * 5 + 10;
+    y += 65;
+    
+    // -- Observations --
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text("Observations et recommandations", 14, y);
+    
+    y += 6;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    const obsLines = doc.splitTextToSize(s.observations || "Aucune observation n'a été signalée.", 182);
+    
+    // Check page break
+    if (y + (obsLines.length * 5) > 280) {
+      doc.addPage();
+      y = 20;
+    }
+    
+    doc.text(obsLines, 14, y + 4);
+    
+    y += (obsLines.length * 5) + 30;
+    
+    // Signatures
+    // Check page break
+    if (y + 50 > 280) {
+        doc.addPage();
+        y = 20;
+    }
 
-      // -- Footer Signatures --
-      y += 20;
-      doc.setDrawColor(226, 232, 240);
-      doc.line(14, y, 196, y);
-      
-      y += 10;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 41, 59);
-      doc.text("Signature Administration", 14, y);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Le Superviseur", 30, y);
+    
+    doc.text("L'Enseignant", 130, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
 
-      return doc.output('datauristring');
+    const supName = s.supervisorName || this.currentUser?.name || '';
+    if(supName) {
+        doc.text(supName, 30, y + 10);
+    }
+    if (s.supervisorSignature) {
+        try {
+            doc.addImage(s.supervisorSignature, 'PNG', 30, y + 15, 40, 20);
+        } catch (e) {
+            console.error("Could not add supervisor signature", e);
+        }
+    }
+
+    if(teacherName) {
+        doc.text(teacherName, 130, y + 10);
+    }
+    if (s.teacherSignature) {
+        try {
+            doc.addImage(s.teacherSignature, 'PNG', 130, y + 15, 40, 20);
+        } catch (e) {
+            console.error("Could not add teacher signature", e);
+        }
+    }
+
+    const safeWeek = (s.week || '').replace(/\//g, '-');
+    doc.save(`Supervision_Asynchrone_${safeWeek}.pdf`);
+    return doc.output('datauristring');
   }
 
   printAsyncSupervision(supervision: any) {
@@ -1109,14 +1194,16 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
 
     const s = supervision;
-    const teacherName = s.teacher_name || s.teacherId || 'N/A';
-    const ueName = s.ue_id || s.ueId || s.ue_name || 'N/A';
+    const teacherName = this.getAsyncTeacherName(s) || s.teacher_name || 'Non spécifié';
+    const ueName = this.getAsyncUeName(s) || s.ue_id || s.ue_name || 'Non spécifié';
+    const printedStatus = this.getStatusLabel(s.status);
 
     const content = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Fiche de Supervision Asynchrone - ${s.week}</title>
+        <meta charset="utf-8">
+        <title>Fiche de Supervision Asynchrone - ${s.week || ''}</title>
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; line-height: 1.6; }
           .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #0f42a5; }
@@ -1137,46 +1224,61 @@ export class HistoryComponent implements OnInit, OnDestroy {
       <body>
         <div class="header">
           <h1>Fiche de Supervision Asynchrone</h1>
-          <p>Document officiel certifiant la vÃ©rification de suivi asynchrone</p>
+          <p>Document officiel certifiant la vérification de suivi asynchrone</p>
         </div>
         
         <div class="info-box">
           <div class="info-item">
             <div class="info-label">Enseignant</div>
-            <div class="info-value">${teacherName}</div>
+            <div class="info-value">${teacherName || ''}</div>
           </div>
           <div class="info-item">
             <div class="info-label">Statut</div>
-            <div class="info-value" style="color: ${s.status === 'Fait' ? '#16a34a' : (s.status === 'Partiel' ? '#ca8a04' : '#dc2626')}">${s.status}</div>
+            <div class="info-value" style="color: ${['Réalisé', 'Fait'].includes(s.status) ? '#16a34a' : (['Partiellement réalisé', 'Partiel'].includes(s.status) ? '#ca8a04' : '#dc2626')}">${printedStatus || ''}</div>
           </div>
           <div class="info-item">
-            <div class="info-label">Modue / UE</div>
-            <div class="info-value">${ueName}</div>
+            <div class="info-label">Module / UE</div>
+            <div class="info-value">${ueName || ''}</div>
           </div>
           <div class="info-item">
-            <div class="info-label">PÃ©riode / Semaine</div>
-            <div class="info-value">${s.week}</div>
+            <div class="info-label">Période / Semaine</div>
+            <div class="info-value">${s.week || ''}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Classe</div>
+            <div class="info-value">${s.classe || s.classe_name || 'Non spécifié'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Effectif</div>
+            <div class="info-value">${s.effectif || 'Non spécifié'}</div>
           </div>
         </div>
         
         <div class="section">
           <div class="section-title">Observations et recommandations</div>
           <div class="observations-box">
-            ${s.observations ? s.observations.replace(/\n/g, '<br>') : '<span style="color:#94a3b8;font-style:italic;">Aucune observation n\'a Ã©tÃ© rÃ©digÃ©e pour cette supervision.</span>'}
+            ${s.observations ? s.observations.replace(/\n/g, '<br>') : '<span style="color:#94a3b8;font-style:italic;">Aucune observation n\'a été rédigée pour cette supervision.</span>'}
           </div>
         </div>
 
         <div class="signatures">
           <div class="signature-box">
-            Administration
+            Superviseur<br>
+            <span style="font-weight: normal; font-size: 14px;">${s.supervisorName || this.currentUser?.name || ''}</span>
+            ${s.supervisorSignature ? `<br><img src="${s.supervisorSignature}" alt="Signature Superviseur" style="max-height: 50px; margin-top: 10px;">` : ''}
           </div>
           <div class="signature-box">
+            Enseignant<br>
+            <span style="font-weight: normal; font-size: 14px;">${teacherName || ''}</span>
+            ${s.teacherSignature ? `<br><img src="${s.teacherSignature}" alt="Signature Enseignant" style="max-height: 50px; margin-top: 10px;">` : ''}
           </div>
         </div>
         
         <script>
           window.onload = function() {
-            window.print();
+            setTimeout(function() {
+              window.print();
+            }, 500);
           };
         </script>
       </body>
@@ -1187,4 +1289,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
     printWindow.document.close();
   }
 
+  getStatusLabel(status: string): string {
+    if (status === 'Fait' || status === 'Réalisé') return 'Réalisé';
+    if (status === 'Partiel' || status === 'Partiellement réalisé') return 'Partiellement réalisé';
+    if (status === 'Non fait' || status === 'Non réalisé') return 'Non réalisé';
+    return status || 'Non spécifié';
+  }
 }

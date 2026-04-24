@@ -112,6 +112,21 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé.' });
     }
 
+    // Supprimer le compte Firebase Auth
+    const { auth } = require('../config/db');
+    try {
+      await auth.deleteUser(userId);
+      console.log(`Successfully deleted user from Firebase Auth: ${userId}`);
+    } catch (authError: any) {
+      // Ignorer si l'utilisateur n'existe pas dans Auth, on veut quand même supprimer le profil Firestore
+      if (authError.code !== 'auth/user-not-found') {
+        console.error('Erreur lors de la suppression Auth:', authError);
+        return res.status(500).json({ message: 'Erreur lors de la suppression du compte d\'authentification.' });
+      }
+      console.log(`User not found in Firebase Auth: ${userId}, proceeding with Firestore deletion.`);
+    }
+
+    // Supprimer le profil Firestore
     await userRef.delete();
 
     res.json({ message: 'Utilisateur supprimé.' });

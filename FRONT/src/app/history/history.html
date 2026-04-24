@@ -123,6 +123,12 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <button *ngIf="filters.teacher && filters.course" 
+                (click)="genererHonoraires()"
+                class="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-emerald-600 bg-white border border-emerald-200 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm focus:ring-2 focus:ring-emerald-100 dark:bg-slate-800 dark:text-emerald-400 dark:border-slate-700 dark:hover:bg-slate-700">
+                <span class="material-symbols-outlined text-[20px]">request_quote</span>
+                <span class="hidden sm:inline">Fiche Honoraires</span>
+            </button>
             <button (click)="exportCSV()"
                 class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm focus:ring-2 focus:ring-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-slate-700">
                 <span class="material-symbols-outlined text-[20px]">file_download</span>

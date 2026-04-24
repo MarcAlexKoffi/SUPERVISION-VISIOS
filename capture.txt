@@ -1,0 +1,36 @@
+﻿  formatEval(val: string): string {
+      if (!val) return '-';
+      const map: any = {
+          'conforme': 'Conforme', 'a_ameliorer': 'À améliorer', 'non_conforme': 'Non Conforme',
+          'excellent': 'Excellent', 'satisfaisant': 'Satisfaisant', 'insuffisant': 'Insuffisant'
+      };
+      return map[val] || val;
+  }
+  
+  genererHonoraires() {
+    this.router.navigate(['/admin/honoraires'], {
+      queryParams: {
+        teacher: this.filters.teacher,
+        course: this.filters.course,
+        start: this.filters.startDate,
+        end: this.filters.endDate
+      }
+    });
+  }
+
+  exportCSV() {
+    // ... logic for export CSV
+  }
+
+  genererHonoraires() {
+    if (!this.filters.teacher || !this.filters.course) {
+      this.toastService.error("Veuillez sélectionner un enseignant et un cours.");
+      return;
+    }
+    
+    this.router.navigate(['/admin/honoraires'], {
+      queryParams: {
+        teacher: this.filters.teacher,
+        course: this.filters.course,
+        start: this.filters.startDate,
+        end: this.filters.endDate

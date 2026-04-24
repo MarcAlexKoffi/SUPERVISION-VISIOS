@@ -18,6 +18,7 @@ export const routes: Routes = [
         children: [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             { path: 'dashboard', loadComponent: () => import('./dashboard-home/dashboard-home').then(m => m.DashboardHome) },
+            { path: 'honoraires', loadComponent: () => import('./honoraires/honoraires').then(m => m.HonorairesComponent) },
             { path: 'users', loadComponent: () => import('./users/users').then(m => m.UsersComponent) }, // Ideally protect this with RoleGuard
             { path: 'teachers', loadComponent: () => import('./teachers/teachers').then(m => m.TeachersComponent) },
             { path: 'ues', loadComponent: () => import('./ues/ues').then(m => m.UesComponent) },

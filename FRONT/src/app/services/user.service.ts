@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
 import { filter, take, switchMap, map } from 'rxjs/operators';
@@ -22,6 +23,7 @@ export interface User {
 export class UserService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private http = inject(HttpClient);
 
   constructor() { }
 
@@ -92,10 +94,9 @@ export class UserService {
     return from(updateDoc(docRef, userData));
   }
 
-  // NOTE: This only deletes the Firestore document. The Auth user remains.
+  // NOTE: This deletes the Firestore document AND the Auth user via backend.
   delete(id: string): Observable<void> {
-    const docRef = doc(this.firestore, `users/${id}`);
-    return from(deleteDoc(docRef));
+    return this.http.delete<void>(`${environment.apiUrl}/users/${id}`);
   }
 
   getById(id: string): Observable<User> {

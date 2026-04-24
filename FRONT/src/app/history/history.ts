@@ -421,7 +421,23 @@ export class HistoryComponent implements OnInit, OnDestroy {
       };
       return map[val] || val;
   }
-  
+
+  genererHonoraires() {
+    if (!this.filters.teacher || !this.filters.course) {
+      this.toastService.error("Veuillez sélectionner un enseignant et un cours.");
+      return;
+    }
+    
+    this.router.navigate(['/admin/honoraires'], {
+      queryParams: {
+        teacher: this.filters.teacher,
+        course: this.filters.course,
+        start: this.filters.startDate,
+        end: this.filters.endDate
+      }
+    });
+  }
+
   exportCSV() {
     if (this.filteredSupervisions.length === 0) return;
     
@@ -557,6 +573,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.asyncSupervisions = data;
           this.filteredAsyncSupervisions = [...this.asyncSupervisions];
+          this.updateFilters();
+          this.applyFilters();
         },
         error: (err: any) => console.error("Erreur chargement Async Supervisions", err)
       })
@@ -595,9 +613,19 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   updateFilters() {
-    // Extract unique teachers and courses for filter dropdowns
-    const historyTeachers = this.supervisions.map(s => s.teacher.name).filter(Boolean);
-    const historyCourses = this.supervisions.map(s => s.course.name).filter(Boolean);
+    // Extract unique teachers and courses for filter dropdowns form both sync and async
+    let historyTeachers: string[] = [];
+    let historyCourses: string[] = [];
+
+    if (this.supervisions) {
+      historyTeachers = historyTeachers.concat(this.supervisions.map(s => s.teacher.name).filter(Boolean));
+      historyCourses = historyCourses.concat(this.supervisions.map(s => s.course.name).filter(Boolean));
+    }
+
+    if (this.asyncSupervisions) {
+       historyTeachers = historyTeachers.concat(this.asyncSupervisions.map(s => this.getAsyncTeacherName(s)).filter(Boolean));
+       historyCourses = historyCourses.concat(this.asyncSupervisions.map(s => this.getAsyncUeName(s)).filter(Boolean));
+    }
 
     this.teachers = [...new Set(historyTeachers)].sort();
     this.courses = [...new Set(historyCourses)].sort();
@@ -609,6 +637,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   applyFilters() {
+    // 1. Filtrer les supervisions synchrones
     this.filteredSupervisions = this.supervisions.filter(s => {
       // Teacher Filter
       const matchTeacher = !this.filters.teacher || s.teacher.name === this.filters.teacher;
@@ -635,6 +664,55 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
       return matchTeacher && matchCourse && matchDate;
     });
+
+    // 2. Filtrer les supervisions asynchrones
+    if (this.asyncSupervisions) {
+      this.filteredAsyncSupervisions = this.asyncSupervisions.filter(s => {
+        // Teacher Filter
+        const tName = this.getAsyncTeacherName(s);
+        const matchTeacher = !this.filters.teacher || tName === this.filters.teacher;
+
+        // Course Filter
+        const uName = this.getAsyncUeName(s);
+        const matchCourse = !this.filters.course || uName === this.filters.course;
+
+        // Date Filter
+        let matchDate = true;
+        let itemDate: Date | null = null;
+        
+        if (s.created_at) {
+          if (typeof s.created_at.toDate === 'function') {
+            itemDate = s.created_at.toDate();
+          } else if (s.created_at.seconds) {
+            itemDate = new Date(s.created_at.seconds * 1000);
+          } else {
+            itemDate = new Date(s.created_at);
+          }
+        } else if (s.date) {
+            itemDate = new Date(s.date);
+        }
+
+        if (itemDate && !isNaN(itemDate.getTime())) {
+          itemDate.setHours(0, 0, 0, 0);
+
+          if (this.filters.startDate) {
+            const start = new Date(this.filters.startDate);
+            start.setHours(0, 0, 0, 0);
+            matchDate = matchDate && itemDate >= start;
+          }
+
+          if (this.filters.endDate) {
+            const end = new Date(this.filters.endDate);
+            end.setHours(23, 59, 59, 999);
+            matchDate = matchDate && itemDate <= end;
+          }
+        } else if (this.filters.startDate || this.filters.endDate) {
+          matchDate = false; // No valid date to match against the date filter
+        }
+
+        return matchTeacher && matchCourse && matchDate;
+      });
+    }
 
     this.currentPage = 1; // Reset to page 1 on filter change
   }

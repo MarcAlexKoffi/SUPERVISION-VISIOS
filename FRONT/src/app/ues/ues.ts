@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
@@ -48,7 +48,8 @@ export class UesComponent implements OnInit {
     private ueService: UeService,
     private parcoursService: ParcoursService,
     private teacherService: TeacherService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -63,6 +64,7 @@ export class UesComponent implements OnInit {
     this.parcoursService.getAll().subscribe({
       next: (data) => {
         this.parcoursList = data;
+        this.cdr.detectChanges();
         console.log('Parcours loaded:', data);
       },
       error: (err) => console.error('Erreur loading parcours', err)
@@ -73,6 +75,7 @@ export class UesComponent implements OnInit {
     this.teacherService.getAll().subscribe({
       next: (data) => {
          this.teachers = data;
+         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading teachers', err)
     });
@@ -82,6 +85,7 @@ export class UesComponent implements OnInit {
     this.ueService.getAll().subscribe({
       next: (data) => {
         this.ues = data;
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Erreur chargement UEs', err)
     });

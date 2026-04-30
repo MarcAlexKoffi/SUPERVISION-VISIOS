@@ -1,0 +1,133 @@
+<div class="p-6 max-w-7xl mx-auto space-y-8 bg-slate-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold text-[#0A1629]">Gestion des Classes</h1>
+      <p class="text-slate-500 mt-2 text-base">Gérez les cohortes, les affectations des étudiants et les parcours académiques.</p>
+    </div>
+    <button (click)="openAddModal()" class="px-5 py-2.5 bg-[#0047FF] hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm">
+      <span class="material-symbols-outlined text-[20px]">add</span>
+      Ajouter une classe
+    </button>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let c of classesList" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col relative group">
+      
+      <!-- Actions hover -->
+      <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+        <button (click)="editClasse(c)" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
+          <span class="material-symbols-outlined text-[20px]">edit</span>
+        </button>
+        <button (click)="confirmDeleteClasse(c)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer">
+          <span class="material-symbols-outlined text-[20px]">delete</span>
+        </button>
+      </div>
+
+      <!-- Card Header -->
+      <div class="flex items-start gap-4 mb-6 pr-14">
+        <div class="w-12 h-12 rounded-xl bg-[#E6F0FF] flex items-center justify-center text-slate-600 shrink-0">
+          <span class="material-symbols-outlined text-[24px]">folder_shared</span>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-slate-800 leading-tight w-full break-words">{{ c.name }}</h2>
+          <p *ngIf="getNiveau(c.name)" class="text-xs font-semibold text-slate-500 tracking-wider uppercase mt-1">{{ getNiveau(c.name) }}</p>
+        </div>
+      </div>
+
+      <!-- Effectif -->
+      <div class="flex items-center justify-between mb-6">
+        <span class="text-sm text-slate-600">Effectif</span>
+        <span class="text-sm font-semibold text-[#0047FF] bg-[#0047FF]/10 px-3 py-1 rounded-full">
+          {{ c.effectif }} Étudiants
+        </span>
+      </div>
+
+      <!-- Divider -->
+      <div class="h-px bg-slate-100 w-full mb-4"></div>
+
+      <!-- Parcours relié -->
+      <div class="flex-1">
+        <p class="text-xs text-slate-500 mb-1">Parcours relié</p>
+        <p class="text-sm text-slate-800 font-medium">
+          {{ c.parcours_name || getParcoursName(c.parcours_id) || 'Aucun parcours' }}
+        </p>
+      </div>
+    </div>
+    
+    <!-- Empty state -->
+    <div *ngIf="classesList.length === 0" class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center">
+      <span class="material-symbols-outlined text-4xl text-slate-300 mb-3">folder_open</span>
+      <h3 class="text-lg font-semibold text-slate-700 mb-1">Aucune classe pour le moment</h3>
+      <p class="text-sm text-slate-500 mb-4">Commencez par ajouter votre première classe.</p>
+      <button (click)="openAddModal()" class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-semibold hover:bg-blue-100 transition-colors inline-block">
+        Créer une classe
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ajout / Modif -->
+<div *ngIf="isFormModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+    <!-- Modal header -->
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+      <h3 class="text-lg font-bold text-slate-800">
+        {{ isEditingClasse ? 'Modifier la classe' : 'Ajouter une classe' }}
+      </h3>
+      <button (click)="cancelEditClasse()" class="text-slate-400 hover:text-slate-600 transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Form content -->
+    <div class="p-6 flex-1 overflow-y-auto">
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Nom de la classe</label>
+          <input type="text" [(ngModel)]="newClasse.name" placeholder="Ex: M1 Finance" 
+            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0047FF]/20 focus:border-[#0047FF] transition-all outline-none">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Effectif (Nombre d'étudiants)</label>
+          <input type="number" [(ngModel)]="newClasse.effectif" placeholder="0" 
+            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0047FF]/20 focus:border-[#0047FF] transition-all outline-none">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Parcours relié (Optionnel)</label>
+          <select [(ngModel)]="newClasse.parcours_id" 
+            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#0047FF]/20 focus:border-[#0047FF] transition-all outline-none text-slate-700">
+            <option [ngValue]="null">--- Aucun parcours ---</option>
+            <option *ngFor="let p of parcoursList" [value]="p.id">{{ p.name }} ({{ p.code }})</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="px-6 py-4 border-t border-slate-100 bg-gray-50 flex justify-end gap-3 rounded-b-2xl">
+      <button (click)="cancelEditClasse()" class="px-5 py-2.5 text-slate-700 bg-white border border-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm">
+        Annuler
+      </button>
+      <button (click)="saveClasse()" class="px-5 py-2.5 bg-[#0047FF] text-white rounded-lg text-sm font-semibold hover:bg-[#0047FF]/90 transition-colors flex items-center gap-2 shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">{{ isEditingClasse ? 'save' : 'add' }}</span>
+        {{ isEditingClasse ? 'Enregistrer' : 'Ajouter' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-confirmation-modal 
+  *ngIf="isDeleteModalOpen" 
+  [isOpen]="true" 
+  title="Confirmation de suppression"
+  message="Voulez-vous vraiment supprimer cette classe ?"
+  confirmText="Supprimer" 
+  cancelText="Annuler" 
+  type="danger" 
+  (confirm)="onConfirmDelete()" 
+  (cancel)="closeDeleteModal()">
+</app-confirmation-modal>

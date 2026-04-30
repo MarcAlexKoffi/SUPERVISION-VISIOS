@@ -32,9 +32,9 @@
             <section class="p-0 border-0">
                 <!-- UE Selection -->
                 <div class="mb-8 p-6 bg-[#f0f9ff] border border-blue-100 rounded-2xl">
-                    <label class="block mb-3 text-sm font-bold tracking-wide text-[#0f42a5] uppercase">Sélectionner une Unité d'Enseignement (UE)</label>
+                    <label class="block mb-3 text-sm font-bold tracking-wide text-[#0f42a5] uppercase">Sélectionner une Unité d'Enseignement (UE) <span class="text-red-500">*</span></label>
                     <div class="relative group">
-                        <select [(ngModel)]="selectedUECode" (change)="onUEChange()" class="w-full pl-4 pr-10 py-3 text-sm font-bold text-slate-700 bg-white border border-blue-200 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer hover:border-blue-300">
+                        <select [(ngModel)]="selectedUECode" (change)="onUEChange()" required class="w-full pl-4 pr-10 py-3 text-sm font-bold text-slate-700 bg-white border border-blue-200 rounded-xl shadow-sm focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer hover:border-blue-300">
                             <option value="" disabled selected>-- Choisir une UE --</option>
                             <option *ngFor="let ue of ues" [value]="ue.code">{{ ue.code }} - {{ ue.name }}</option>
                         </select>
@@ -45,9 +45,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     <div class="space-y-6">
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Enseignant(e)</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Enseignant(e) <span class="text-red-500">*</span></label>
                             <div class="relative">
-                                <select [(ngModel)]="selectedTeacherId" (change)="onTeacherChange()" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-900">
+                                <select [(ngModel)]="selectedTeacherId" (change)="onTeacherChange()" required class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-900">
                                     <option [ngValue]="null" disabled selected>-- Sélectionner l'enseignant --</option>
                                     <option *ngFor="let t of teachers" [value]="t.id">{{ t.first_name }} {{ t.last_name }}</option>
                                 </select>
@@ -61,9 +61,9 @@
                             <input [(ngModel)]="formData.module" type="text" readonly class="w-full px-4 py-3 text-sm font-medium bg-slate-50 border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-600 cursor-not-allowed" placeholder="Sélectionnez une UE ci-dessus">
                         </div>
                         <div class="group">
-                              <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Classe</label>
+                              <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Classe <span class="text-red-500">*</span></label>
                               <div class="relative">
-                                  <select [(ngModel)]="formData.level" (ngModelChange)="onClassChange()" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-900">
+                                  <select [(ngModel)]="formData.level" (ngModelChange)="onClassChange()" required class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-900">
                                       <option value="" disabled selected>Sélectionnez une classe</option>
                                       <option *ngFor="let c of classesList" [value]="c.name">{{ c.name }}</option>
                                   </select>
@@ -73,27 +73,27 @@
                     </div>
                     <div class="space-y-6">
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Date & Heure</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Date & Heure <span class="text-red-500">*</span></label>
                             <div class="flex items-center gap-3">
-                                <input [(ngModel)]="formData.date" type="date" class="w-1/2 px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
+                                <input [(ngModel)]="formData.date" type="date" required class="w-1/2 px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
                                 <div class="flex items-center w-1/2 gap-2">
-                                    <input [(ngModel)]="formData.startTime" type="time" class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
+                                    <input [(ngModel)]="formData.startTime" type="time" required class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
                                     <span class="text-slate-400 font-bold">-</span>
-                                    <input [(ngModel)]="formData.endTime" type="time" class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
+                                    <input [(ngModel)]="formData.endTime" type="time" required class="w-full px-3 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all text-slate-700">
                                 </div>
                             </div>
                         </div>
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Numéro de Séance</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Numéro de Séance <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">numbers</span>
-                                <input type="number" [(ngModel)]="formData.sessionNumber" id="seanceIdentity" name="seanceIdentity"  min="1" autocomplete="on" class="w-full px-4 py-3 pl-10 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-500 text-slate-900" placeholder="Ex: 1">
+                                <input type="number" [(ngModel)]="formData.sessionNumber" id="seanceIdentity" name="seanceIdentity" required min="1" autocomplete="on" class="w-full px-4 py-3 pl-10 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all placeholder:text-slate-500 text-slate-900" placeholder="Ex: 1">
                             </div>
                         </div>
                         <div class="group">
-                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Plateforme utilisée</label>
+                            <label class="block mb-2 text-xs font-bold tracking-wider text-slate-600 uppercase ml-1">Plateforme utilisée <span class="text-red-500">*</span></label>
                             <div class="relative">
-                                <select [(ngModel)]="formData.platform" class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-700">
+                                <select [(ngModel)]="formData.platform" required class="w-full px-4 py-3 text-sm font-medium bg-white border border-slate-200 rounded-xl focus:border-[#0f42a5] focus:ring-2 focus:ring-[#0f42a5]/20 outline-none transition-all appearance-none bg-none cursor-pointer text-slate-700">
                                     <option>Zoom</option>
                                     <option>Microsoft Teams</option>
                                     <option>Google Meet</option>

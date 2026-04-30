@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User } from '../services/user.service';
@@ -35,7 +35,8 @@ export class UsersComponent implements OnInit, OnDestroy {
   constructor(
     private userService: UserService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -59,6 +60,7 @@ export class UsersComponent implements OnInit, OnDestroy {
       this.userService.getAll().subscribe({
         next: (data) => {
           this.users = data;
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Erreur chargement utilisateurs', err)
       })

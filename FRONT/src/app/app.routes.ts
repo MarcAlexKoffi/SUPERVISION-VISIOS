@@ -24,6 +24,7 @@ export const routes: Routes = [
             { path: 'ues', loadComponent: () => import('./ues/ues').then(m => m.UesComponent) },
             { path: 'plannings', loadComponent: () => import('./plannings/plannings').then(m => m.Plannings) },
             { path: 'formations', loadComponent: () => import('./formations/formations').then(m => m.Formations) },
+            { path: 'classes', loadComponent: () => import('./classes/classes').then(m => m.ClassesComponent) },
             { path: 'history', loadComponent: () => import('./history/history').then(m => m.HistoryComponent) },
             { path: 'my-history', loadComponent: () => import('./user-history/user-history').then(m => m.UserHistoryComponent) },
             { path: 'supervision-form', loadComponent: () => import('./supervision-form/supervision-form').then(m => m.SupervisionForm) },

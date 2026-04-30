@@ -457,35 +457,59 @@
     </div>
 
     <!-- Pagination -->
-    <div *ngIf="activeTab === 'synchrone'" class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200/60 dark:border-slate-700">
-        <div class="text-sm text-slate-500 dark:text-slate-400">
-            Affichage de <span class="font-bold text-slate-900 dark:text-white">{{ startItem }}</span> à <span class="font-bold text-slate-900 dark:text-white">{{ Math.min(startItem + itemsPerPage - 1, filteredSupervisions.length) }}</span> sur <span class="font-bold text-slate-900 dark:text-white">{{ filteredSupervisions.length }}</span> résultats
-        </div>
-
-        <div class="flex items-center gap-2">
-            <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1"
-                class="min-w-[40px] h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                <span class="material-symbols-outlined text-[20px]">chevron_left</span>
-            </button>
-            
-            <div class="flex items-center gap-1">
-                <button *ngFor="let p of pageNumbers" 
-                    (click)="onPageChange(p)"
-                    class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-all"
-                    [class.bg-indigo-600]="p === currentPage"
-                    [class.text-white]="p === currentPage"
-                    [class.shadow-md]="p === currentPage"
-                    [class.ring-1]="p === currentPage"
-                    [class.ring-indigo-600]="p === currentPage"
-                    [class.text-slate-600]="p !== currentPage"
-                    [class.hover:bg-slate-50]="p !== currentPage">
-                    {{ p }}
-                </button>
+    <div *ngIf="activeTab === 'synchrone'" class="flex items-center justify-between px-6 py-4 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700/50 sm:px-8 rounded-b-2xl mt-4 shadow-sm">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-0 flex items-center gap-1.5">
+                    Affichage de <span class="font-bold text-slate-700 dark:text-slate-200">{{ startItem }}</span> 
+                    à <span class="font-bold text-slate-700 dark:text-slate-200">{{ Math.min(startItem + itemsPerPage - 1, filteredSupervisions.length) }}</span> 
+                    <span class="text-slate-400">/</span> <span class="font-bold text-[#0f42a5] dark:text-blue-400">{{ filteredSupervisions.length }}</span> résultats
+                </p>
             </div>
-
+            <div>
+                <nav class="inline-flex items-center gap-2" aria-label="Pagination">
+                    <!-- Précédent -->
+                    <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1"
+                        class="group flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-[#0f42a5] hover:border-[#0f42a5] hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                    </button>
+                    
+                    <!-- Numéros -->
+                    <div class="flex items-center gap-1">
+                        <ng-container *ngFor="let p of pageNumbers">
+                            <button *ngIf="p !== '...'" (click)="onPageChange($any(p))"
+                                class="flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all duration-200 focus:outline-none"
+                                [ngClass]="{
+                                    'bg-[#0f42a5] shadow-md shadow-blue-500/30 text-white hover:bg-blue-800': p === currentPage,
+                                    'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700': p !== currentPage
+                                }">
+                                {{ p }}
+                            </button>
+                            <span *ngIf="p === '...'"
+                                class="flex items-center justify-center w-8 h-8 text-slate-400 dark:text-slate-500">
+                                <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+                            </span>
+                        </ng-container>
+                    </div>
+                    
+                    <!-- Suivant -->
+                    <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages"
+                        class="group flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-[#0f42a5] hover:border-[#0f42a5] hover:bg-blue-50 dark:hover:bg-blue-900/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Mobile Pagination -->
+        <div class="flex flex-1 justify-between sm:hidden">
+            <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1"
+                class="relative inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Précédent
+            </button>
             <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages"
-                 class="min-w-[40px] h-10 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Suivant
             </button>
         </div>
     </div>

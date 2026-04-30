@@ -10,7 +10,7 @@
     <aside [class.translate-x-0]="isSidebarOpen" [class.-translate-x-full]="!isSidebarOpen"
         class="fixed inset-y-0 left-0 z-30 flex flex-col w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-screen transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex shadow-2xl lg:shadow-sm">
         <!-- Brand -->
-        <div class="h-20 px-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/50">
+        <a routerLink="/admin/dashboard" class="h-20 px-6 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/50 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors no-underline">
             <div
                 class="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-lg shadow-primary/30 text-white">
                 <span class="material-symbols-outlined text-2xl">school</span>
@@ -20,7 +20,7 @@
                 </h1>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">SUPERVISION</span>
             </div>
-        </div>
+        </a>
 
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
@@ -98,7 +98,17 @@
                   <span
                       class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
                       [class.!text-[#0f42a5]]="rla_formations.isActive">apartment</span>
-                  Formations & Classes
+                  Parcours
+              </a>
+
+              <a (click)="closeSidebar()"
+                  class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"
+                  routerLink="/admin/classes" routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]"
+                  #rla_classes="routerLinkActive">
+                  <span
+                      class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
+                      [class.!text-[#0f42a5]]="rla_classes.isActive">groups</span>
+                  Classes
               </a>
 
               <a (click)="closeSidebar()"
@@ -169,7 +179,8 @@
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla_planning?.isActive">Planning Visios</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla2?.isActive">Supervision Synchrone</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rlaAsync?.isActive">Supervision Asynchrone</h2>
-                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla_formations?.isActive">Formations</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla_formations?.isActive">Parcours</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla_classes?.isActive">Classes</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla3?.isActive">Historique</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla4?.isActive">Gestion des Utilisateurs</h2>
                 <h2 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight" *ngIf="rla5?.isActive">Enseignants</h2>

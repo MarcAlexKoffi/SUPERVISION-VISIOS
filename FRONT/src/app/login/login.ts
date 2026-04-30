@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login implements OnInit {
+export class Login implements OnInit, OnDestroy {
   email = '';
   password = '';
   errorMessage = '';
@@ -19,26 +20,37 @@ export class Login implements OnInit {
   isLoginMode = true;
   showPassword = false;
   returnUrl: string | null = null;
+  private authSub: Subscription | null = null;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private authService: AuthService
+    private authService: AuthService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
       // get return url from route parameters or default to '/'
       this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || null;
 
-      // redirect to home if already logged in (optional UX choice)
-      if (this.authService.currentUserValue) {
-          // If returnUrl is present, go there, else check role
-          if (this.returnUrl) {
-             this.router.navigateByUrl(this.returnUrl);
-          } else {
-             this.router.navigate(['/admin/dashboard']);
-          }
-      }
+      this.authSub = this.authService.currentUser$.subscribe(user => {
+        if (user) {
+          this.ngZone.run(() => {
+            if (this.returnUrl) {
+               this.router.navigateByUrl(this.returnUrl);
+            } else {
+               this.router.navigate(['/admin/dashboard']);
+            }
+          });
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    if (this.authSub) {
+      this.authSub.unsubscribe();
+    }
   }
 
   onSwitchMode() {
@@ -60,29 +72,39 @@ export class Login implements OnInit {
 
     authObs.subscribe({
       next: (res) => {
-        this.isLoading = false;
         console.log('Login response:', res);
         
-        // Use returnUrl if available
-        if (this.returnUrl) {
-            this.router.navigateByUrl(this.returnUrl);
-            return;
-        }
+        this.ngZone.run(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          // Use returnUrl if available
+          if (this.returnUrl) {
+              this.router.navigateByUrl(this.returnUrl).then(success => {
+                console.log('Navigation success to returnUrl:', success);
+              });
+              return;
+          }
 
-        this.router.navigate(['/admin/dashboard']);
+          this.router.navigate(['/admin/dashboard']).then(success => {
+            console.log('Navigation success to admin/dashboard:', success);
+          });
+        });
       },
       error: (err) => {
-        this.isLoading = false;
-        if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-          this.errorMessage = 'Identifiants incorrects. Veuillez réessayer.';
-        } else if (err.code === 'auth/email-already-in-use') {
-          this.errorMessage = 'Cet email est déjà utilisé.';
-        } else if (err.code === 'auth/invalid-email') {
-          this.errorMessage = 'Format d\'email invalide.';
-        } else {
-          this.errorMessage = 'Une erreur est survenue (' + err.code + ').';
-        }
         console.error(err);
+        this.ngZone.run(() => {
+          this.isLoading = false;
+          if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+            this.errorMessage = 'Identifiants incorrects. Veuillez réessayer.';
+          } else if (err.code === 'auth/email-already-in-use') {
+            this.errorMessage = 'Cet email est déjà utilisé.';
+          } else if (err.code === 'auth/invalid-email') {
+            this.errorMessage = "Format d'email invalide.";
+          } else {
+            this.errorMessage = 'Une erreur est survenue (' + err.code + ').';
+          }
+          this.cdr.detectChanges();
+        });
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupervisionService } from '../services/supervision.service';
@@ -80,7 +80,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -160,7 +161,10 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
   loadClasses() {
     this.classeService.getAll().subscribe({
-      next: (data) => this.classesList = data,
+      next: (data) => {
+        this.classesList = data;
+        this.cdr.detectChanges();
+      },
       error: (err) => console.error('Error loading classes', err)
     });
   }
@@ -169,6 +173,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     this.teacherService.getAll().subscribe({
         next: (data) => {
             this.teachers = data.filter(t => t.status === 'active');
+            this.cdr.detectChanges();
         },
         error: (err) => console.error('Error loading teachers', err)
     });
@@ -186,6 +191,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     this.ueService.getAll().subscribe({
       next: (data) => {
         this.ues = data;
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading UEs', err)
     });
@@ -364,7 +370,12 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   }
 
   saveForm() {
-    this.showSaveModal = true;
+      // Custom validation for required fields
+      if (!this.selectedUECode || !this.selectedTeacherId || !this.formData.level || !this.formData.date || !this.formData.startTime || !this.formData.endTime || !this.formData.sessionNumber || !this.formData.platform) {
+          alert('Veuillez remplir tous les champs obligatoires (marqués d\'un *).');
+          return;
+      }
+      this.showSaveModal = true;
   }
 
   confirmSave() {

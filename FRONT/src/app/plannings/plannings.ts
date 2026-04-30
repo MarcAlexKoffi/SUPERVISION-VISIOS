@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlanningService, Planning } from '../services/planning.service';
@@ -64,7 +64,8 @@ export class Plannings implements OnInit, OnDestroy {
     private toastService: ToastService,
     private parcoursService: ParcoursService,
     private notificationService: NotificationService,
-    private classeService: ClasseService
+    private classeService: ClasseService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -87,6 +88,7 @@ export class Plannings implements OnInit, OnDestroy {
               this.selectedParcours = this.parcoursList[0];
               this.loadPlannings();
           }
+          this.cdr.detectChanges();
         },
         error: () => this.toastService.error('Erreur lors du chargement des parcours')
       })
@@ -104,19 +106,19 @@ export class Plannings implements OnInit, OnDestroy {
   loadUesAndTeachers() {
     this.subscriptions.add(
       this.ueService.getAll().subscribe({
-        next: (data) => (this.ues = data),
+        next: (data) => { this.ues = data; this.cdr.detectChanges(); },
         error: () => this.toastService.error('Erreur de chargement des UEs'),
       })
     );
     this.subscriptions.add(
       this.teacherService.getAll().subscribe({
-        next: (data) => (this.teachers = data),
+        next: (data) => { this.teachers = data; this.cdr.detectChanges(); },
         error: () => this.toastService.error('Erreur de chargement des enseignants'),
       })
     );
     this.subscriptions.add(
       this.classeService.getAll().subscribe({
-        next: (data) => (this.databaseClasses = data),
+        next: (data) => { this.databaseClasses = data; this.cdr.detectChanges(); },
         error: () => this.toastService.error('Erreur de chargement des classes'),
       })
     );
@@ -135,7 +137,7 @@ export class Plannings implements OnInit, OnDestroy {
     };
 
     this.planningsSubscription = this.planningService.getPlannings(filters).subscribe({
-      next: (data) => (this.plannings = data),
+      next: (data) => { this.plannings = data; this.cdr.detectChanges(); },
       error: () => this.toastService.error('Erreur lors du chargement des plannings'),
     });
   }

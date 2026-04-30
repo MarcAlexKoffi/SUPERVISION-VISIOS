@@ -103,6 +103,7 @@ export class DashboardHome implements OnInit, OnDestroy {
                     const dateB = parseDate(b.visit_date || b.date);
                     return dateB.getTime() - dateA.getTime();
                 })
+                .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
                 .slice(0, 3);
 
               // Only update if we have user stats array (for user dashboard view)
@@ -146,6 +147,7 @@ export class DashboardHome implements OnInit, OnDestroy {
              this.userDashboardStats.activeSupervisions = supervisionsData.length;
              this.recentSupervisions = supervisionsData
                 .sort((a: any, b: any) => parseDate(b.visit_date || b.date).getTime() - parseDate(a.visit_date || a.date).getTime())
+                .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
                 .slice(0, 3);
          },
          error: (err) => console.error('Failed to load supervisions for stats', err)
@@ -379,6 +381,7 @@ export class DashboardHome implements OnInit, OnDestroy {
                         const dateB = parseDate(b.visit_date || b.date);
                         return dateB.getTime() - dateA.getTime();
                     })
+                    .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
                     .slice(0, 3);
              }
         },

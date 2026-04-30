@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsyncSupervisionService } from '../services/async-supervision.service';
@@ -61,7 +61,8 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
     private teacherService: TeacherService,
     private classeService: ClasseService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -82,7 +83,10 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
 
   loadClasses() {
     this.classeService.getAll().subscribe({
-      next: (data) => this.classesList = data,
+      next: (data) => {
+        this.classesList = data;
+        this.cdr.detectChanges();
+      },
       error: (e) => console.error('Error loading classes', e)
     });
   }
@@ -111,6 +115,7 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
     this.ueService.getAll().subscribe({
       next: (data: any[]) => {
         this.ues = data;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Erreur chargement UEs', err);
@@ -122,6 +127,7 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
     this.teacherService.getAll().subscribe({
       next: (data: any[]) => {
         this.teachers = data;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Erreur chargement Enseignants', err);

@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from '../services/teacher.service';
@@ -35,7 +35,8 @@ export class TeachersComponent implements OnInit {
   constructor(
     private teacherService: TeacherService,
     private parcoursService: ParcoursService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -44,7 +45,10 @@ export class TeachersComponent implements OnInit {
     // this.loadParcours(); 
     // Actually, loadParcours calls getAll.
     this.parcoursService.getAll().subscribe({
-      next: (data) => this.parcoursList = data
+      next: (data) => {
+        this.parcoursList = data;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -55,6 +59,7 @@ export class TeachersComponent implements OnInit {
     this.teacherService.getAll().subscribe({
       next: (data) => {
         this.teachers = data;
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Erreur chargement enseignants', err)
     });

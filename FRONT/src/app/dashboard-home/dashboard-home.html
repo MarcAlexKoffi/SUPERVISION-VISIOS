@@ -208,8 +208,8 @@
                         <!-- Date Box -->
                         <div
                             class="flex-shrink-0 w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30">
-                            <span class="text-xs font-bold uppercase">{{ sup.visit_date | date:'MMM' }}</span>
-                            <span class="text-xl font-extrabold leading-none">{{ sup.visit_date | date:'dd' }}</span>
+                            <span class="text-xs font-bold uppercase">{{ sup.parsedDate | date:'MMM' }}</span>
+                            <span class="text-xl font-extrabold leading-none">{{ sup.parsedDate | date:'dd' }}</span>
                         </div>
 
                         <!-- Content -->
@@ -226,7 +226,7 @@
                                 <div
                                     class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
                                     <span class="material-symbols-outlined text-[14px]">schedule</span>
-                                    {{ sup.start_time?.slice(0,5) }} - {{ sup.end_time?.slice(0,5) }}
+                                    {{ (sup.start_time || sup.startTime)?.slice(0,5) }} - {{ (sup.end_time || sup.endTime)?.slice(0,5) }}
                                 </div>
                                 <div *ngIf="sup.site" class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[14px]">location_on</span>

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -53,7 +53,8 @@ export class UserHistoryComponent implements OnInit, OnDestroy {
 
   constructor(
     private supervisionService: SupervisionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -139,6 +140,7 @@ export class UserHistoryComponent implements OnInit, OnDestroy {
           this.supervisions = data.map((item: any) => this.mapToView(item));
           this.updateFilters();
           this.applyFilters();
+          this.cdr.detectChanges();
         },
         error: (err) => console.error('Failed to load history', err)
       })

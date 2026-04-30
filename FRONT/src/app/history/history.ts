@@ -575,6 +575,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
           this.filteredAsyncSupervisions = [...this.asyncSupervisions];
           this.updateFilters();
           this.applyFilters();
+          this.cdr.detectChanges();
         },
         error: (err: any) => console.error("Erreur chargement Async Supervisions", err)
       })
@@ -680,16 +681,30 @@ export class HistoryComponent implements OnInit, OnDestroy {
         let matchDate = true;
         let itemDate: Date | null = null;
         
-        if (s.created_at) {
-          if (typeof s.created_at.toDate === 'function') {
-            itemDate = s.created_at.toDate();
-          } else if (s.created_at.seconds) {
-            itemDate = new Date(s.created_at.seconds * 1000);
-          } else {
-            itemDate = new Date(s.created_at);
+        // Try to parse the week string first (e.g. "Semaine du 23/03/2026 au 29/03/2026")
+        if (s.week) {
+          const weekMatch = s.week.match(/Semaine du (\d{2})\/(\d{2})\/(\d{4})/);
+          if (weekMatch) {
+            const day = parseInt(weekMatch[1], 10);
+            const month = parseInt(weekMatch[2], 10) - 1;
+            const year = parseInt(weekMatch[3], 10);
+            itemDate = new Date(year, month, day);
           }
-        } else if (s.date) {
-            itemDate = new Date(s.date);
+        }
+
+        // Fallback to created_at or date if week parsing fails
+        if (!itemDate || isNaN(itemDate.getTime())) {
+          if (s.created_at) {
+            if (typeof s.created_at.toDate === 'function') {
+              itemDate = s.created_at.toDate();
+            } else if (s.created_at.seconds) {
+              itemDate = new Date(s.created_at.seconds * 1000);
+            } else {
+              itemDate = new Date(s.created_at);
+            }
+          } else if (s.date) {
+              itemDate = new Date(s.date);
+          }
         }
 
         if (itemDate && !isNaN(itemDate.getTime())) {
@@ -841,8 +856,16 @@ export class HistoryComponent implements OnInit, OnDestroy {
     return Math.ceil(this.filteredSupervisions.length / this.itemsPerPage);
   }
 
-  get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  get pageNumbers(): (number | string)[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+
+    if (total <= 4) return Array.from({ length: total }, (_, i) => i + 1);
+
+    if (current <= 3) return [1, 2, 3, '...', total];
+    if (current >= total - 2) return [1, '...', total - 2, total - 1, total];
+
+    return [1, '...', current, '...', total];
   }
 
   get startItem() {

@@ -48,6 +48,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
   // Teachers data for email lookup
   teachersData: any[] = [];
   uesData: any[] = [];
+  
+  // O(1) Lookup Maps for extreme performance
+  teachersMap: Map<string, any> = new Map();
+  uesMap: Map<string, any> = new Map();
 
   // Modal
   selectedSupervision: any = null;
@@ -103,7 +107,14 @@ export class HistoryComponent implements OnInit, OnDestroy {
   loadUes() {
     this.subscriptions.add(
       this.ueService.getAll().subscribe({
-        next: (data) => this.uesData = data,
+        next: (data) => {
+          this.uesData = data;
+          this.uesMap.clear();
+          data.forEach((u: any) => {
+            if (u.id) this.uesMap.set(u.id, u);
+            if (u.code) this.uesMap.set(u.code, u);
+          });
+        },
         error: () => console.error('Error loading UEs for lookup')
       })
     );
@@ -112,7 +123,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
   loadTeachers() {
     this.subscriptions.add(
       this.teacherService.getAll().subscribe({
-        next: (data) => this.teachersData = data,
+        next: (data) => {
+          this.teachersData = data;
+          this.teachersMap.clear();
+          data.forEach((t: any) => {
+            if (t.id) this.teachersMap.set(t.id, t);
+          });
+        },
         error: () => console.error('Error loading teachers for email lookup')
       })
     );
@@ -549,7 +566,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     if (s.teacher_name && s.teacher_name !== s.teacher_id && s.teacher_name !== s.teacherId) return s.teacher_name;
     const tId = s.teacherId || s.teacher_id;
     if (!tId) return 'N/A';
-    const teacher = this.teachersData?.find(t => t.id === tId);
+    const teacher = this.teachersMap.get(tId);
     if (teacher) {
         return teacher.name || (teacher.first_name ? teacher.first_name + ' ' + teacher.last_name : '') || tId;
     }
@@ -560,7 +577,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     const uId = (typeof s === 'string' ? s : null) || s.ueId || s.ue_id;
     if (s && s.ue_name && s.ue_name !== uId) return s.ue_name;
     if (!uId) return 'N/A';
-    const ue = this.uesData?.find(u => u.id === uId || u.code === uId);
+    const ue = this.uesMap.get(uId);
     if (ue) {
         return ue.name || ue.nom || ue.code || uId;
     }
@@ -847,14 +864,38 @@ export class HistoryComponent implements OnInit, OnDestroy {
     };
   }
 
-  get paginatedSupervisions() {
+  // Pagination Memoization Caches
+  private _lastSyncPage = -1;
+  private _cachedSyncFiltered: any[] = [];
+  private _cachedSyncPageData: any[] = [];
+  
+  private _lastAsyncPage = -1;
+  private _cachedAsyncFiltered: any[] = [];
+  private _cachedAsyncPageData: any[] = [];
+
+  get pagedFilteredAsyncSupervisions() { 
+    if (this._lastAsyncPage === this.currentPage && this._cachedAsyncFiltered === this.filteredAsyncSupervisions) {
+      return this._cachedAsyncPageData;
+    }
+    this._lastAsyncPage = this.currentPage;
+    this._cachedAsyncFiltered = this.filteredAsyncSupervisions;
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredSupervisions.slice(start, start + this.itemsPerPage);
+    this._cachedAsyncPageData = this.filteredAsyncSupervisions.slice(start, start + this.itemsPerPage);
+    return this._cachedAsyncPageData;
   }
 
-  get totalPages() {
-    return Math.ceil(this.filteredSupervisions.length / this.itemsPerPage);
+  get paginatedSupervisions() {
+    if (this._lastSyncPage === this.currentPage && this._cachedSyncFiltered === this.filteredSupervisions) {
+      return this._cachedSyncPageData;
+    }
+    this._lastSyncPage = this.currentPage;
+    this._cachedSyncFiltered = this.filteredSupervisions;
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    this._cachedSyncPageData = this.filteredSupervisions.slice(start, start + this.itemsPerPage);
+    return this._cachedSyncPageData;
   }
+
+  get totalPages() { const len = this.activeTab === 'synchrone' ? this.filteredSupervisions.length : this.filteredAsyncSupervisions.length; return Math.ceil(len / this.itemsPerPage); }
 
   get pageNumbers(): (number | string)[] {
     const total = this.totalPages;
@@ -877,8 +918,8 @@ export class HistoryComponent implements OnInit, OnDestroy {
     return Math.min(this.currentPage * this.itemsPerPage, this.filteredSupervisions.length);
   }
 
-  onPageChange(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
+  onPageChange(page: number | string) {
+    if (typeof page === 'number' && page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
   }

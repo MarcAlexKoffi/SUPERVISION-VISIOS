@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy, where } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -10,6 +11,9 @@ export class AsyncSupervisionService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
   
+  private cache$!: Observable<any[]>;
+  private teacherCache$: { [teacherId: string]: Observable<any[]> } = {};
+
   constructor() { }
 
   create(data: any): Observable<any> {
@@ -39,9 +43,14 @@ export class AsyncSupervisionService {
   }
 
   getAll(): Observable<any[]> {
-    const colRef = collection(this.firestore, 'async_supervisions');
-    const q = query(colRef, orderBy('created_at', 'desc'));
-    return collectionData(q, { idField: 'id' });
+    if (!this.cache$) {
+      const colRef = collection(this.firestore, 'async_supervisions');
+      const q = query(colRef, orderBy('created_at', 'desc'));
+      this.cache$ = (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.cache$;
   }
 
   getById(id: string): Observable<any> {
@@ -50,8 +59,13 @@ export class AsyncSupervisionService {
   }
 
   getByTeacher(teacherId: string): Observable<any[]> {
-    const colRef = collection(this.firestore, 'async_supervisions');
-    const q = query(colRef, where('teacher_id', '==', teacherId), orderBy('created_at', 'desc'));
-    return collectionData(q, { idField: 'id' });
+    if (!this.teacherCache$[teacherId]) {
+      const colRef = collection(this.firestore, 'async_supervisions');
+      const q = query(colRef, where('teacher_id', '==', teacherId), orderBy('created_at', 'desc'));
+      this.teacherCache$[teacherId] = (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.teacherCache$[teacherId];
   }
 }

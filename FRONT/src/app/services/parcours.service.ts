@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 export interface Parcours {
   id?: string;
@@ -14,12 +15,19 @@ export interface Parcours {
 export class ParcoursService {
   private firestore = inject(Firestore);
   
+  private cache$!: Observable<Parcours[]>;
+  
   constructor() {}
 
   getAll(): Observable<Parcours[]> {
-    const parcoursCollection = collection(this.firestore, 'parcours');
-    const q = query(parcoursCollection, orderBy('name', 'asc'));
-    return collectionData(q, { idField: 'id' }) as Observable<Parcours[]>;
+    if (!this.cache$) {
+      const parcoursCollection = collection(this.firestore, 'parcours');
+      const q = query(parcoursCollection, orderBy('name', 'asc'));
+      this.cache$ = (collectionData(q, { idField: 'id' }) as Observable<Parcours[]>).pipe(
+        shareReplay(1)
+      );
+    }
+    return this.cache$;
   }
 
   create(parcours: Parcours): Observable<any> {

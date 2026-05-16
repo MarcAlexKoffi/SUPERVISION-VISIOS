@@ -1,0 +1,66 @@
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:5: R�initialiser
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:20: <p class="font-medium text-slate-600 text-sm sm:text-base">S�ance Asynchrone (Forums Moodle)</p>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:24: <div class="inline-block px-3 py-1 mb-1 text-xs font-bold tracking-wide uppercase rounded bg-slate-100 text-slate-600">R�f: SUP-ASYNC-2024</div>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:31: <!-- Section 1: Informations G�n�rales -->
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:44: <option [ngValue]="null">S�lectionner un enseignant</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:51: <option [ngValue]="null">S�lectionner une UE</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:58: <option value="">S�lectionner une classe</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:67: <label class="block text-sm font-semibold mb-2 text-slate-700">P�riode (Calendrier)</label>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:77: <!-- Section 2: �valuation Asynchrone -->
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:83: <h2 class="text-lg font-bold text-slate-800">2. Prise en charge des pr�occupations sur Moodle</h2>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:88: <label class="block text-sm font-semibold mb-3 text-slate-700">Statut de r�ponse</label>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:104: <textarea [(ngModel)]="formData.observations" name="observations" rows="4" placeholder="Indiquer ici si l&apos;enseignant r�pond dans les temps, la qualit� des r�ponses..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0f42a5] focus:border-[#0f42a5] transition-all"></textarea>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:190: <h3 class="text-xl font-bold text-slate-900 mb-2">Supervision Enregistr�e !</h3>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\async-supervision-form\async-supervision-form.html:191: <p class="text-slate-500 mb-6">La supervision asynchrone a �t� sauvegard�e avec succ�s.</p>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\teachers\teachers.html:6: <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">G�rez la liste des professeurs (Ajout,
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\teachers\teachers.html:26: <th class="p-4">Nom & Pr�nom</th>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\teachers\teachers.html:35: <td colspan="5" class="p-8 text-center text-slate-500">Aucun enseignant enregistr�.</td>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\teachers\teachers.html:99: <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Pr�nom *</label>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\teachers\teachers.html:121: <option value="" disabled selected>S�lectionner un parcours</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\teachers\teachers.html:151: [message]="'�tes-vous s�r de vouloir supprimer ' + teacherToDelete?.first_name + ' ' + teacherToDelete?.last_name + ' ?'"
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:5: <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Unit�s d'Enseignement (UE)</h1>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:6: <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">G�rez la liste des cours et modules.</p>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:41: Intitul� (Nom)
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:55: <td colspan="6" class="p-8 text-center text-slate-500">Aucune UE trouv�e.</td>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:145: {{ selectedUE.responsible || 'Non assign�' }}
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:192: <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">{{ isEditing ? "Modifier l'Unit� d'Enseignement" : "Nouvelle Unit� d'Enseignement" }}</h3>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:223: <option value="" disabled selected>S�lectionner</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:233: <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Intitul� de l'UE *</label>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:238: placeholder="ex: Introduction aux Bases de Donn�es">
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:249: <option value="" disabled selected>S�lectionner un enseignant</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:265: <option value="">S�lectionner</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:284: <option value="">S�lectionner</option>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\ues\ues.html:340: [message]="'�tes-vous s�r de vouloir supprimer l�UE ' + (ueToDelete?.name || ueToDelete?.code) + ' ?'"
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:6: <h1 class="text-2xl font-bold uppercase tracking-wider text-black">Relev� de Supervisions</h1>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:8: <p>Imprim� le {{ currentDate | date:'dd/MM/yyyy � HH:mm' }}</p>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:22: <p class="mb-2 border-b border-gray-200 pb-1"><span class="font-bold text-gray-700">P�riode:</span> {{
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:23: (filters.startDate | date:'dd/MM/yyyy') || 'D�but' }} - {{ (filters.endDate | date:'dd/MM/yyyy') ||
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:25: <p class="text-xl font-bold text-black mt-2">Total Dur�e: {{ totalDuration }}</p>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:39: <th class="py-3 px-2 border-r border-black text-center">D�but</th>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:41: <th class="py-3 px-2 text-right">Dur�e</th>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:61: correspond aux crit�res s�lectionn�s.</td>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:86: <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Consultez les rapports de supervision pass�s et
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:136: <label class="text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">P�riode</label>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:164: <th class="p-4 w-40">Enregistr� le</th>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:175: <td colspan="8" class="p-8 text-center text-slate-500">Aucune supervision trouv�e pour ces
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:176: crit�res.</td>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:185: <!-- Enregistr� le -->
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:187: <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Enregistr�
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:191: <span class="text-xs text-slate-400 font-mono">� {{ s.createdAt | date:'HH:mm' }}</span>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:246: title="Voir les d�tails">
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:295: <div class="text-xs text-slate-500">{{ filteredHistoryForUE.length }} enregistrement(s) trouv�(s)
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:333: <h3 class="text-lg font-bold text-slate-900 dark:text-white">D�tails de la Supervision</h3>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:334: <p class="text-xs text-slate-500">R�f: #{{ selectedSupervision.id }} - {{
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:358: <div class="text-xs font-bold text-slate-500 uppercase">Num�ro de S�ance</div>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:365: <div class="text-xs font-bold text-slate-500 uppercase">Module / Mati�re</div>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:392: {{ selectedSupervision.presentCount || 0 }} Pr�sents sur {{
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:404: selectedSupervision.supervisorName || 'Non sign�' }}</div>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:424: <span>Qualit� Audio/Vid�o:</span>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:429: <span>Ponctualit�:</span>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:438: Aspects P�dagogiques
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:447: <span>Ma�trise Contenu:</span>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:470: {{ selectedSupervision.observations || "Aucune observation particuli�re n'a �t� not�e." }}
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:486: class="text-slate-300 italic">Non Sign�</div>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:498: Non Sign�</div>
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:520: T�l�charger PDF
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:531: message="�tes-vous s�r de vouloir supprimer cette supervision ? Cette action est irr�versible."

@@ -1,5 +1,6 @@
 
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
@@ -13,8 +14,13 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
   standalone: true,
   imports: [CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './ues.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UesComponent implements OnInit {
+export class UesComponent implements OnInit, OnDestroy {
+
+  private subscriptions: Subscription = new Subscription();
+
+  trackById(index: number, item: any): any { return item?.id || index; }
   ues: any[] = [];
   searchTerm: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -61,34 +67,34 @@ export class UesComponent implements OnInit {
   }
 
   loadParcours() {
-    this.parcoursService.getAll().subscribe({
+    this.subscriptions.add(this.parcoursService.getAll().subscribe({
       next: (data) => {
         this.parcoursList = data;
         this.cdr.detectChanges();
         console.log('Parcours loaded:', data);
       },
       error: (err) => console.error('Erreur loading parcours', err)
-    });
+    }));
   }
 
   loadTeachers() {
-    this.teacherService.getAll().subscribe({
+    this.subscriptions.add(this.teacherService.getAll().subscribe({
       next: (data) => {
          this.teachers = data;
          this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading teachers', err)
-    });
+    }));
   }
 
   loadUEs() {
-    this.ueService.getAll().subscribe({
+    this.subscriptions.add(this.ueService.getAll().subscribe({
       next: (data) => {
         this.ues = data;
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Erreur chargement UEs', err)
-    });
+    }));
   }
 
   get displayedUEs() {
@@ -172,32 +178,34 @@ export class UesComponent implements OnInit {
   saveUE() {
     this.isLoading = true;
     if (this.isEditing) {
-      this.ueService.update(this.currentUE.id, this.currentUE).subscribe({
+      this.subscriptions.add(this.ueService.update(this.currentUE.id, this.currentUE).subscribe({
         next: () => {
           this.toastService.success('UE mise à jour avec succès');
           this.isLoading = false;
           this.closeModal();
           this.loadUEs();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.toastService.error('Erreur lors de la mise à jour');
           this.isLoading = false;
         }
-      });
-    } else {
-      this.ueService.create(this.currentUE).subscribe({
+      }));
+  } else {
+      this.subscriptions.add(this.ueService.create(this.currentUE).subscribe({
         next: () => {
           this.toastService.success('UE ajoutée avec succès');
           this.isLoading = false;
           this.closeModal();
           this.loadUEs();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.toastService.error('Erreur lors de l\'ajout');
           this.isLoading = false;
         }
-      });
-    }
+      }));
+  }
   }
 
   deleteUE(ue: any) {
@@ -220,21 +228,26 @@ export class UesComponent implements OnInit {
   confirmDelete() {
     if (!this.ueToDelete) return;
     console.log('confirmDelete called for', this.ueToDelete);
-    this.ueService.delete(this.ueToDelete.id).subscribe({
+    this.subscriptions.add(this.ueService.delete(this.ueToDelete.id).subscribe({
       next: () => {
         this.toastService.success('UE supprimée');
         this.closeDeleteModal();
         this.loadUEs();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.toastService.error('Erreur lors de la suppression');
         this.closeDeleteModal();
       }
-    });
+    }));
   }
 
   onDeleteButtonClick() {
     console.log('onDeleteButtonClick - button pressed');
     this.confirmDelete();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 }

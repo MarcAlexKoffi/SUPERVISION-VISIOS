@@ -1,0 +1,1 @@
+C:\Users\koffi\Documents\PROJETS JS\SUPERVISION-VISIOS\FRONT\src\app\user-history\user-history.html:191: <span class="text-xs text-slate-400 font-mono">� {{ s.createdAt | date:'HH:mm' }}</span>

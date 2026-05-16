@@ -1,4 +1,4 @@
-﻿<!-- Print View -->
+<!-- Print View -->
 <div class="hidden print:block font-sans text-black p-8 bg-white max-w-5xl mx-auto">
     <!-- Print Header -->
     <div class="border-b-2 border-black pb-6 mb-8">
@@ -188,7 +188,7 @@
                                     le</span>
                                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ s.createdAt |
                                     date:'dd/MM/yyyy' }}</span>
-                                <span class="text-xs text-slate-400 font-mono">à {{ s.createdAt | date:'HH:mm' }}</span>
+                            <span class="text-xs text-slate-400 font-mono">à {{ s.createdAt | date:'HH:mm' }}</span>
                             </div>
                         </td>
                         <td class="p-4">
@@ -479,7 +479,7 @@
                                 <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature
                                     Superviseur</span>
                                 <div class="h-16 w-full flex items-center justify-center">
-                                    <img *ngIf="selectedSupervision.signatures?.supervisor"
+                                    <img loading="lazy" *ngIf="selectedSupervision.signatures?.supervisor"
                                         [src]="selectedSupervision.signatures.supervisor"
                                         class="max-h-full max-w-full object-contain" alt="Signature Superviseur">
                                     <div *ngIf="!selectedSupervision.signatures?.supervisor"
@@ -491,7 +491,7 @@
                                 <span class="text-xs text-slate-400 uppercase font-bold block mb-2">Signature
                                     Enseignant</span>
                                 <div class="h-16 w-full flex items-center justify-center">
-                                    <img *ngIf="selectedSupervision.signatures?.teacher"
+                                    <img loading="lazy" *ngIf="selectedSupervision.signatures?.teacher"
                                         [src]="selectedSupervision.signatures.teacher"
                                         class="max-h-full max-w-full object-contain" alt="Signature Enseignant">
                                     <div *ngIf="!selectedSupervision.signatures?.teacher" class="text-slate-300 italic">

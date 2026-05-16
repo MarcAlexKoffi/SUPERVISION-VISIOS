@@ -1,4 +1,4 @@
-﻿<div class="p-6 md:p-8 space-y-6 w-full h-full overflow-y-auto">
+<div class="p-6 md:p-8 space-y-6 w-full h-full overflow-y-auto">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -13,7 +13,14 @@
         </button>
     </div>
 
-    <!-- Stats or Filters can go here -->
+    <!-- Filters -->
+    <div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="relative flex-1 max-w-md">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+            <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher un enseignant..." 
+                class="w-full pl-10 pr-4 py-2 flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#0f42a5]/20 focus:border-[#0f42a5] transition-all outline-none">
+        </div>
+    </div>
 
     <!-- Table -->
     <div
@@ -31,10 +38,10 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                    <tr *ngIf="teachers.length === 0">
-                        <td colspan="5" class="p-8 text-center text-slate-500">Aucun enseignant enregistré.</td>
+                    <tr *ngIf="filteredTeachers.length === 0">
+                        <td colspan="5" class="p-8 text-center text-slate-500">Aucun enseignant trouvÃ©.</td>
                     </tr>
-                    <tr *ngFor="let t of teachers"
+                    <tr *ngFor="let t of filteredTeachers; trackBy: trackById"
                         class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td class="p-4">
                             <div class="flex items-center gap-3">

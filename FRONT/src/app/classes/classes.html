@@ -1,4 +1,4 @@
-<div class="p-6 max-w-7xl mx-auto space-y-8 bg-slate-50 h-full">
+<div class="p-6 md:p-8 space-y-8 bg-slate-50 w-full h-full overflow-y-auto">
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
@@ -13,7 +13,7 @@
 
   <!-- Cards Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div *ngFor="let c of classesList" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col relative group">
+    <div *ngFor="let c of classesList; trackBy: trackById" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col relative group">
       
       <!-- Actions hover -->
       <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">

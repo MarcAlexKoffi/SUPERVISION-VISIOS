@@ -67,7 +67,7 @@
                 routerLinkActive="!bg-[#fff7ed] !text-[#ea580c] shadow-sm ring-1 ring-[#ffedd5]"
                 #rlaAsync="routerLinkActive">
                 <span
-                    class="material-symbols-outlined text-[20px] lg:text-[24px] text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
+                    class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300"
                     [class.!text-[#ea580c]]="rlaAsync.isActive">forum</span>
                 Forum (Asynchrone)
             </a>
@@ -135,7 +135,19 @@
                     [class.!text-[#0f42a5]]="rla3.isActive">history</span>
                 Historique
             </a>
+<a (click)="closeSidebar()"
+   href="https://planer-omega.vercel.app/dashboard"
+   target="_blank"
+   rel="noopener noreferrer"
+   class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group">
 
+    <span
+        class="material-symbols-outlined text-[20px] lg:text-[24px] group-hover:scale-110 transition-transform text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300">
+        event_note
+    </span>
+
+    Planner
+</a>
             <div class="pt-4 mt-auto">
                 <button (click)="openLogoutModal()"
                     class="flex w-full items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-all group">
@@ -151,7 +163,8 @@
             <div
                 class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 hover:shadow-sm transition-all group cursor-pointer">
                 <div class="relative">
-                    <img [src]="'https://ui-avatars.com/api/?name=' + (user?.username || 'User') + '&background=fed7aa&color=c2410c&bold=true'"
+                    <img loading="lazy"
+                        [src]="'https://ui-avatars.com/api/?name=' + (user?.username || 'User') + '&background=fed7aa&color=c2410c&bold=true'"
                         [alt]="user?.username"
                         class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border-2 border-slate-100 dark:border-slate-700 shadow-sm group-hover:border-primary/20 transition-colors">
                     <span

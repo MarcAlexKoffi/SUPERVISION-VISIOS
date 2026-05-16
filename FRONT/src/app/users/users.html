@@ -65,7 +65,7 @@
                         class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <img [src]="getAvatar(user.username)" [alt]="user.username"
+                                <img loading="lazy" [src]="getAvatar(user.username)" [alt]="user.username"
                                     class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700">
                                 <div>
                                     <p class="font-bold text-slate-900 dark:text-white">{{ user.username }}</p>

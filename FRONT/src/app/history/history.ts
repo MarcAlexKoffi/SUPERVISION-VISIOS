@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -9,7 +10,6 @@ import { TeacherService } from '../services/teacher.service';
 import { UeService } from '../services/ue.service';
 import { ToastService } from '../services/toast.service';
 import { Subscription } from 'rxjs';
-import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 import { parseDate } from '../shared/utils/date.utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -20,6 +20,7 @@ import autoTable from 'jspdf-autotable';
   imports: [CommonModule, FormsModule, RouterModule, ConfirmationModalComponent],
   templateUrl: './history.html',
   styleUrl: './history.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HistoryComponent implements OnInit, OnDestroy {
   filters = {
@@ -79,6 +80,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
   isAdmin = false;
   currentUser: any = null;
   private subscriptions: Subscription = new Subscription();
+
+  trackById(index: number, item: any): any {
+    return item?.id || index;
+  }
 
   constructor(
     private supervisionService: SupervisionService,
@@ -167,6 +172,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.supervisionToSend = null;
     this.emailToConfirm = '';
     this.isSendingEmail = false;
+    this.cdr.markForCheck();
   }
 
   async confirmSendReport() {
@@ -515,23 +521,24 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   get totalDuration(): string {
+    if (!this._totalDurationDirty && this._totalDurationCache !== null) {
+      return this._totalDurationCache;
+    }
+
     let totalMinutes = 0;
     this.filteredSupervisions.forEach(s => {
       const start = this.parseTime(s.startTimeStr);
       const end = this.parseTime(s.endTimeStr);
       let diff = end - start;
-      // Handle overnight or simply ensure positive duration
       if (diff < 0) diff += 24 * 60;
-
-      // Only count if diff makes sense (e.g. > 0)
-      if (diff > 0) {
-        totalMinutes += diff;
-      }
+      if (diff > 0) totalMinutes += diff;
     });
 
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    return `${hours}h ${minutes.toString().padStart(2, '0')}`;
+    this._totalDurationCache = `${hours}h ${minutes.toString().padStart(2, '0')}`;
+    this._totalDurationDirty = false;
+    return this._totalDurationCache;
   }
 
   getDuration(s: any): string {
@@ -747,6 +754,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     }
 
     this.currentPage = 1; // Reset to page 1 on filter change
+    this._totalDurationDirty = true;
   }
 
 
@@ -873,6 +881,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
   private _cachedAsyncFiltered: any[] = [];
   private _cachedAsyncPageData: any[] = [];
 
+  // Cached expensive aggregates
+  private _totalDurationCache: string | null = null;
+  private _totalDurationDirty = true;
+
   get pagedFilteredAsyncSupervisions() { 
     if (this._lastAsyncPage === this.currentPage && this._cachedAsyncFiltered === this.filteredAsyncSupervisions) {
       return this._cachedAsyncPageData;
@@ -986,6 +998,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   cancelDelete() {
     this.showDeleteModal = false;
     this.supervisionToDelete = null;
+    this.cdr.markForCheck();
   }
 
 

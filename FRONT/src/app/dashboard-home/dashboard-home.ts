@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 import { parseDate } from '../shared/utils/date.utils';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-dashboard-home',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
@@ -45,9 +46,9 @@ export class DashboardHome implements OnInit, OnDestroy {
   };
 
   stats: any[] = [
-    { label: 'Total UE Actives', value: '0', icon: 'library_books', color: 'bg-blue-50 text-blue-600', iconBg: 'bg-blue-50 text-blue-600' },
-    { label: 'Sessions Enregistrées', value: '0', icon: 'videocam', color: 'bg-purple-50 text-purple-600', iconBg: 'bg-purple-50 text-purple-600' },
-    { label: 'Nombre total de classes', value: '0', icon: 'apartment', color: 'bg-green-50 text-green-600', iconBg: 'bg-green-50 text-green-600' }
+    { label: 'UNITÉS D\'ENSEIGNEMENT', value: '0', subtext: 'Chargement...', subtextIcon: 'school', subtextColor: 'text-emerald-500', icon: 'book', iconBg: 'bg-blue-50 text-[#0f42a5]', color: 'bg-blue-50 text-[#0f42a5]' },
+    { label: 'SESSIONS DE SUPERVISION', value: '0', subtext: 'Chargement...', subtextIcon: 'history', subtextColor: 'text-slate-400', icon: 'smart_display', iconBg: 'bg-purple-50 text-purple-600', color: 'bg-purple-50 text-purple-600' },
+    { label: 'NOMBRE TOTAL DE CLASSES', value: '0', subtext: 'Chargement...', subtextIcon: 'groups', subtextColor: 'text-slate-400', icon: 'hub', iconBg: 'bg-orange-50 text-orange-600', color: 'bg-orange-50 text-orange-600' }
   ];
   
   // User Stats
@@ -81,8 +82,32 @@ export class DashboardHome implements OnInit, OnDestroy {
     private supervisionService: SupervisionService,
     private authService: AuthService,
     private parcoursService: ParcoursService,
-    private classeService: ClasseService
+    private classeService: ClasseService,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  ngOnInit() {
+    this.currentUser = this.authService.currentUserValue;
+    if (this.currentUser) {
+        this.isAdmin = this.currentUser.role === 'admin';
+        
+        // Setup realtime listeners via active subscription methods
+        this.loadData();
+    }
+  }
+
+  loadData() {
+      this.loadParcours();
+      
+      if (this.isAdmin) {
+          // Check if data from previous versions exists in localstorage
+          this.checkLocalStorage();
+          this.loadStats();
+      } else {
+          this.loadUserData();
+          this.loadStats(); // Loads !isAdmin context correctly based on logic
+      }
+  }
 
   loadParcours() {
     this.parcoursService.getAll().subscribe({
@@ -125,41 +150,56 @@ export class DashboardHome implements OnInit, OnDestroy {
   }
 
   loadStats() {
-     // Fetch UEs to update UEs count and Students count
-     this.ueService.getAll().subscribe({
+     // 1. Fetch UEs
+     this.subscriptions.add(this.ueService.getAll().subscribe({
          next: (uesData) => {
              this.ues = uesData;
              const totalUEs = uesData.length;
-             
-             // Update the stats visible to the user (Student Totals, Active Supervisions, Teaching Units)
-             // Note: In HTML, these are hardcoded numbers in the template for !isAdmin view. 
-             // We need to bind them to variables.
-             
              this.userDashboardStats.ueCount = totalUEs;
+             this.stats[0].value = totalUEs.toString();
+             this.stats[0].subtext = 'Gérées sur la plateforme';
+             this.cdr.markForCheck();
          },
          error: (err) => console.error('Failed to load UEs for stats', err)
-     });
+     }));
 
-     // Fetch Supervisions for "Active Supervisions" count (which is basically total supervisions for the user)
+     // 2. Fetch Supervisions
      const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
-     this.supervisionService.getAll(userId).subscribe({
+     this.subscriptions.add(this.supervisionService.getAll(userId).subscribe({
          next: (supervisionsData) => {
              this.userDashboardStats.activeSupervisions = supervisionsData.length;
+             this.stats[1].value = supervisionsData.length.toString();
+             this.stats[1].subtext = 'Historique des visios';
              this.recentSupervisions = supervisionsData
                 .sort((a: any, b: any) => parseDate(b.visit_date || b.date).getTime() - parseDate(a.visit_date || a.date).getTime())
                 .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
                 .slice(0, 3);
+             this.cdr.markForCheck();
          },
          error: (err) => console.error('Failed to load supervisions for stats', err)
-     });
+     }));
 
-     // Fetch Classes to count Total Classes (admin)
-     this.classeService.getAll().subscribe({
+     // 3. Fetch Classes & Parcours for stats calculation
+     this.subscriptions.add(this.classeService.getAll().subscribe({
        next: (classes) => {
-         this.stats[2].value = classes.length.toString();
+         const totalClasses = classes.length;
+         let totalStudents = 0;
+         classes.forEach((c: any) => {
+             totalStudents += (c.effectif || 0);
+         });
+         this.userDashboardStats.totalStudents = totalStudents;
+         this.stats[2].value = totalClasses.toString();
+         
+         // Fetch Parcours to combine stats
+         this.subscriptions.add(this.parcoursService.getAll().subscribe({
+            next: (parcours) => {
+                this.stats[2].subtext = `Réparties sur ${parcours.length} parcours`;
+                this.cdr.markForCheck();
+            }
+         }));
        },
        error: (err) => console.error('Failed to load classes for stats', err)
-     });
+     }));
   }
   
   userDashboardStats = {
@@ -167,6 +207,24 @@ export class DashboardHome implements OnInit, OnDestroy {
       ueCount: 0,
       totalStudents: 0
   };
+
+  getUeCode(sup: any): string {
+    const ueId = sup.ue_id || sup.ueId;
+    if (ueId && this.ues.length) {
+      const ue = this.ues.find(u => u.id === ueId || u.code === ueId);
+      if (ue && ue.code) return ue.code;
+    }
+    return sup.ue_code || (sup.course && sup.course.code) || 'UE';
+  }
+
+  getUeName(sup: any): string {
+    const ueId = sup.ue_id || sup.ueId;
+    if (ueId && this.ues.length) {
+      const ue = this.ues.find(u => u.id === ueId || u.code === ueId);
+      if (ue && ue.name) return ue.name;
+    }
+    return sup.ue_real_name || sup.module || (sup.course && sup.course.name) || 'Non spécifié';
+  }
 
   checkLocalStorage() {
     // Check common keys for previous data
@@ -310,96 +368,8 @@ export class DashboardHome implements OnInit, OnDestroy {
     this.currentPage = 1;
   }
 
-  ngOnInit() {
-      const user = this.authService.currentUserValue;
-      this.currentUser = user;
-      this.isAdmin = this.currentUser?.role === 'admin';
-
-      this.checkLocalStorage(); // Check for any local backups
-
-      this.loadParcours();
-
-      // Always load UEs list for everyone (Admins and Users)
-      this.loadData();
-
-      // Additional user-specific data
-      if (!this.isAdmin) {
-          this.loadUserData();
-          this.loadStats();
-      }
-
-  }
-
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
-  }
-
-  loadData() {
-    console.log('Tentative de chargement des données...');
-    
-    // 1. Load UEs from API
-    this.ueService.getAll().subscribe({
-        next: (data) => {
-            console.log('UEs chargées avec succès:', data);
-            if (data.length === 0) {
-                 console.warn('Attention: Aucune UE trouvée dans la base de données.');
-            }
-            this.ues = data;
-            this.updateStats();
-        },
-        error: (err) => {
-            console.error('Erreur lors du chargement des UEs:', err);
-            
-            // Check for Firestore permission denied
-            if (err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions')) {
-                 const confirmLogin = confirm('Session invalide ou expirée. Vous devez vous reconnecter pour accéder à la nouvelle base de données Firebase.\n\nVoulez-vous aller à la page de connexion ?');
-                 if (confirmLogin) {
-                     this.authService.logout();
-                 }
-            } else if (err.status === 401 || err.status === 403) {
-                 // Token might be invalid after DB reset
-                 alert('Session expirée ou invalide. Veuillez vous reconnecter.');
-                 this.authService.logout();
-            } else {
-                 alert('Erreur de connexion à la base de données. Vérifiez votre connexion internet.');
-            }
-        }
-    });
-
-    // 2. Load Supervision Stats
-    const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
-    this.supervisionService.getAll(userId).subscribe({
-        next: (data) => {
-             console.log('Supervisions chargées:', data.length);
-             this.stats[1].value = data.length.toString();
-             
-             // Also load recent supervisions for admin
-             if (this.isAdmin) {
-                 this.recentSupervisions = data
-                    .sort((a: any, b: any) => {
-                        const dateA = parseDate(a.visit_date || a.date);
-                        const dateB = parseDate(b.visit_date || b.date);
-                        return dateB.getTime() - dateA.getTime();
-                    })
-                    .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
-                    .slice(0, 3);
-             }
-        },
-        error: (err) => console.error('Erreur chargement supervisions', err)
-    });
-
-    // 3. Load Classes Stats (Nombre total de classes)
-    this.classeService.getAll().subscribe({
-      next: (classes) => {
-        this.stats[2].value = classes.length.toString();
-      },
-      error: (err) => console.error('Erreur chargement classes', err)
-    });
-  }
-
-  updateStats() {
-    // 1. Count Active UEs
-    this.stats[0].value = this.ues.length.toString();
   }
 
   openModal(ue: any = null) {
@@ -451,15 +421,14 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   getDeptBadgeClass(dept: string): string {
     const deptLower = (dept || '').toLowerCase();
-    if (deptLower.includes('informat')) return 'bg-blue-50 text-blue-700';
-    if (deptLower.includes('sci')) return 'bg-purple-50 text-purple-700';
-    if (deptLower.includes('gestion') || deptLower.includes('eco')) return 'bg-orange-50 text-orange-700';
-    if (deptLower.includes('audit')) return 'bg-emerald-50 text-emerald-700';
-    if (deptLower.includes('finance')) return 'bg-indigo-50 text-indigo-700';
-    if (deptLower.includes('grh')) return 'bg-pink-50 text-pink-700';
-    if (deptLower.includes('fiscalit')) return 'bg-cyan-50 text-cyan-700';
-    if (deptLower.includes('mark')) return 'bg-rose-50 text-rose-700';
-    if (deptLower.includes('admin')) return 'bg-slate-50 text-slate-700';
+    if (deptLower.includes('informat') || deptLower.includes('logiciel')) return 'bg-blue-50 text-blue-600';
+    if (deptLower.includes('sci')) return 'bg-purple-50 text-purple-600';
+    if (deptLower.includes('gestion') || deptLower.includes('eco') || deptLower.includes('admin') || deptLower.includes('business')) return 'bg-emerald-50 text-emerald-600';
+    if (deptLower.includes('audit')) return 'bg-teal-50 text-teal-600';
+    if (deptLower.includes('finance')) return 'bg-indigo-50 text-indigo-600';
+    if (deptLower.includes('grh')) return 'bg-pink-50 text-pink-600';
+    if (deptLower.includes('tronc') || deptLower.includes('commun')) return 'bg-slate-100 text-slate-600';
+    if (deptLower.includes('multi')) return 'bg-purple-50 text-purple-600';
     return 'bg-slate-50 text-slate-700';
   }
 

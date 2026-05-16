@@ -1,163 +1,108 @@
-﻿<div class="p-6 max-w-7xl mx-auto space-y-8">
+<div class="p-6 md:p-8 space-y-8 w-full h-full overflow-y-auto">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">Formations & Classes</h1>
-      <p class="text-sm text-slate-500 mt-1">Gérez vos parcours et vos classes depuis cette page</p>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestion des Parcours</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez les cursus académiques et les spécialisations.</p>
     </div>
+    <button (click)="openModal()"
+      class="px-5 py-2.5 bg-[#004edd] hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+      <span class="material-symbols-outlined text-[20px]">add</span>
+      Ajouter un parcours
+    </button>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    
-    <!-- Zone Parcours -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-          <span class="material-symbols-outlined text-blue-500">school</span>
-          Parcours
-        </h2>
+  <div class="space-y-4">
+    <div *ngIf="parcoursList.length === 0" class="text-center py-12 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+      <div class="w-16 h-16 bg-slate-50 dark:bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-3xl text-slate-300 dark:text-slate-600">school</span>
       </div>
-
-      <div class="p-6 flex-1 flex flex-col">
-        <!-- Formulaire d'ajout/Modif Parcours -->
-        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6">
-          <h3 class="text-sm font-semibold text-blue-900 mb-3">{{ isEditingParcours ? 'Modifier le parcours' : 'Ajouter un nouveau parcours' }}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Code</label>
-              <input type="text" [(ngModel)]="newParcours.code" placeholder="Ex: INFO_2A" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nom / Libellé</label>
-              <input type="text" [(ngModel)]="newParcours.name" placeholder="Ex: Informatique 2ème Année" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
-            </div>
-          </div>
-          <div class="mt-4 flex justify-end gap-2">
-            <button *ngIf="isEditingParcours" (click)="cancelEditParcours()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
-              Annuler
-            </button>
-            <button (click)="saveParcours()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">{{ isEditingParcours ? 'save' : 'add' }}</span>
-              {{ isEditingParcours ? 'Enregistrer' : 'Ajouter le parcours' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Liste des parcours -->
-        <div class="flex-1 overflow-y-auto min-h-[300px]">
-          <h3 class="text-sm font-semibold text-slate-600 mb-3">Parcours existants ({{ parcoursList.length }})</h3>
-          
-          <div class="space-y-3">
-            <div *ngFor="let p of parcoursList" class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition-colors group">
-              <div>
-                <div class="font-bold text-slate-800">{{ p.name }}</div>
-                <div class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">{{ p.code }}</div>
-              </div>
-              <div class="flex items-center gap-1 opacity-100 transition-all">
-                <button (click)="editParcours(p)" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
-                   <span class="material-symbols-outlined text-[20px]">edit</span>
-                </button>
-                <button (click)="confirmDeleteParcours(p)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer">
-                  <span class="material-symbols-outlined text-[20px]">delete</span>
-                </button>
-              </div>
-            </div>
-            
-            <div *ngIf="parcoursList.length === 0" class="text-center py-8 text-slate-400 text-sm">
-              Aucun parcours configuré.
-            </div>
-          </div>
-        </div>
-      </div>
+      <p class="text-slate-500 dark:text-slate-400 font-medium">Aucun parcours configuré.</p>
     </div>
 
-
-    <!-- Zone Classes -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-      <div class="px-6 py-4 border-b border-slate-200 bg-emerald-50 flex items-center justify-between">
-        <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2">
-          <span class="material-symbols-outlined text-emerald-500">groups</span>
-          Classes
-        </h2>
+    <div *ngFor="let p of parcoursList; trackBy: trackById"
+      class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 flex items-center justify-between group hover:shadow-md transition-shadow">
+      
+      <div class="flex items-center gap-4">
+        <!-- Dynamic Icon -->
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" [ngClass]="getIconBg(p.name)">
+          <span class="material-symbols-outlined text-[24px]">{{ getIconName(p.name) }}</span>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ p.name }}</h3>
+          <div class="flex items-center gap-3 mt-1.5">
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 px-2.5 py-1 rounded-full">
+              Département: {{ getDepartment(p.name) }}
+            </span>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">groups</span>
+              {{ getStudentCount(p.name) }} Étudiants
+            </span>
+          </div>
+        </div>
       </div>
-
-      <div class="p-6 flex-1 flex flex-col">
-        <!-- Formulaire d'ajout/Modif Classe -->
-        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 mb-6">
-          <h3 class="text-sm font-semibold text-emerald-900 mb-3">{{ isEditingClasse ? 'Modifier la classe' : 'Ajouter une nouvelle classe' }}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-2">
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nom de la classe</label>
-              <input type="text" [(ngModel)]="newClasse.name" placeholder="Ex: Master Dev Grp A" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Effectif</label>
-              <input type="number" [(ngModel)]="newClasse.effectif" placeholder="0" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
-            </div>
-            <div class="md:col-span-3">
-              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Parcours relié (Optionnel)</label>
-              <select [(ngModel)]="newClasse.parcours_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow">
-                <option [ngValue]="null">--- Aucun parcours ---</option>
-                <option *ngFor="let p of parcoursList" [value]="p.id">{{ p.name }} ({{ p.code }})</option>
-              </select>
-            </div>
-          </div>
-          <div class="mt-4 flex justify-end gap-2">
-            <button *ngIf="isEditingClasse" (click)="cancelEditClasse()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
-              Annuler
-            </button>
-            <button (click)="saveClasse()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">{{ isEditingClasse ? 'save' : 'add' }}</span>
-              {{ isEditingClasse ? 'Enregistrer' : 'Ajouter la classe' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Liste des classes -->
-        <div class="flex-1 overflow-y-auto min-h-[300px]">
-          <h3 class="text-sm font-semibold text-slate-600 mb-3">Classes existantes ({{ classesList.length }})</h3>
-          
-          <div class="space-y-3">
-            <div *ngFor="let c of classesList" class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition-colors group">
-              <div class="flex-1">
-                <div class="font-bold text-slate-800">{{ c.name }}</div>
-                <div class="flex gap-2 mt-1 items-center">
-                  <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[12px]">person</span> {{ c.effectif }} étudiants
-                  </span>
-                  <span *ngIf="c.parcours_name" class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded truncate max-w-[150px]">
-                    {{ c.parcours_name }}
-                  </span>
-                </div>
-              </div>
-              <div class="flex items-center gap-1 opacity-100 transition-all ml-2">
-                <button (click)="editClasse(c)" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
-                  <span class="material-symbols-outlined text-[20px]">edit</span>
-               </button>
-               <button (click)="confirmDeleteClasse(c)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Supprimer">
-                <span class="material-symbols-outlined text-[20px]">delete</span>
-              </button>
-              </div>
-            </div>
-
-            <div *ngIf="classesList.length === 0" class="text-center py-8 text-slate-400 text-sm">
-              Aucune classe configurée.
-            </div>
-          </div>
-        </div>
+      
+      <div class="flex items-center gap-3">
+        <button (click)="editParcours(p)"
+          class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
+          <span class="material-symbols-outlined text-[20px]">edit</span>
+        </button>
+        <button (click)="confirmDeleteParcours(p)"
+          class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Supprimer">
+          <span class="material-symbols-outlined text-[20px]">delete</span>
+        </button>
       </div>
     </div>
-
   </div>
 </div>
 
-<app-confirmation-modal 
-  *ngIf="isDeleteModalOpen" 
-  [isOpen]="true" 
-  title="Confirmation de suppression"
-  [message]="deleteType === 'parcours' ? 'Voulez-vous vraiment supprimer ce parcours ? Cette action peut avoir un impact sur les classes liées.' : 'Voulez-vous vraiment supprimer cette classe ?'"
-  confirmText="Supprimer" 
-  cancelText="Annuler" 
-  type="danger" 
-  (confirm)="onConfirmDelete()" 
+<!-- Modal Ajout/Modification Parcours -->
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+          <span class="material-symbols-outlined">{{ isEditingParcours ? 'edit_square' : 'library_add' }}</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">{{ isEditingParcours ? 'Modifier le parcours' : 'Nouveau Parcours' }}</h3>
+          <p class="text-sm text-slate-500">{{ isEditingParcours ? 'Modifiez les informations ci-dessous' : 'Ajoutez un nouveau parcours' }}</p>
+        </div>
+      </div>
+      <button type="button" (click)="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Code</label>
+        <input type="text" [(ngModel)]="newParcours.code" placeholder="Ex: INFO_2A"
+          class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Nom / Libellé</label>
+        <input type="text" [(ngModel)]="newParcours.name" placeholder="Ex: Informatique 2ème Année"
+          class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow">
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+      <button (click)="closeModal()"
+        class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors">
+        Annuler
+      </button>
+      <button (click)="saveParcours()"
+        class="px-5 py-2 bg-[#004edd] text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-sm transition-colors flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">{{ isEditingParcours ? 'save' : 'add' }}</span>
+        {{ isEditingParcours ? 'Enregistrer' : 'Ajouter' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-confirmation-modal *ngIf="isDeleteModalOpen" [isOpen]="true" title="Confirmation de suppression"
+  message="Voulez-vous vraiment supprimer ce parcours ? Cette action peut avoir un impact sur les classes liées."
+  confirmText="Supprimer" cancelText="Annuler" type="danger" (confirm)="onConfirmDelete()"
   (cancel)="closeDeleteModal()">
 </app-confirmation-modal>

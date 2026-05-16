@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClasseService, Classe } from '../services/classe.service';
@@ -10,9 +11,14 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
   selector: 'app-classes',
   standalone: true,
   imports: [CommonModule, FormsModule, ConfirmationModalComponent],
-  templateUrl: './classes.html'
+  templateUrl: './classes.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ClassesComponent implements OnInit {
+export class ClassesComponent implements OnInit, OnDestroy {
+
+  private subscriptions: Subscription = new Subscription();
+
+  trackById(index: number, item: any): any { return item?.id || index; }
   classesList: Classe[] = [];
   parcoursList: Parcours[] = [];
   newClasse: Classe = { name: '', effectif: 0, parcours_id: null };
@@ -38,23 +44,23 @@ export class ClassesComponent implements OnInit {
   }
 
   loadClasses() {
-    this.classeService.getAll().subscribe({
+    this.subscriptions.add(this.classeService.getAll().subscribe({
       next: (data) => {
         this.classesList = data;
         this.cdr.detectChanges();
       },
       error: () => this.toastService.error('Erreur lors du chargement des classes')
-    });
+    }));
   }
 
   loadParcours() {
-    this.parcoursService.getAll().subscribe({
+    this.subscriptions.add(this.parcoursService.getAll().subscribe({
       next: (data) => {
         this.parcoursList = data;
         this.cdr.detectChanges();
       },
       error: () => console.error('Erreur chargement parcours pour les classes')
-    });
+    }));
   }
 
   saveClasse() {
@@ -68,24 +74,26 @@ export class ClassesComponent implements OnInit {
     }
 
     if (this.isEditingClasse && this.currentClasseId) {
-      this.classeService.update(this.currentClasseId, this.newClasse).subscribe({
+      this.subscriptions.add(this.classeService.update(this.currentClasseId, this.newClasse).subscribe({
         next: () => {
           this.toastService.success('Classe mise à jour avec succès');
           this.cancelEditClasse();
           this.loadClasses();
+          this.cdr.markForCheck();
         },
         error: () => this.toastService.error('Erreur lors de la mise à jour de la classe')
-      });
-    } else {
-      this.classeService.create(this.newClasse).subscribe({
+      }));
+  } else {
+      this.subscriptions.add(this.classeService.create(this.newClasse).subscribe({
         next: () => {
           this.toastService.success('Classe ajoutée avec succès');
           this.cancelEditClasse();
           this.loadClasses();
+          this.cdr.markForCheck();
         },
         error: () => this.toastService.error('Erreur lors de l\'ajout de la classe')
-      });
-    }
+      }));
+  }
   }
 
   editClasse(c: Classe) {
@@ -133,19 +141,24 @@ export class ClassesComponent implements OnInit {
 
   onConfirmDelete() {
     if (this.itemToDelete) {
-      this.classeService.delete(this.itemToDelete.id).subscribe({
+      this.subscriptions.add(this.classeService.delete(this.itemToDelete.id).subscribe({
         next: () => {
           this.toastService.success('Classe supprimée');
           this.loadClasses();
           this.closeDeleteModal();
+          this.cdr.markForCheck();
         },
         error: () => this.toastService.error('Erreur lors de la suppression')
-      });
-    }
+      }));
+  }
   }
 
   closeDeleteModal() {
     this.isDeleteModalOpen = false;
     this.itemToDelete = null;
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 }

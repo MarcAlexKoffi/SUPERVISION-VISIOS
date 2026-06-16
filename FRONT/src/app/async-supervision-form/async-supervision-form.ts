@@ -7,6 +7,8 @@ import { TeacherService } from '../services/teacher.service';
 import { ClasseService } from '../services/classe.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { ActivityService } from '../services/activity.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-async-supervision-form',
@@ -62,6 +64,8 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
     private classeService: ClasseService,
     private router: Router,
     private authService: AuthService,
+    private activityService: ActivityService,
+    private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -271,6 +275,30 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.isSaving = false;
         this.showSuccessModal = true;
+
+        const actionDetails = `Le rapport asynchrone pour la semaine "${this.formData.week}" a été soumis.`;
+        this.activityService.logActivity('Supervision Asynchrone', actionDetails, 'Supervision');
+
+        const currentUser = this.authService.currentUserValue;
+        this.notificationService.createNotification({
+            user_id: currentUser?.uid || currentUser?.id,
+            type: 'success',
+            title: 'Nouvelle Supervision Asynchrone',
+            message: actionDetails,
+            read: false,
+            link: '/admin/history'
+        });
+
+        if (currentUser?.role !== 'admin') {
+            this.notificationService.createNotification({
+                role: 'admin',
+                type: 'success',
+                title: 'Supervision Asynchrone Soumise',
+                message: `${currentUser?.username || 'Un enseignant'} a soumis un rapport asynchrone.`,
+                read: false,
+                link: '/admin/history'
+            });
+        }
       },
       error: (err) => {
         console.error('Erreur save', err);

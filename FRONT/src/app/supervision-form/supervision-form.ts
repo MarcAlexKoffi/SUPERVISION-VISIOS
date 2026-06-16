@@ -9,6 +9,7 @@ import { AuthService } from '../services/auth.service';
 import { ClasseService } from '../services/classe.service';
 import { NotificationService } from '../services/notification.service';
 import { Subscription } from 'rxjs';
+import { ActivityService } from '../services/activity.service';
 
 @Component({
   selector: 'app-supervision-form',
@@ -79,6 +80,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     private classeService: ClasseService,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private activityService: ActivityService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
@@ -451,6 +453,22 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
   handleSuccess(isEdit: boolean = false) {
       const currentUser = this.authService.currentUserValue;
+      
+      // Enregistrer l'activité
+      const actionTitle = isEdit ? 'Mise à jour de supervision' : 'Nouvelle supervision';
+      const actionDetails = `Le rapport de supervision pour "${this.formData.module || 'UE Inconnue'}" a été ${isEdit ? 'mis à jour' : 'soumis'}.`;
+      this.activityService.logActivity(actionTitle, actionDetails, 'Supervision');
+
+      // Notifier l'utilisateur lui-même "quelque soit mon rôle"
+      this.notificationService.createNotification({
+          user_id: currentUser?.uid || currentUser?.id,
+          type: 'success',
+          title: actionTitle,
+          message: actionDetails,
+          read: false,
+          link: '/admin/history'
+      }).catch(console.error);
+
       if (!isEdit && currentUser?.role !== 'admin') {
           // Notify admins of new supervision by user
           this.notificationService.createNotification({

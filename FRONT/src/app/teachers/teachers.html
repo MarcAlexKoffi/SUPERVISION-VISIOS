@@ -17,7 +17,7 @@
     <div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div class="relative flex-1 max-w-md">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
-            <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher un enseignant..." 
+            <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" placeholder="Rechercher un enseignant..." 
                 class="w-full pl-10 pr-4 py-2 flex items-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#0f42a5]/20 focus:border-[#0f42a5] transition-all outline-none">
         </div>
     </div>
@@ -30,7 +30,12 @@
                 <thead>
                     <tr
                         class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-xs lg:text-sm font-bold text-slate-600 uppercase tracking-wider">
-                        <th class="p-4">Nom & Prénom</th>
+                        <th (click)="toggleSort()" class="p-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors select-none group">
+                            <div class="flex items-center gap-2">
+                                Nom & Prénom
+                                <span class="material-symbols-outlined text-[16px] lg:text-[20px] text-slate-400 group-hover:text-[#0f42a5] transition-colors">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</span>
+                            </div>
+                        </th>
                         <th class="p-4">Email</th>
                         <th class="p-4">Parcours</th>
                         <th class="p-4">Statut</th>
@@ -38,10 +43,10 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                    <tr *ngIf="filteredTeachers.length === 0">
-                        <td colspan="5" class="p-8 text-center text-slate-500">Aucun enseignant trouvÃ©.</td>
+                    <tr *ngIf="displayedTeachers.length === 0">
+                        <td colspan="5" class="p-8 text-center text-slate-500">Aucun enseignant trouvé.</td>
                     </tr>
-                    <tr *ngFor="let t of filteredTeachers; trackBy: trackById"
+                    <tr *ngFor="let t of paginatedTeachers; trackBy: trackById"
                         class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                         <td class="p-4">
                             <div class="flex items-center gap-3">
@@ -85,6 +90,25 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-800">
+            <div class="text-sm font-bold text-[#0f42a5] uppercase tracking-wider">
+                PAGE {{ currentPage }} SUR {{ totalPages }}
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1"
+                    class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-400 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                </button>
+
+                <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages"
+                    class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-md text-slate-900 hover:text-[#0f42a5] hover:border-[#0f42a5] transition-all disabled:opacity-50 disabled:hover:text-slate-400 disabled:hover:border-slate-200 shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

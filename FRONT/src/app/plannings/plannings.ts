@@ -8,6 +8,7 @@ import { ToastService } from '../services/toast.service';
 import { ParcoursService } from '../services/parcours.service';
 import { ClasseService } from '../services/classe.service';
 import { NotificationService } from '../services/notification.service';
+import { ActivityService } from '../services/activity.service';
 import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -64,6 +65,7 @@ export class Plannings implements OnInit, OnDestroy {
     private toastService: ToastService,
     private parcoursService: ParcoursService,
     private notificationService: NotificationService,
+    private activityService: ActivityService,
     private classeService: ClasseService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -248,6 +250,14 @@ export class Plannings implements OnInit, OnDestroy {
       this.planningService.updatePlanning(this.modalData.id, this.modalData).subscribe({
         next: () => {
           this.toastService.success('Séance mise à jour');
+          const ueName = this.modalData.title || 'Inconnue';
+          this.activityService.logActivity('Mise à jour de séance', `Le planning de "${ueName}" a été mis à jour.`, 'Planning');
+          this.notificationService.createNotification({
+            title: 'Séance modifiée',
+            message: `Vous avez mis à jour la séance "${ueName}".`,
+            type: 'info',
+            read: false
+          });
           this.closeModal();
           this.loadPlannings();
         },
@@ -259,6 +269,14 @@ export class Plannings implements OnInit, OnDestroy {
       this.planningService.createPlanning(this.modalData as Planning).subscribe({
         next: () => {
           this.toastService.success('Séance ajoutée au planning');
+          const ueName = this.modalData.title || 'Inconnue';
+          this.activityService.logActivity('Nouvelle séance planifiée', `Une séance "${ueName}" a été ajoutée.`, 'Planning');
+          this.notificationService.createNotification({
+            title: 'Nouvelle séance',
+            message: `Vous avez planifié avec succès la séance "${ueName}".`,
+            type: 'success',
+            read: false
+          });
           this.closeModal();
           this.loadPlannings();
         },
@@ -270,10 +288,19 @@ export class Plannings implements OnInit, OnDestroy {
 
   deletePlanning(id: any) {
     if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
+      const plan = this.plannings.find(p => p.id === id);
+      const title = plan ? (plan.ue_name || plan.title || 'Inconnue') : 'Inconnue';
       this.subscriptions.add(
       this.planningService.deletePlanning(String(id)).subscribe({
         next: () => {
           this.toastService.success('Séance supprimée');
+          this.activityService.logActivity('Séance supprimée', `La séance "${title}" a été supprimée du planning.`, 'Planning');
+          this.notificationService.createNotification({
+            title: 'Séance supprimée',
+            message: `Vous avez supprimé la séance "${title}".`,
+            type: 'warning',
+            read: false
+          });
           this.loadPlannings(); // This might be redundant if we use real-time listeners, but harmless for now.
         },
         error: () => this.toastService.error('Erreur de suppression'),

@@ -3,12 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UeService } from '../services/ue.service';
 import { SupervisionService } from '../services/supervision.service';
+import { AsyncSupervisionService } from '../services/async-supervision.service';
+import { combineLatest, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ClasseService } from '../services/classe.service';
 import { AuthService } from '../services/auth.service';
 import { ParcoursService } from '../services/parcours.service';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { parseDate } from '../shared/utils/date.utils';
+import { ActivityService } from '../services/activity.service';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +28,7 @@ export class DashboardHome implements OnInit, OnDestroy {
   currentUser: any = null;
   private subscriptions: Subscription = new Subscription();
   parcoursList: any[] = [];
+  recentActivities: any[] = [];
 
   // DB Fields: code, name, responsible, students_count, level, semester, phase
   // UI Fields mapping:
@@ -80,9 +85,11 @@ export class DashboardHome implements OnInit, OnDestroy {
   constructor(
     private ueService: UeService,
     private supervisionService: SupervisionService,
+    private asyncSupervisionService: AsyncSupervisionService,
     private authService: AuthService,
     private parcoursService: ParcoursService,
     private classeService: ClasseService,
+    private activityService: ActivityService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -107,6 +114,17 @@ export class DashboardHome implements OnInit, OnDestroy {
           this.loadUserData();
           this.loadStats(); // Loads !isAdmin context correctly based on logic
       }
+
+      // Subscribe to recent activities (shows actions like planning create/update/delete, supervisions)
+      this.subscriptions.add(
+        this.activityService.getRecentActivities(5).subscribe({
+          next: (acts: any[]) => {
+            this.recentActivities = acts.map(a => ({ ...a, parsedDate: a.created_at ? new Date(a.created_at) : new Date() }));
+            this.cdr.markForCheck();
+          },
+          error: (err) => console.error('Failed to load recent activities', err)
+        })
+      );
   }
 
   loadParcours() {
@@ -118,17 +136,20 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   loadUserData() {
       // Load user specific stats (supervisions)
-      this.supervisionService.getAll(this.currentUser.id).subscribe({
-          next: (data) => {
+      combineLatest({
+          sync: this.supervisionService.getAll(this.currentUser.id).pipe(catchError(() => of([]))),
+          async: this.asyncSupervisionService.getAll(this.currentUser.id).pipe(catchError(() => of([])))
+      }).subscribe({
+          next: ({ sync, async }) => {
               // The backend filters by userId for non-admins already
-              const mySupervisions = data; 
+              const mySupervisions = [...sync.map((s: any) => ({ ...s, isAsync: false })), ...async.map((s: any) => ({ ...s, isAsync: true }))]; 
               this.recentSupervisions = mySupervisions
                 .sort((a: any, b: any) => {
-                    const dateA = parseDate(a.visit_date || a.date);
-                    const dateB = parseDate(b.visit_date || b.date);
+                    const dateA = this.getSupervisionDate(a);
+                    const dateB = this.getSupervisionDate(b);
                     return dateB.getTime() - dateA.getTime();
                 })
-                .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
+                .map((a: any) => ({ ...a, parsedDate: this.getSupervisionDate(a) }))
                 .slice(0, 3);
 
               // Only update if we have user stats array (for user dashboard view)
@@ -140,13 +161,26 @@ export class DashboardHome implements OnInit, OnDestroy {
                   if (this.userStats && this.userStats.length > 1) {
                       const lastSup = mySupervisions[0];
                       // Handle Firestore Timestamps or Dates
-                      const dateObj = parseDate(lastSup.visit_date || lastSup.date);
+                      const dateObj = this.getSupervisionDate(lastSup);
                       this.userStats[1].value = dateObj.toLocaleDateString();
                   }
               }
+              this.cdr.markForCheck();
           },
           error: (err) => console.error('Failed to load user supervisions', err)
       });
+  }
+
+  getSupervisionDate(sup: any): Date {
+      if (sup.visit_date || sup.date) {
+          return parseDate(sup.visit_date || sup.date);
+      }
+      if (sup.created_at) {
+          if (typeof sup.created_at.toDate === 'function') return sup.created_at.toDate();
+          if (sup.created_at.seconds) return new Date(sup.created_at.seconds * 1000);
+          return new Date(sup.created_at);
+      }
+      return new Date();
   }
 
   loadStats() {
@@ -165,14 +199,19 @@ export class DashboardHome implements OnInit, OnDestroy {
 
      // 2. Fetch Supervisions
      const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
-     this.subscriptions.add(this.supervisionService.getAll(userId).subscribe({
-         next: (supervisionsData) => {
+     this.subscriptions.add(
+         combineLatest({
+             sync: this.supervisionService.getAll(userId).pipe(catchError(() => of([]))),
+             async: this.asyncSupervisionService.getAll(userId).pipe(catchError(() => of([])))
+         }).subscribe({
+         next: ({ sync, async }) => {
+             const supervisionsData = [...sync.map((s: any) => ({ ...s, isAsync: false })), ...async.map((s: any) => ({ ...s, isAsync: true }))];
              this.userDashboardStats.activeSupervisions = supervisionsData.length;
              this.stats[1].value = supervisionsData.length.toString();
-             this.stats[1].subtext = 'Historique des visios';
+             this.stats[1].subtext = 'Historique des visios et asynchrones';
              this.recentSupervisions = supervisionsData
-                .sort((a: any, b: any) => parseDate(b.visit_date || b.date).getTime() - parseDate(a.visit_date || a.date).getTime())
-                .map((a: any) => ({ ...a, parsedDate: parseDate(a.visit_date || a.date) }))
+                .sort((a: any, b: any) => this.getSupervisionDate(b).getTime() - this.getSupervisionDate(a).getTime())
+                .map((a: any) => ({ ...a, parsedDate: this.getSupervisionDate(a) }))
                 .slice(0, 3);
              this.cdr.markForCheck();
          },

@@ -241,17 +241,26 @@
                 </tr>
             </thead>
             <tbody class="text-sm divide-y divide-slate-100">
-                <tr *ngIf="paginatedSupervisions.length === 0">
+                <tr *ngIf="isLoading">
+                    <td colspan="6" class="text-center py-12 text-slate-500">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <span class="material-symbols-outlined animate-spin text-[#0f42a5] text-3xl">hourglass_empty</span>
+                            <span>Chargement des données...</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="!isLoading && paginatedSupervisions.length === 0">
                     <td colspan="6" class="text-center py-12 text-slate-500">
                         Aucun rapport trouvé pour ces critères.
                     </td>
                 </tr>
 
+                <ng-container *ngIf="!isLoading">
                 <tr *ngFor="let s of paginatedSupervisions; trackBy: trackById" class="hover:bg-slate-50/50 transition-colors group">
                     <!-- Date & Heure -->
                     <td class="px-6 py-4 align-top">
-                        <div class="text-slate-900 font-medium">{{ s.date | date:'dd MMM yyyy':'':'fr' }}</div>
-                        <div class="text-slate-500 text-sm mt-1">{{ s.startTimeStr }} - {{ s.endTimeStr }}</div>
+                        <div class="text-slate-900 font-medium">{{ s.date | date:'dd/MM/yyyy' }}</div>
+                        <div class="text-slate-500 text-xs mt-1 bg-slate-100 px-2 py-0.5 rounded inline-block">{{ s.startTimeStr }} - {{ s.endTimeStr }}</div>
                     </td>
 
                     <!-- Cours -->
@@ -334,6 +343,7 @@
                         </div>
                     </td>
                 </tr>
+                </ng-container>
             </tbody>
         </table>
 
@@ -349,12 +359,21 @@
                 </tr>
             </thead>
             <tbody class="text-sm divide-y divide-slate-100">
-                <tr *ngIf="filteredAsyncSupervisions.length === 0">
+                <tr *ngIf="isLoading">
+                    <td colspan="5" class="text-center py-12 text-slate-500">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <span class="material-symbols-outlined animate-spin text-[#0f42a5] text-3xl">hourglass_empty</span>
+                            <span>Chargement des données...</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="!isLoading && filteredAsyncSupervisions.length === 0">
                     <td colspan="5" class="text-center py-12 text-slate-500">
                         Aucun rapport asynchrone trouvé.
                     </td>
                 </tr>
 
+                <ng-container *ngIf="!isLoading">
                 <tr *ngFor="let s of pagedFilteredAsyncSupervisions; trackBy: trackById" class="hover:bg-slate-50/50 transition-colors group">
                     <td class="px-6 py-4 align-top">
                         <div class="text-slate-900 font-medium">{{ s.week }}</div>
@@ -392,6 +411,7 @@
                         </div>
                     </td>
                 </tr>
+                </ng-container>
             </tbody>
         </table>
         </div>

@@ -81,17 +81,29 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé.' });
     }
 
-    // Build update object
+    // Build update object for Firestore
     const updates: any = {};
     if (username) updates.username = username;
     if (email !== undefined) updates.email = email;
     if (role) updates.role = role;
-    if (password) updates.password = password;
 
     if (Object.keys(updates).length > 0) {
-        // Check uniqueness if changing username or email
-        // This is complex in Firestore (need transactions or separate reads), skipping for brevity but recommended.
         await userRef.update(updates);
+    }
+
+    // Update Firebase Auth credentials
+    const { auth } = require('../config/db');
+    const authUpdates: any = {};
+    if (email) authUpdates.email = email;
+    if (password) authUpdates.password = password;
+
+    if (Object.keys(authUpdates).length > 0) {
+       try {
+         await auth.updateUser(userId, authUpdates);
+       } catch (authError) {
+          console.error("Erreur mise à jour auth:", authError);
+          return res.status(500).json({ message: "Erreur lors de la mise à jour des identifiants d'authentification." });
+       }
     }
 
     res.json({ message: 'Utilisateur mis à jour avec succès.' });

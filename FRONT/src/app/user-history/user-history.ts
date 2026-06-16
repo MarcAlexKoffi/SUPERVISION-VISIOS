@@ -410,8 +410,18 @@ export class UserHistoryComponent implements OnInit, OnDestroy {
 
     const s = supervision;
     const dateFormatted = s.date.toLocaleDateString('fr-FR');
-    const startTimeFormatted = s.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const endTimeFormatted = s.endTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const formatTime = (value: any): string => {
+      if (!value) return '--:--';
+      if (typeof value === 'string') {
+        return value.length > 5 ? value.substring(0, 5) : value;
+      }
+      if (value instanceof Date) {
+        return value.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      }
+      return '--:--';
+    };
+    const startTimeFormatted = formatTime(s.startTimeStr || s.startTime || s.date);
+    const endTimeFormatted = formatTime(s.endTimeStr || s.endTime);
 
     const supervisorSig = s.signatures?.supervisor ? `<img src="${s.signatures.supervisor}" style="max-height: 50px; display: block; margin: 0 auto;">` : '<div style="font-style: italic; color: #94a3b8;">Non signé</div>';
     const teacherSig = s.signatures?.teacher ? `<img src="${s.signatures.teacher}" style="max-height: 50px; display: block; margin: 0 auto;">` : '<div style="font-style: italic; color: #94a3b8;">Non signé</div>';

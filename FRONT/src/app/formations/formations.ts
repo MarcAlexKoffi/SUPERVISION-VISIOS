@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParcoursService, Parcours } from '../services/parcours.service';
+import { ClasseService, Classe } from '../services/classe.service';
 import { ToastService } from '../services/toast.service';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 
@@ -21,6 +22,7 @@ export class Formations implements OnInit, OnDestroy {
   trackById(index: number, item: any): any { return item?.id || index; }
   // Parcours State
   parcoursList: Parcours[] = [];
+  classesList: Classe[] = [];
   newParcours: Parcours = { code: '', name: '' };
 
   // Edit State
@@ -34,12 +36,14 @@ export class Formations implements OnInit, OnDestroy {
 
   constructor(
     private parcoursService: ParcoursService,
+    private classeService: ClasseService,
     private toastService: ToastService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.loadParcours();
+    this.loadClasses();
   }
 
   loadParcours() {
@@ -49,6 +53,16 @@ export class Formations implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => this.toastService.error('Erreur lors du chargement des parcours')
+    }));
+  }
+
+  loadClasses() {
+    this.subscriptions.add(this.classeService.getAll().subscribe({
+      next: (data) => {
+        this.classesList = data;
+        this.cdr.markForCheck();
+      },
+      error: () => console.error('Erreur lors du chargement des classes')
     }));
   }
 
@@ -163,10 +177,16 @@ export class Formations implements OnInit, OnDestroy {
     return 'Général';
   }
 
-  getStudentCount(name: string): number {
-    // Generate a pseudo-random deterministic number based on string length to simulate data
-    const base = name.length * 7;
-    return (base % 100) + 50; 
+  getStudentCount(p: Parcours): number {
+    return this.classesList
+      .filter(c => c.parcours_id === p.id || c.parcours_name === p.name)
+      .reduce((sum, c) => sum + (Number(c.effectif) || 0), 0);
+  }
+
+  getClassCount(p: Parcours): number {
+    return this.classesList
+      .filter(c => c.parcours_id === p.id || c.parcours_name === p.name)
+      .length;
   }
 
   ngOnDestroy() {

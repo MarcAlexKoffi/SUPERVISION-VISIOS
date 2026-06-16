@@ -88,10 +88,7 @@ export class UserService {
   }
 
   update(id: string, user: any): Observable<void> {
-    const docRef = doc(this.firestore, `users/${id}`);
-    // Exclude password if present in user object
-    const { password, ...userData } = user; 
-    return from(updateDoc(docRef, userData));
+    return this.http.put<void>(`${environment.apiUrl}/users/${id}`, user);
   }
 
   // NOTE: This deletes the Firestore document AND the Auth user via backend.

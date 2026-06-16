@@ -22,20 +22,56 @@ export class TeachersComponent implements OnInit, OnDestroy {
   trackById(index: number, item: any): any { return item?.id || index; }
   teachers: any[] = [];
   searchQuery: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  currentPage = 1;
+  itemsPerPage = 10;
   parcoursList: any[] = [];
   showModal = false;
   isEditing = false;
   isLoading = false;
 
-  get filteredTeachers(): any[] {
-    if (!this.searchQuery) return this.teachers;
-    const lowerQuery = this.searchQuery.toLowerCase();
-    return this.teachers.filter(t => 
-      t.first_name?.toLowerCase().includes(lowerQuery) || 
-      t.last_name?.toLowerCase().includes(lowerQuery) ||
-      t.email?.toLowerCase().includes(lowerQuery) ||
-      t.department?.toLowerCase().includes(lowerQuery)
-    );
+  get displayedTeachers(): any[] {
+    let result = [...this.teachers];
+    
+    if (this.searchQuery) {
+      const lowerQuery = this.searchQuery.toLowerCase();
+      result = result.filter(t => 
+        t.first_name?.toLowerCase().includes(lowerQuery) || 
+        t.last_name?.toLowerCase().includes(lowerQuery) ||
+        t.email?.toLowerCase().includes(lowerQuery) ||
+        t.department?.toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    result.sort((a, b) => {
+      const nameA = (a.last_name || '').toLowerCase();
+      const nameB = (b.last_name || '').toLowerCase();
+      if (nameA < nameB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (nameA > nameB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }
+
+  get paginatedTeachers() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.displayedTeachers.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.displayedTeachers.length / this.itemsPerPage));
+  }
+
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.currentPage = 1;
   }
 
   showDeleteModal = false;

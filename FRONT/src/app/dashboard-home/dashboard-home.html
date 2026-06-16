@@ -257,73 +257,30 @@
             <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Activités Récentes</h2>
             
             <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                <div *ngIf="recentSupervisions.length === 0" class="p-6">
-                     <!-- MOCK DATA when no supervisions -->
-                     <div class="space-y-4">
-                         <div class="flex items-start gap-3">
-                             <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100">
-                                 <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                             </div>
-                             <div class="flex-1 min-w-0">
-                                 <div class="flex items-center justify-between">
-                                     <h4 class="font-bold text-slate-900 dark:text-white text-sm">Session Terminée : INF301</h4>
-                                     <span class="text-[11px] text-slate-400">Il y a 10m</span>
-                                 </div>
-                                 <p class="text-sm text-slate-500 mt-1 leading-snug">Le cours "Modélisation de données" s'est achevé avec 85% de présence.</p>
-                             </div>
-                         </div>
-                         <div class="flex items-start gap-3 border-t border-slate-100 pt-4">
-                             <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-green-50 text-green-600 border border-green-100">
-                                 <span class="material-symbols-outlined text-[20px]">cloud_upload</span>
-                             </div>
-                             <div class="flex-1 min-w-0">
-                                 <div class="flex items-center justify-between">
-                                     <h4 class="font-bold text-slate-900 dark:text-white text-sm">Support Mis à Jour</h4>
-                                     <span class="text-[11px] text-slate-400">Il y a 2h</span>
-                                 </div>
-                                 <p class="text-sm text-slate-500 mt-1 leading-snug">Le professeur Martin a ajouté 3 fichiers asynchrones pour MAT112.</p>
-                             </div>
-                         </div>
-                         <div class="flex items-start gap-3 border-t border-slate-100 pt-4">
-                             <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-amber-50 text-amber-500 border border-amber-100" style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border-radius: 4px;">
-                                 <span class="material-symbols-outlined text-[16px] mt-2">warning</span>
-                             </div>
-                             <div class="flex-1 min-w-0">
-                                 <div class="flex items-center justify-between">
-                                     <h4 class="font-bold text-slate-900 dark:text-white text-sm">Alerte de Quotas</h4>
-                                     <span class="text-[11px] text-slate-400">Il y a 4h</span>
-                                 </div>
-                                 <p class="text-sm text-slate-500 mt-1 leading-snug">L'UE MGT204 approche de la limite de capacité pour le groupe A.</p>
-                             </div>
-                         </div>
-                         <div class="flex items-start gap-3 border-t border-slate-100 pt-4">
-                             <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-slate-50 text-slate-500 border border-slate-200">
-                                 <span class="material-symbols-outlined text-[20px]">videocam_off</span>
-                             </div>
-                             <div class="flex-1 min-w-0">
-                                 <div class="flex items-center justify-between">
-                                     <h4 class="font-bold text-slate-900 dark:text-white text-sm">Séance Reportée</h4>
-                                     <span class="text-[11px] text-slate-400">Hier</span>
-                                 </div>
-                                 <p class="text-sm text-slate-500 mt-1 leading-snug">La session synchrone de DSG402 est décalée au vendredi 14:00.</p>
-                             </div>
-                         </div>
-                     </div>
+                <div *ngIf="recentActivities.length === 0" class="p-6 text-center text-slate-500">
+                    Aucune activité récente.
                 </div>
 
-                <div *ngIf="recentSupervisions.length > 0" class="divide-y divide-slate-100 dark:divide-slate-700">
-                    <div *ngFor="let sup of recentSupervisions"
+                <div *ngIf="recentActivities.length > 0" class="divide-y divide-slate-100 dark:divide-slate-700">
+                    <div *ngFor="let act of recentActivities"
                         class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-default">
                         <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 border border-blue-100">
-                                <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                            <div [ngClass]="act.module === 'Supervision' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-blue-50 text-blue-600 border-blue-100'" 
+                                 class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border">
+                                <span class="material-symbols-outlined text-[20px]">{{ act.module === 'Supervision' ? 'forum' : 'event_note' }}</span>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between">
-                                    <h4 class="font-bold text-slate-900 dark:text-white text-sm truncate">Session Terminée : {{ getUeCode(sup) }}</h4>
-                                    <span class="text-[11px] text-slate-400 whitespace-nowrap ml-2">{{ sup.parsedDate | date:'dd MMM' }}</span>
+                                    <h4 class="font-bold text-slate-900 dark:text-white text-sm truncate">
+                                        {{ act.action }}
+                                    </h4>
+                                    <span class="text-[11px] text-slate-400 whitespace-nowrap ml-2">
+                                        {{ act.parsedDate | date:'dd MMM' }}
+                                    </span>
                                 </div>
-                                <p class="text-sm text-slate-500 mt-1 leading-snug line-clamp-2">Le cours "{{ getUeName(sup) }}" s'est achevé.</p>
+                                <p class="text-sm text-slate-500 mt-1 leading-snug line-clamp-2">
+                                    {{ act.details }}
+                                </p>
                             </div>
                         </div>
                     </div>

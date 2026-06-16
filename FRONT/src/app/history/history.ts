@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { combineLatest, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -78,6 +80,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
   currentDate = Date.now();
 
   isAdmin = false;
+  isLoading = true;
   currentUser: any = null;
   private subscriptions: Subscription = new Subscription();
 
@@ -99,10 +102,55 @@ export class HistoryComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
     this.isAdmin = this.currentUser?.role === 'admin';
-    this.loadHistory();
-    this.loadAsyncHistory();
-    this.loadTeachers();
-    this.loadUes();
+    this.loadAllData();
+  }
+
+  loadAllData() {
+    this.isLoading = true;
+    const userId = !this.isAdmin && this.currentUser ? this.currentUser.id : undefined;
+
+    this.subscriptions.add(
+      combineLatest({
+        ues: this.ueService.getAll().pipe(catchError(() => of([]))),
+        teachers: this.teacherService.getAll().pipe(catchError(() => of([]))),
+        sync: this.supervisionService.getAll(userId).pipe(catchError(() => of([]))),
+        async: this.asyncSupervisionService.getAll().pipe(catchError(() => of([]))),
+      }).subscribe({
+        next: (results) => {
+          // Process UEs
+          this.uesData = results.ues;
+          this.uesMap.clear();
+          results.ues.forEach((u: any) => {
+            if (u.id) this.uesMap.set(u.id, u);
+            if (u.code) this.uesMap.set(u.code, u);
+          });
+
+          // Process Teachers
+          this.teachersData = results.teachers;
+          this.teachersMap.clear();
+          results.teachers.forEach((t: any) => {
+            if (t.id) this.teachersMap.set(t.id, t);
+          });
+
+          // Process Sync Supervisions
+          this.supervisions = results.sync.map((item: any) => this.mapToView(item));
+
+          // Process Async Supervisions
+          this.asyncSupervisions = results.async;
+
+          // Now safely update filters & views
+          this.updateFilters();
+          this.applyFilters();
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Erreur chargement history : ', err);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
   }
 
   ngOnDestroy() {
@@ -119,6 +167,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
             if (u.id) this.uesMap.set(u.id, u);
             if (u.code) this.uesMap.set(u.code, u);
           });
+          this.updateFilters();
+          this.applyFilters();
+          this.cdr.detectChanges();
         },
         error: () => console.error('Error loading UEs for lookup')
       })
@@ -134,6 +185,9 @@ export class HistoryComponent implements OnInit, OnDestroy {
           data.forEach((t: any) => {
             if (t.id) this.teachersMap.set(t.id, t);
           });
+          this.updateFilters();
+          this.applyFilters();
+          this.cdr.detectChanges();
         },
         error: () => console.error('Error loading teachers for email lookup')
       })
@@ -1033,8 +1087,18 @@ export class HistoryComponent implements OnInit, OnDestroy {
 
     const s = supervision;
     const dateFormatted = s.date.toLocaleDateString('fr-FR');
-    const startTimeFormatted = s.date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const endTimeFormatted = s.endTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const formatTime = (value: any): string => {
+      if (!value) return '--:--';
+      if (typeof value === 'string') {
+        return value.length > 5 ? value.substring(0, 5) : value;
+      }
+      if (value instanceof Date) {
+        return value.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      }
+      return '--:--';
+    };
+    const startTimeFormatted = formatTime(s.startTimeStr || s.startTime || s.date);
+    const endTimeFormatted = formatTime(s.endTimeStr || s.endTime);
 
     const supervisorSig = s.signatures?.supervisor ? `<img src="${s.signatures.supervisor}" style="max-height: 50px; display: block; margin: 0 auto;">` : '<div style="font-style: italic; color: #94a3b8;">Non signé</div>';
     const teacherSig = s.signatures?.teacher ? `<img src="${s.signatures.teacher}" style="max-height: 50px; display: block; margin: 0 auto;">` : '<div style="font-style: italic; color: #94a3b8;">Non signé</div>';

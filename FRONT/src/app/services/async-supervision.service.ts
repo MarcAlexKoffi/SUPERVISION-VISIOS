@@ -42,7 +42,12 @@ export class AsyncSupervisionService {
     return from(deleteDoc(docRef));
   }
 
-  getAll(): Observable<any[]> {
+  getAll(userId?: string): Observable<any[]> {
+    if (userId) {
+      const colRef = collection(this.firestore, 'async_supervisions');
+      const q = query(colRef, where('supervisor_id', '==', userId));
+      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(shareReplay(1));
+    }
     if (!this.cache$) {
       const colRef = collection(this.firestore, 'async_supervisions');
       const q = query(colRef, orderBy('created_at', 'desc'));

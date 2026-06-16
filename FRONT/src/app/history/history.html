@@ -227,7 +227,7 @@
 
     <!-- Data Table Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 relative">
-        <div class="overflow-x-auto"> <!-- Added padding behavior bottom to allow dropdown visibility since parent container had overflow hidden logic clipping it somehow or in table row -->
+        <div class="overflow-visible md:overflow-x-auto pb-24"> <!-- Added padding behavior bottom to allow dropdown visibility since parent container had overflow hidden logic clipping it somehow or in table row -->
         <!-- Synchrone Table -->
         <table *ngIf="activeTab === 'synchrone'" class="w-full text-left border-collapse min-w-[900px]">
             <thead>
@@ -310,7 +310,7 @@
                                 </button>
                                 <!-- Synchrone Dropdown Menu -->
                                 <div *ngIf="activeMenuId === s.id" 
-                                    class="absolute right-0 bottom-full mb-1 w-48 bg-white rounded-xl shadow-lg border border-slate-200 z-[99] overflow-hidden text-left"
+                                    class="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-lg border border-slate-200 z-[99] overflow-hidden text-left"
                                     (click)="$event.stopPropagation()">
                                     <div class="py-1">
                                         <button (click)="activeMenuId = null; viewDetails(s)" class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">

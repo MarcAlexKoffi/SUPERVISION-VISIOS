@@ -366,12 +366,11 @@
                     <div class="group">
                         <h4
                             class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[16px]">view_module</span>
-                            Modules / Chapitres
+                            <span class="material-symbols-outlined text-[16px]">workspace_premium</span>
+                            Crédits
                         </h4>
                         <div class="pl-3 border-l-2 border-slate-100 dark:border-slate-700">
-                            <span class="text-3xl font-bold text-slate-900 dark:text-white">{{ selectedUE.modules_count
-                                || 0 }}</span>
+                            <span class="text-3xl font-bold text-slate-900 dark:text-white">{{ selectedUE.credits !== undefined ? selectedUE.credits : (selectedUE.modules_count || 0) }}</span>
                         </div>
                     </div>
                 </div>
@@ -521,14 +520,14 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Nombre modules -->
+                        <!-- Crédits -->
                         <div class="col-span-1">
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nombre modules</label>
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Crédits</label>
                             <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">view_module</span>
-                                <input type="number" [(ngModel)]="newUE.modules_count" name="modules_count" min="1"
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">workspace_premium</span>
+                                <input type="number" [(ngModel)]="newUE.credits" name="credits" min="0"
                                     class="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                    placeholder="1">
+                                    placeholder="6">
                             </div>
                         </div>
                     </div>

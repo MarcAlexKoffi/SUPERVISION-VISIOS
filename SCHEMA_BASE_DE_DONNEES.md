@@ -389,7 +389,7 @@ Modules et cours dispensés dans les formations.
   level: string,                       // Niveau (L1, L2, L3, M1, M2)
   semester: number,                    // Semestre (1, 2, 3...)
   phase?: string,                      // Phase si pertinent
-  modules_count: number,               // Nombre de modules/chapitres
+  credits: number,                     // Nombre de crédits
   
   // Responsabilités
   responsible?: string,                // Nom du responsable UE
@@ -414,7 +414,7 @@ Modules et cours dispensés dans les formations.
   "description": "Étude des matrices, espaces vectoriels, applications linéaires",
   "level": "L1",
   "semester": 1,
-  "modules_count": 3,
+  "credits": 3,
   "responsible": "Prof. Jean Dupont",
   "department": "Mathématiques",
   "created_at": "2025-01-05T08:00:00Z"
@@ -429,7 +429,7 @@ Modules et cours dispensés dans les formations.
   "description": "Concepts OOP : classes, héritage, polymorphisme",
   "level": "L2",
   "semester": 2,
-  "modules_count": 4,
+  "credits": 4,
   "responsible": "Prof. Marie Martin",
   "department": "Informatique",
   "created_at": "2025-01-05T09:30:00Z"

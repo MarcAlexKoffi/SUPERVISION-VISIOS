@@ -35,7 +35,7 @@ export const getAllUEs = async (req: AuthRequest, res: Response) => {
 
 export const createUE = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
-  const { code, name, responsible, modules_count, level, semester, phase, department } = req.body;
+  const { code, name, responsible, modules_count, credits, level, semester, phase, department } = req.body;
   
   if (!code || !name) {
     return res.status(400).json({ message: 'Code et Nom sont obligatoires' });
@@ -49,8 +49,14 @@ export const createUE = async (req: AuthRequest, res: Response) => {
         return res.status(409).json({ message: 'Ce code UE existe déjà' });
     }
 
+    const finalCredits = credits !== undefined ? Number(credits) : (modules_count !== undefined ? Number(modules_count) : 0);
+    const finalModulesCount = modules_count !== undefined ? Number(modules_count) : finalCredits;
+
     const newUE = {
-        code, name, responsible, modules_count, level, semester, phase, department,
+        code, name, responsible,
+        credits: finalCredits,
+        modules_count: finalModulesCount,
+        level, semester, phase, department,
         user_id: userId,
         created_at: new Date()
     };
@@ -69,7 +75,7 @@ export const updateUE = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const userId = req.user?.id;
   const userRole = req.user?.role;
-  const { code, name, responsible, modules_count, level, semester, phase, department } = req.body;
+  const { code, name, responsible, modules_count, credits, level, semester, phase, department } = req.body;
 
   try {
     const ueRef = db.collection('ues').doc(id);
@@ -87,8 +93,14 @@ export const updateUE = async (req: AuthRequest, res: Response) => {
         }
     }
 
+    const finalCredits = credits !== undefined ? Number(credits) : (modules_count !== undefined ? Number(modules_count) : 0);
+    const finalModulesCount = modules_count !== undefined ? Number(modules_count) : finalCredits;
+
     const updateData = {
-        code, name, responsible, modules_count, level, semester, phase, department,
+        code, name, responsible,
+        credits: finalCredits,
+        modules_count: finalModulesCount,
+        level, semester, phase, department,
         updated_at: new Date()
     };
     

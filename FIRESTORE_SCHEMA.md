@@ -53,7 +53,7 @@ Ce fichier résume les collections observées dans `BACKEND/src/controllers` et 
 
 - **ues**
   - id
-  - `code`, `name`, `responsible`, `modules_count`, `level`, `semester`, `phase`, `department`
+  - `code`, `name`, `responsible`, `credits` (ou `modules_count` pour compatibilité), `level`, `semester`, `phase`, `department`
   - `user_id` (owner), `created_at`, `updated_at`
 
 - **classes**

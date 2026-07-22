@@ -1,4 +1,3 @@
-
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -47,6 +46,7 @@ export class UesComponent implements OnInit, OnDestroy {
     level: '',
     semester: '',
     phase: '',
+    credits: 0,
     modules_count: 0
   };
 
@@ -155,6 +155,9 @@ export class UesComponent implements OnInit, OnDestroy {
     if (ue) {
       this.isEditing = true;
       this.currentUE = { ...ue };
+      if (this.currentUE.credits === undefined) {
+        this.currentUE.credits = this.currentUE.modules_count || 0;
+      }
     } else {
       this.isEditing = false;
       this.currentUE = { 
@@ -165,6 +168,7 @@ export class UesComponent implements OnInit, OnDestroy {
         level: '', 
         semester: '', 
         phase: '',
+        credits: 0,
         modules_count: 0
       };
     }
@@ -177,6 +181,8 @@ export class UesComponent implements OnInit, OnDestroy {
 
   saveUE() {
     this.isLoading = true;
+    this.currentUE.credits = Number(this.currentUE.credits) || 0;
+    this.currentUE.modules_count = this.currentUE.credits; // double write for compatibility
     if (this.isEditing) {
       this.subscriptions.add(this.ueService.update(this.currentUE.id, this.currentUE).subscribe({
         next: () => {

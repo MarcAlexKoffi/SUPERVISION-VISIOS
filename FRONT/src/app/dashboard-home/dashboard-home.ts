@@ -44,6 +44,7 @@ export class DashboardHome implements OnInit, OnDestroy {
     name: '',
     level: '', // Mapped to 'dept' in UI for now
     responsible: '',
+    credits: 0,
     modules_count: 0,
     semester: '',
     phase: '',
@@ -416,6 +417,9 @@ export class DashboardHome implements OnInit, OnDestroy {
     if (ue) {
       this.isEditMode = true;
       this.newUE = { ...ue }; // Clone to avoid direct mutation
+      if (this.newUE.credits === undefined) {
+        this.newUE.credits = this.newUE.modules_count || 0;
+      }
     } else {
       this.isEditMode = false;
       this.newUE = {
@@ -423,6 +427,7 @@ export class DashboardHome implements OnInit, OnDestroy {
         name: '',
         level: '',
         responsible: '',
+        credits: 0,
         modules_count: 0,
         semester: '',
         phase: '',
@@ -479,7 +484,8 @@ export class DashboardHome implements OnInit, OnDestroy {
 
     // Ensure numeric fields are numbers
     this.newUE.students_count = Number(this.newUE.students_count) || 0;
-    this.newUE.modules_count = Number(this.newUE.modules_count) || 0;
+    this.newUE.credits = Number(this.newUE.credits) || 0;
+    this.newUE.modules_count = this.newUE.credits; // double write for compatibility
     this.newUE.semester = Number(this.newUE.semester) || 1;
     this.newUE.phase = Number(this.newUE.phase) || 1;
 

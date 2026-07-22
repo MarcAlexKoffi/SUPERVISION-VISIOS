@@ -100,9 +100,13 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     if (Object.keys(authUpdates).length > 0) {
        try {
          await auth.updateUser(userId, authUpdates);
-       } catch (authError) {
-          console.error("Erreur mise à jour auth:", authError);
-          return res.status(500).json({ message: "Erreur lors de la mise à jour des identifiants d'authentification." });
+       } catch (authError: any) {
+          if (authError.code === 'auth/user-not-found') {
+             console.warn(`User ${userId} not found in Auth. Skipping auth update.`);
+          } else {
+             console.error("Erreur mise à jour auth:", authError);
+             return res.status(500).json({ message: "Erreur lors de la mise à jour des identifiants d'authentification: " + authError.message });
+          }
        }
     }
 

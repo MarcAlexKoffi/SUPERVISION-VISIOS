@@ -88,12 +88,17 @@ export class UserService {
   }
 
   update(id: string, user: any): Observable<void> {
-    return this.http.put<void>(`${environment.apiUrl}/users/${id}`, user);
+    const docRef = doc(this.firestore, `users/${id}`);
+    // Exclude password from being saved to Firestore
+    const { password, id: userId, ...updateData } = user;
+    return from(updateDoc(docRef, updateData));
   }
 
-  // NOTE: This deletes the Firestore document AND the Auth user via backend.
+  // NOTE: This deletes the Firestore document ONLY. 
+  // It cannot delete the user from Firebase Auth without a backend or Cloud Function.
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/users/${id}`);
+    const docRef = doc(this.firestore, `users/${id}`);
+    return from(deleteDoc(docRef));
   }
 
   getById(id: string): Observable<User> {

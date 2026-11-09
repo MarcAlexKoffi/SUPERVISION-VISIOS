@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { planningFingerprint } from '../utils/planningLot3';
 
 export const createSupervision = async (req: AuthRequest, res: Response) => {
   try {
@@ -39,14 +40,34 @@ export const createSupervision = async (req: AuthRequest, res: Response) => {
         observations, supervisor_name: supervisorName,
         supervisor_signature: supervisorSignature,
         teacher_signature: teacherSignature,
+        ...(req.body.planning_id ? { planning_id: String(req.body.planning_id) } : {}),
         created_at: new Date()
     };
 
-    const docRef = await db.collection('supervisions').add(newSupervision);
+    let id: string;
+    if (req.body.planning_id) {
+      const planningRef = db.collection('plannings').doc(String(req.body.planning_id));
+      const supervisionRef = db.collection('supervisions').doc();
+      await db.runTransaction(async tx => {
+        const plan = await tx.get(planningRef);
+        if (!plan.exists) throw new Error('Séance introuvable.');
+        if (plan.data()?.status === 'Annulé') throw new Error('La séance est annulée.');
+        if (plan.data()?.supervision_id) throw new Error('Une fiche existe déjà pour cette séance.');
+        if (req.body.planning_slot_fingerprint && planningFingerprint(plan.data() as any) !== req.body.planning_slot_fingerprint) {
+          throw new Error('Cette séance a été reprogrammée. Rechargez la fiche.');
+        }
+        tx.create(supervisionRef,newSupervision);
+        tx.update(planningRef,{supervision_id:supervisionRef.id,status:'Supervisé',updated_at:new Date()});
+      });
+      id = supervisionRef.id;
+    } else {
+      const docRef = await db.collection('supervisions').add(newSupervision);
+      id = docRef.id;
+    }
 
     res.status(201).json({ 
       message: 'Fiche de supervision enregistrée avec succès.',
-      id: docRef.id 
+      id
     });
 
   } catch (error) {
@@ -204,7 +225,21 @@ export const deleteSupervision = async (req: AuthRequest, res: Response) => {
         return res.status(403).json({ message: 'Non autorisé à supprimer cette fiche.' });
     }
     
-    await docRef.delete();
+    if (data?.planning_id) {
+      const planRef = db.collection('plannings').doc(data.planning_id);
+      await db.runTransaction(async tx => {
+        const supervision = await tx.get(docRef);
+        const planning = await tx.get(planRef);
+        if (!supervision.exists) throw new Error('Fiche déjà supprimée.');
+        if (userRole !== 'admin' && supervision.data()?.user_id !== userId) throw new Error('Non autorisé.');
+        if (planning.exists && planning.data()?.supervision_id === id) {
+          tx.update(planRef,{supervision_id:null,status:'À superviser',updated_at:new Date()});
+        }
+        tx.delete(docRef);
+      });
+    } else {
+      await docRef.delete();
+    }
 
     res.json({ message: 'Fiche supprimée.' });
   } catch (error) {

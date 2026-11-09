@@ -43,3 +43,6 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+# Lot 3 standalone unit test output
+.lot3-test-output/

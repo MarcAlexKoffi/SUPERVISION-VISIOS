@@ -1,0 +1,928 @@
+import { normalizeAcademicSearch, filterAcademicUes } from '../shared/utils/academic-search';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { PlanningService, Planning } from '../services/planning.service';
+import { UeService } from '../services/ue.service';
+import { TeacherService } from '../services/teacher.service';
+import { ToastService } from '../services/toast.service';
+import { ParcoursService } from '../services/parcours.service';
+import { ClasseService } from '../services/classe.service';
+import { NotificationService } from '../services/notification.service';
+import { ActivityService } from '../services/activity.service';
+import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
+import { SupervisionService } from '../services/supervision.service';
+import { sortedTeacherSchedule, validateSlot } from '../services/planning-rules';
+import { parseDate } from '../shared/utils/date.utils';
+
+@Component({
+  selector: 'app-plannings',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './plannings.html',
+  styleUrls: ['./plannings.scss'],
+})
+export class Plannings implements OnInit, OnDestroy {
+  @ViewChild('calendarPdfArea') calendarPdfArea!: ElementRef;
+
+  // Filters
+  parcoursList: string[] = [];
+  selectedParcours = '';
+  selectedStatus = '';
+
+  // Dates
+  currentDate = new Date();
+  weekStart = startOfWeek(this.currentDate, { weekStartsOn: 1 });
+  weekEnd = endOfWeek(this.currentDate, { weekStartsOn: 1 });
+
+  // Data
+  plannings: Planning[] = [];
+  teachers: any[] = [];
+  ues: any[] = [];
+  databaseClasses: any[] = [];
+  
+  private planningsSubscription: Subscription | null = null;
+
+  // View State
+  currentView: 'supervisor' | 'calendar' | 'teacher' = 'supervisor';
+  selectedTeacherForSchedule = '';
+  isSavingPlanning = false;
+  isScheduleLoading = false;
+  scheduleError = '';
+  changeReason = '';
+  ueSearch = '';
+  classSearch = '';
+  modalClassId = '';
+
+  // AURA-V2: chaque recherche est independante et ne modifie jamais la selection
+  // jusqu'a une action explicite de l'utilisateur.
+  quickSearch = '';
+  teacherViewQuery = '';
+  teacherViewOpen = false;
+  modalTeacherQuery = '';
+  modalTeacherOpen = false;
+  modalUeOpen = false;
+  modalUeActiveIndex = 0;
+  private modalTrigger: HTMLElement | null = null;
+  @ViewChild('planningDialog') planningDialog?: ElementRef<HTMLElement>;
+
+  private normalizeSearch(value: unknown): string {
+    return normalizeAcademicSearch(value);
+  }
+
+  get filteredTeachers(): any[] {
+    const term = this.normalizeSearch(this.modalTeacherQuery);
+    return this.teachers.filter(t => !term || this.normalizeSearch(`${t.first_name} ${t.last_name} ${t.email || ''} ${t.department || ''}`).includes(term));
+  }
+  get filteredTeacherScheduleOptions(): any[] {
+    const term = this.normalizeSearch(this.teacherViewQuery);
+    return this.teachers.filter(t => !term || this.normalizeSearch(`${t.first_name} ${t.last_name} ${t.email || ''} ${t.department || ''}`).includes(term));
+  }
+  get filteredUes(): any[] {
+    // Un champ déjà sélectionné doit rester réouvrable sans effacer sa valeur.
+    if (this.selectedModalUe && this.ueSearch === this.selectedModalUeLabel) return this.ues;
+    return filterAcademicUes(this.ues, this.ueSearch);
+  }
+  get selectedModalUe(): any | undefined {
+    return this.ues.find(ue => String(ue.id) === String(this.modalData.ue_id ?? ''));
+  }
+  get selectedModalUeLabel(): string {
+    const ue = this.selectedModalUe;
+    return ue ? `${ue.code || ''} · ${ue.name || ''}`.trim() : '';
+  }
+  // La saisie seule ne doit jamais conserver l'ID d'une UE auparavant choisie.
+  onModalUeQueryChange(value: string): void {
+    this.ueSearch = value;
+    if (value !== this.selectedModalUeLabel) this.modalData.ue_id = undefined;
+    this.modalUeActiveIndex = 0;
+    this.modalUeOpen = true;
+  }
+  selectModalUe(ue: any): void {
+    this.modalData.ue_id = ue.id;
+    this.ueSearch = `${ue.code || ''} · ${ue.name || ''}`.trim();
+    this.modalUeOpen = false;
+  }
+  clearModalUe(): void {
+    this.modalData.ue_id = undefined;
+    this.ueSearch = '';
+    this.modalUeActiveIndex = 0;
+    this.modalUeOpen = true;
+  }
+  handleModalUeKeydown(event: Event): void {
+    const keyboard = event as KeyboardEvent;
+    if (keyboard.key === 'Escape') {
+      this.modalUeOpen = false;
+      keyboard.stopPropagation();
+      return;
+    }
+    if (keyboard.key === 'ArrowDown' || keyboard.key === 'ArrowUp') {
+      keyboard.preventDefault();
+      this.modalUeOpen = true;
+      const delta = keyboard.key === 'ArrowDown' ? 1 : -1;
+      const count = this.filteredUes.length;
+      this.modalUeActiveIndex = count ? (this.modalUeActiveIndex + delta + count) % count : 0;
+      return;
+    }
+    if (keyboard.key === 'Enter' && this.modalUeOpen) {
+      const ue = this.filteredUes[this.modalUeActiveIndex];
+      if (ue) { keyboard.preventDefault(); this.selectModalUe(ue); }
+    }
+  }
+  onModalTeacherQueryChange(value: string): void {
+    this.modalTeacherQuery = value;
+    if (value !== this.selectedModalTeacherName) this.modalData.teacher_id = undefined;
+    this.modalTeacherOpen = true;
+  }
+  onTeacherViewQueryChange(value: string): void {
+    this.teacherViewQuery = value;
+    if (value !== this.teacherScheduleName) this.selectedTeacherForSchedule = '';
+    this.teacherViewOpen = true;
+  }
+  private focusPlanningDialog(): void {
+    this.modalTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setTimeout(() => this.planningDialog?.nativeElement.focus(), 0);
+  }
+  onModalBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget && !this.isSavingPlanning) this.closeModal();
+  }
+  @HostListener('document:keydown.escape')
+  onDialogEscape(): void {
+    if (this.modalUeOpen) { this.modalUeOpen = false; return; }
+    if (this.modalTeacherOpen) { this.modalTeacherOpen = false; return; }
+    if (this.isAddModalOpen && !this.isSavingPlanning) this.closeModal();
+  }
+  @HostListener('document:keydown.tab', ['$event'])
+  keepDialogFocus(event: KeyboardEvent): void {
+    if (!this.isAddModalOpen || !this.planningDialog) return;
+    const dialog = this.planningDialog.nativeElement;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]):not([hidden]), input:not([disabled]):not([hidden]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]'
+    )).filter(el => el.getClientRects().length > 0);
+    if (!focusable.length) { event.preventDefault(); dialog.focus(); return; }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || active === dialog)) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && (active === last || !dialog.contains(active))) { event.preventDefault(); first.focus(); }
+  }
+
+  get filteredClasses(): any[] {
+    const term = this.normalizeSearch(this.classSearch);
+    return this.databaseClasses.filter(c => !term || this.normalizeSearch(c.name).includes(term));
+  }
+  get visiblePlannings(): Planning[] {
+    const term = this.normalizeSearch(this.quickSearch);
+    return this.plannings.filter(p => {
+      const matchesClass = !this.selectedParcours || p.parcours === this.selectedParcours || p.classe_name === this.selectedParcours;
+      const matchesStatus = !this.selectedStatus || p.status === this.selectedStatus;
+      const text = `${p.ue_code || ''} ${p.ue_name || ''} ${p.title || ''} ${p.teacher_first_name || ''} ${p.teacher_last_name || ''} ${p.parcours || ''} ${p.classe_name || ''} ${p.session_type || ''}`;
+      return matchesClass && matchesStatus && (!term || this.normalizeSearch(text).includes(term));
+    });
+  }
+  get activeDays(): Date[] {
+    return this.daysOfWeek.filter(day => this.getPlanningsForDay(day).length > 0);
+  }
+  get awaitingCount(): number { return this.visiblePlannings.filter(p => p.status === 'À superviser').length; }
+  get supervisedCount(): number { return this.visiblePlannings.filter(p => p.status === 'Supervisé').length; }
+  get cancelledCount(): number { return this.visiblePlannings.filter(p => p.status === 'Annulé').length; }
+  get teacherSchedule(): Planning[] {
+    return sortedTeacherSchedule(this.visiblePlannings, this.selectedTeacherForSchedule) as Planning[];
+  }
+  get teacherScheduleName(): string {
+    const t = this.teachers.find(t => t.id === this.selectedTeacherForSchedule);
+    return t ? `${t.first_name} ${t.last_name}`.trim() : 'Enseignant';
+  }
+  get selectedModalTeacherName(): string {
+    const t = this.teachers.find(t => t.id === this.modalData.teacher_id);
+    return t ? `${t.first_name} ${t.last_name}`.trim() : '';
+  }
+  chooseFirstTeacherForSchedule(event: Event) {
+    const first = this.filteredTeacherScheduleOptions[0];
+    if (first && this.teacherViewOpen) { event.preventDefault(); this.selectTeacherForSchedule(first); }
+  }
+  chooseFirstModalTeacher(event: Event) {
+    const first = this.filteredTeachers[0];
+    if (first && this.modalTeacherOpen) { event.preventDefault(); this.selectModalTeacher(first); }
+  }
+  selectTeacherForSchedule(t: any) {
+    this.selectedTeacherForSchedule = t.id;
+    this.teacherViewQuery = `${t.first_name} ${t.last_name}`.trim();
+    this.teacherViewOpen = false;
+  }
+  selectModalTeacher(t: any) {
+    this.modalData.teacher_id = t.id;
+    this.modalTeacherQuery = `${t.first_name} ${t.last_name}`.trim();
+    this.modalTeacherOpen = false;
+  }
+  @HostListener('document:click', ['$event'])
+  closeTeacherMenusOnOutsideClick(event: MouseEvent) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.closest('.aura-teacher-view-picker')) this.teacherViewOpen = false;
+    if (!target.closest('.aura-teacher-modal-picker')) this.modalTeacherOpen = false;
+    if (!target.closest('.aura-ue-modal-picker')) this.modalUeOpen = false;
+  }
+  changeView(next: 'supervisor' | 'calendar' | 'teacher') {
+    this.currentView = next;
+    if (next === 'teacher' && !this.selectedTeacherForSchedule && this.teachers.length) {
+      this.selectTeacherForSchedule(this.teachers[0]);
+    }
+    this.loadPlannings();
+  }
+
+  onModalClassChange() {
+    const cls = this.databaseClasses.find(c => c.id === this.modalClassId);
+    this.modalData.classe_id = cls?.id || null;
+    if (cls?.name) this.modalData.parcours = cls.name;
+    this.modalData.classe_name = cls?.name || this.modalData.parcours;
+    this.modalData.parcours_id = cls?.parcours_id || null;
+    // Ne pas modifier l'UE déjà choisie : aucune contrainte UE/classe n'existait auparavant.
+  }
+
+  // Modal State
+  isAddModalOpen = false;
+  isEditMode = false;
+  isActivityMode = false; // New flag
+  modalData: Partial<Planning> = this.getEmptyPlanning();
+
+  daysOfWeek: Date[] = [];
+  calendarHours = Array.from({ length: 16 }, (_, i) => i + 8); // 8:00 to 24:00
+
+  private subscriptions: Subscription = new Subscription();
+
+  constructor(
+    private planningService: PlanningService,
+    private ueService: UeService,
+    private teacherService: TeacherService,
+    private toastService: ToastService,
+    private parcoursService: ParcoursService,
+    private notificationService: NotificationService,
+    private activityService: ActivityService,
+    private classeService: ClasseService,
+    private supervisionService: SupervisionService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.updateDaysOfWeek();
+    this.loadUesAndTeachers();
+    this.loadParcours();
+    this.loadPlannings();
+  }
+  
+  ngOnDestroy() {
+      if (this.planningsSubscription) { this.planningsSubscription.unsubscribe(); }
+      this.subscriptions.unsubscribe();
+  }
+
+  loadParcours() {
+    this.subscriptions.add(
+      this.parcoursService.getAll().subscribe({
+        next: (data) => {
+          this.parcoursList = data.map(p => p.name);
+          this.cdr.detectChanges();
+        },
+        error: () => this.toastService.error('Erreur lors du chargement des parcours')
+      })
+    );
+  }
+
+  getEmptyPlanning(): Partial<Planning> {
+    return {
+      parcours: this.selectedParcours,
+      session_type: 'CM',
+      status: 'À superviser',
+    };
+  }
+
+  loadUesAndTeachers() {
+    this.subscriptions.add(
+      this.ueService.getAll().subscribe({
+        next: (data) => {
+          this.ues = data;
+          if (this.isAddModalOpen && this.modalData.ue_id && !this.ueSearch) {
+            this.ueSearch = this.selectedModalUeLabel;
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => this.toastService.error('Erreur de chargement des UEs'),
+      })
+    );
+    this.subscriptions.add(
+      this.teacherService.getAll().subscribe({
+        next: (data) => { this.teachers = data; if (!this.selectedTeacherForSchedule && data.length) this.selectTeacherForSchedule(data[0]); this.cdr.detectChanges(); },
+        error: () => this.toastService.error('Erreur de chargement des enseignants'),
+      })
+    );
+    this.subscriptions.add(
+      this.classeService.getAll().subscribe({
+        next: (data) => { this.databaseClasses = data;  this.cdr.detectChanges(); },
+        error: () => this.toastService.error('Erreur de chargement des classes'),
+      })
+    );
+  }
+
+  loadPlannings() {
+    if (this.planningsSubscription) { 
+        this.planningsSubscription.unsubscribe(); 
+    }
+
+    this.isScheduleLoading = true;
+    this.scheduleError = '';
+    const filters = {
+      ...(this.selectedParcours ? {parcours: this.selectedParcours} : {}),
+      startDate: format(this.weekStart, 'yyyy-MM-dd'),
+      endDate: format(this.weekEnd, 'yyyy-MM-dd'),
+      ...(this.selectedStatus ? { status: this.selectedStatus } : {}),
+    };
+
+    this.planningsSubscription = this.planningService.getPlannings(filters).subscribe({
+      next: (data) => { this.plannings = data; this.isScheduleLoading = false; this.cdr.detectChanges(); },
+      error: () => {this.isScheduleLoading = false; this.scheduleError = 'Erreur lors du chargement des plannings'; this.toastService.error(this.scheduleError); this.cdr.detectChanges();},
+    });
+  }
+
+  getPlanningsForDay(day: Date): Planning[] {
+    return this.visiblePlannings.filter((p) => p.date && isSameDay(parseDate(p.date), day));
+  }
+
+  formatDateHeader(date: Date): { dayName: string; dayDate: string } {
+    return {
+      dayName: format(date, 'EEEE', { locale: fr }),
+      dayDate: format(date, 'dd MMM', { locale: fr }),
+    };
+  }
+
+  formatMonthYear(day: Date): string { return format(day, 'MMMM yyyy', {locale: fr}); }
+
+  getWeekLabel(): string {
+    return `${format(this.weekStart, 'dd MMM', { locale: fr })} — ${format(this.weekEnd, 'dd MMM yyyy', { locale: fr })}`;
+  }
+
+  updateDaysOfWeek() {
+    this.daysOfWeek = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(this.weekStart);
+      day.setDate(day.getDate() + i);
+      this.daysOfWeek.push(day);
+    }
+  }
+
+  previousWeek() {
+    this.weekStart = subWeeks(this.weekStart, 1);
+    this.weekEnd = subWeeks(this.weekEnd, 1);
+    this.updateDaysOfWeek();
+    this.loadPlannings();
+  }
+
+  nextWeek() {
+    this.weekStart = addWeeks(this.weekStart, 1);
+    this.weekEnd = addWeeks(this.weekEnd, 1);
+    this.updateDaysOfWeek();
+    this.loadPlannings();
+  }
+
+  onFilterChange() {
+    this.loadPlannings();
+  }
+
+  todayWeek() {
+    this.currentDate = new Date();
+    this.weekStart = startOfWeek(this.currentDate, {weekStartsOn: 1});
+    this.weekEnd = endOfWeek(this.currentDate, {weekStartsOn: 1});
+    this.updateDaysOfWeek();
+    this.loadPlannings();
+  }
+  resetFilters() {
+    this.quickSearch = '';
+    this.selectedParcours = '';
+    this.selectedStatus = '';
+    this.loadPlannings();
+  }
+
+  openAddModal() {
+    this.isEditMode = false;
+    this.isActivityMode = false;
+    this.modalData = this.getEmptyPlanning();
+    this.modalClassId = this.databaseClasses.find(c => c.name === this.selectedParcours)?.id || '';
+    this.onModalClassChange();
+    this.modalData.date = format(
+      this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
+      'yyyy-MM-dd',
+    );
+    this.changeReason = '';
+    this.modalTeacherQuery = ''; this.modalTeacherOpen = false;
+    this.ueSearch = ''; this.modalUeOpen = false; this.modalUeActiveIndex = 0;
+    this.isAddModalOpen = true;
+    this.focusPlanningDialog();
+  }
+
+  openAddActivityModal() {
+    this.isEditMode = false;
+    this.isActivityMode = true;
+    this.modalData = this.getEmptyPlanning();
+    this.modalData.ue_id = null; // Explicitly null
+    this.modalData.date = format(
+      this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
+      'yyyy-MM-dd',
+    );
+    this.modalTeacherQuery = ''; this.modalTeacherOpen = false;
+    this.ueSearch = ''; this.modalUeOpen = false; this.modalUeActiveIndex = 0;
+    this.isAddModalOpen = true;
+    this.focusPlanningDialog();
+  }
+
+  openEditModal(planning: Planning) {
+    this.isEditMode = true;
+    this.modalData = { ...planning };
+    this.modalClassId = planning.classe_id || this.databaseClasses.find(c => c.name === planning.parcours)?.id || '';
+    // Determine mode based on data
+    this.isActivityMode = !this.modalData.ue_id && !!this.modalData.title;
+    
+    // Cut off seconds from time if it exists (e.g. HH:MM:SS -> HH:MM)
+    if (this.modalData.start_time && this.modalData.start_time.length > 5) {
+      this.modalData.start_time = this.modalData.start_time.substring(0, 5);
+    }
+    if (this.modalData.end_time && this.modalData.end_time.length > 5) {
+      this.modalData.end_time = this.modalData.end_time.substring(0, 5);
+    }
+    // format date as YYYY-MM-DD
+    if (this.modalData.date && this.modalData.date.includes('T')) {
+      this.modalData.date = this.modalData.date.split('T')[0];
+    }
+    this.changeReason = '';
+    this.modalTeacherQuery = this.selectedModalTeacherName;
+    this.modalTeacherOpen = false;
+    this.ueSearch = this.selectedModalUeLabel;
+    this.modalUeOpen = false; this.modalUeActiveIndex = 0;
+    this.isAddModalOpen = true;
+    this.focusPlanningDialog();
+  }
+
+  closeModal() {
+    this.isAddModalOpen = false;
+    this.modalUeOpen = false;
+    this.modalTeacherOpen = false;
+    this.modalTrigger?.focus();
+    this.modalTrigger = null;
+  }
+
+  savePlanning() {
+    // Validate either UE or Title provided
+    if ((!this.modalData.ue_id && !this.modalData.title) || 
+        !this.modalData.teacher_id || 
+        !this.modalData.date || 
+        !this.modalData.start_time || 
+        !this.modalData.end_time ||
+        !this.modalData.parcours) {
+      this.toastService.error('Veuillez remplir tous les champs obligatoires (UE/Titre, Date, Heures).');
+      return;
+    }
+
+    const error = validateSlot(this.modalData as Planning);
+    if (error) {this.toastService.error(error); return;}
+    if (this.isSavingPlanning) return;
+    this.isSavingPlanning = true;
+    if (this.isEditMode && this.modalData.id) {
+      this.subscriptions.add(
+      this.planningService.updatePlanning(this.modalData.id, {...this.modalData, change_reason:this.changeReason}).subscribe({
+        next: () => {
+          this.isSavingPlanning = false;
+          this.toastService.success('Séance mise à jour');
+          const ueName = this.modalData.title || 'Inconnue';
+          this.activityService.logActivity('Mise à jour de séance', `Le planning de "${ueName}" a été mis à jour.`, 'Planning');
+          this.notificationService.createNotification({
+            title: 'Séance modifiée',
+            message: `Vous avez mis à jour la séance "${ueName}".`,
+            type: 'info',
+            read: false
+          });
+          this.closeModal();
+          this.loadPlannings();
+        },
+        error: (err) => {this.isSavingPlanning = false; this.toastService.error(err.message || 'Erreur de mise à jour');},
+      })
+      );
+    } else {
+      this.subscriptions.add(
+      this.planningService.createPlanning(this.modalData as Planning).subscribe({
+        next: () => {
+          this.isSavingPlanning = false;
+          this.toastService.success('Séance ajoutée au planning');
+          const ueName = this.modalData.title || 'Inconnue';
+          this.activityService.logActivity('Nouvelle séance planifiée', `Une séance "${ueName}" a été ajoutée.`, 'Planning');
+          this.notificationService.createNotification({
+            title: 'Nouvelle séance',
+            message: `Vous avez planifié avec succès la séance "${ueName}".`,
+            type: 'success',
+            read: false
+          });
+          this.closeModal();
+          this.loadPlannings();
+        },
+        error: (err) => {this.isSavingPlanning = false; this.toastService.error(err.message || 'Erreur de création');},
+      })
+      );
+    }
+  }
+
+  deletePlanning(id: any) {
+    if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
+      const plan = this.plannings.find(p => p.id === id);
+      const title = plan ? (plan.ue_name || plan.title || 'Inconnue') : 'Inconnue';
+      this.subscriptions.add(
+      this.planningService.deletePlanning(String(id)).subscribe({
+        next: () => {
+          this.toastService.success('Séance supprimée');
+          this.activityService.logActivity('Séance supprimée', `La séance "${title}" a été supprimée du planning.`, 'Planning');
+          this.notificationService.createNotification({
+            title: 'Séance supprimée',
+            message: `Vous avez supprimé la séance "${title}".`,
+            type: 'warning',
+            read: false
+          });
+          this.loadPlannings(); // This might be redundant if we use real-time listeners, but harmless for now.
+        },
+        error: (err) => this.toastService.error(err.message || 'Erreur de suppression'),
+      })
+      );
+    }
+  }
+
+  changeStatus(planning: Planning, event: Event) {
+    const element = event.target as HTMLSelectElement;
+    const value = element.value as Planning['status'];
+    if (value === planning.status) return;
+    const reason = value === 'Annulé' ? window.prompt('Motif de l’annulation (traçabilité) :') : '';
+    if (reason === null) {element.value = planning.status; return;}
+    this.subscriptions.add(this.planningService.updatePlanning(planning.id!, {status:value, change_reason:reason || ''}).subscribe({
+      next: () => { planning.status = value; this.toastService.success('Statut mis à jour'); },
+      error: (err) => {element.value = planning.status; this.toastService.error(err.message || 'Échec du changement de statut');}
+    }));
+  }
+
+  async openSupervision(planning: Planning) {
+    if (planning.status === 'Annulé') { this.toastService.error('Impossible de superviser une séance annulée.'); return; }
+    if (!planning.id) return;
+    if (planning.supervision_id) {this.router.navigate(['/admin/supervision-form'],{queryParams:{id:planning.supervision_id}}); return;}
+    try {
+      const linked = await firstValueFrom(this.supervisionService.getByPlanningId(planning.id));
+      this.router.navigate(['/admin/supervision-form'], {queryParams:linked?.id ? {id:linked.id} : {planningId:planning.id}});
+    } catch (e:any) {this.toastService.error(e.message || 'Impossible de charger la fiche.');}
+  }
+
+  // Exports and Print
+  printSchedule() {
+    window.print();
+  }
+
+  async exportPDF() {
+    if (this.currentView === 'teacher') {
+      const doc = new jsPDF({orientation:'landscape'});
+      doc.setFontSize(16); doc.text(`Emploi du temps : ${this.teacherScheduleName}`,14,18);
+      doc.setFontSize(10); doc.text(this.getWeekLabel(),14,26);
+      autoTable(doc, { startY:32, head:[['Date','Heures','Classe','UE / Activité','Type','Statut']],
+        body:this.teacherSchedule.map(p => [p.date,`${p.start_time || ''} - ${p.end_time}`,p.classe_name || p.parcours,p.ue_name || p.title || '',p.session_type,p.status]) });
+      doc.save(`emploi-du-temps-${this.teacherScheduleName.replace(/\W+/g,'-')}-${format(this.weekStart,'yyyy-MM-dd')}.pdf`);
+      return;
+    }
+    if (this.currentView === 'calendar') {
+      this.toastService.success('Génération du PDF en cours...', 'Veuillez patienter');
+      try {
+        const doc = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: 'a4' // 297 width x 210 height
+        });
+
+        // Margins and dimensions
+        const marginLeft = 10;
+        const marginTop = 10;
+        const pageWidth = 297;
+        const pageHeight = 210;
+        
+        const gridX = marginLeft;
+        const gridY = 30; // space for header
+        const gridWidth = pageWidth - (marginLeft * 2);
+        const gridHeight = pageHeight - gridY - 10; // extra bottom margin
+
+        // Draw Document Header
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(30, 41, 59); // slate-800
+        doc.text(`Planning: ${this.selectedParcours || 'Toutes les classes'}`, marginLeft, marginTop + 5);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.setTextColor(100, 116, 139); // slate-500
+        doc.text(this.getWeekLabel(), marginLeft, marginTop + 12);
+
+        // Variables for the Grid
+        const daysCount = 7;
+        const colWidth = gridWidth / daysCount;
+        
+        // Define day start and end time limits
+        const startHour = 8;
+        const endHour = 24;
+        const totalHours = endHour - startHour;
+        const rowHeight = gridHeight / totalHours;
+
+        // Draw Day columns and headers
+        doc.setFontSize(9);
+        for (let i = 0; i < daysCount; i++) {
+           const dayTextX = gridX + (i * colWidth);
+           // Col Header Box
+           doc.setDrawColor(226, 232, 240); // slate-200
+           doc.setFillColor(248, 250, 252); // slate-50
+           doc.rect(dayTextX, gridY - 12, colWidth, 12, 'FD');
+
+           // Col Header Text
+           const day = this.daysOfWeek[i];
+           const headerInfo = this.formatDateHeader(day);
+           
+           doc.setFont('helvetica', 'bold');
+           doc.setTextColor(100, 116, 139); // slate-500
+           doc.setFontSize(8);
+           const dayNameText = headerInfo.dayName.toUpperCase();
+           doc.text(dayNameText, dayTextX + (colWidth / 2), gridY - 7, { align: 'center' });
+
+           doc.setFont('helvetica', 'bold');
+           doc.setTextColor(30, 41, 59); // slate-800
+           doc.setFontSize(10);
+           doc.text(headerInfo.dayDate, dayTextX + (colWidth / 2), gridY - 2, { align: 'center' });
+
+           // Vert Column Lines
+           if (i > 0) {
+              doc.setDrawColor(226, 232, 240);
+              doc.line(dayTextX, gridY, dayTextX, gridY + gridHeight);
+           }
+        }
+        
+        // Box around header and grid
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(gridX, gridY, gridWidth, gridHeight); // Grid outer box
+        doc.rect(gridX, gridY - 12, gridWidth, 12); // Header outer box
+
+        // Draw Hour rows
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184); // slate-400
+        for (let h = 0; h <= totalHours; h++) {
+           const yLine = gridY + (h * rowHeight);
+           const hourLabel = startHour + h;
+           
+           if (h > 0 && h < totalHours) {
+              doc.setDrawColor(241, 245, 249); // slate-100 (light inline)
+              doc.line(gridX, yLine, gridX + gridWidth, yLine);
+           }
+           
+           // label
+           if (h < totalHours) {
+               // small label on left side
+               doc.text(`${hourLabel}:00`, gridX + 1, yLine + 4);
+           }
+        }
+
+        // Draw Cards
+        const COLORS: Record<string, { bg: number[], text: number[], border: number[] }> = {
+            'CM': { bg: [239, 246, 255], text: [29, 78, 216], border: [59, 130, 246] },      // blue
+            'TP': { bg: [253, 244, 255], text: [162, 28, 175], border: [217, 70, 239] },    // fuchsia
+            'TD': { bg: [236, 253, 245], text: [4, 120, 87], border: [16, 185, 129] },      // emerald
+            'Atelier': { bg: [255, 247, 237], text: [194, 65, 12], border: [249, 115, 22] }, // orange
+            'DEFAULT': { bg: [248, 250, 252], text: [71, 85, 105], border: [148, 163, 184] } // slate
+        };
+
+        const calcY = (timeStr: string) => {
+            const [h, m] = timeStr.split(':').map(Number);
+            const decTime = h + (m / 60);
+            const clamped = Math.max(startHour, Math.min(endHour, decTime));
+            const yOffset = (clamped - startHour) * rowHeight;
+            return gridY + yOffset;
+        };
+
+        this.daysOfWeek.forEach((day, dayIndex) => {
+            const colX = gridX + (dayIndex * colWidth);
+            const items = this.getPlanningsForDay(day);
+
+            items.forEach(plan => {
+                if (!plan.start_time || !plan.end_time) return;
+
+                const yStart = calcY(plan.start_time);
+                const yEnd = calcY(plan.end_time);
+                let heightCard = Math.max(10, yEnd - yStart); // min 10mm
+                
+                // Adjust if overflows grid bottom
+                if (yStart + heightCard > gridY + gridHeight) {
+                    heightCard = (gridY + gridHeight) - yStart;
+                }
+                
+                if (heightCard <= 2) return; // Ignore very small blocks
+
+                const padX = 1; // 1mm horizontal padding
+                const cardX = colX + padX;
+                const cardWidth = colWidth - (padX * 2);
+                const sessionType = plan.session_type || 'DEFAULT';
+                const typeColor = COLORS[sessionType] || COLORS['DEFAULT'];
+
+                // Draw background
+                doc.setFillColor(typeColor.bg[0], typeColor.bg[1], typeColor.bg[2]);
+                doc.roundedRect(cardX, yStart, cardWidth, heightCard, 1, 1, 'F');
+                
+                // Draw left colored strip
+                doc.setFillColor(typeColor.border[0], typeColor.border[1], typeColor.border[2]);
+                // using a small rect for left strip instead of line to look better
+                doc.rect(cardX, yStart, 1.5, heightCard, 'F'); 
+                
+                // Stroke border around card
+                doc.setDrawColor(226, 232, 240); // slate-200
+                doc.roundedRect(cardX, yStart, cardWidth, heightCard, 1, 1, 'S');
+
+                // Internal text layout
+                let textY = yStart + 3.5;
+                const textMarginL = cardX + 2.5;
+                const textMaxWidth = cardWidth - 3;
+
+                // 1) Type Badge & Visio Link
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(typeColor.text[0], typeColor.text[1], typeColor.text[2]);
+                
+                // badge rect
+                const tWidth = doc.getTextWidth(sessionType) + 2;
+                doc.setFillColor(typeColor.bg[0] - 12, typeColor.bg[1] - 12, typeColor.bg[2] - 12);
+                doc.roundedRect(textMarginL - 0.5, textY - 2.5, tWidth, 3.5, 0.5, 0.5, 'F');
+                doc.text(sessionType, textMarginL + 0.5, textY - 0.2);
+
+                if (plan.visio_link) {
+                    const linkText = "Rejoindre la visio";
+                    doc.setFontSize(6);
+                    doc.setTextColor(37, 99, 235); // blue-600
+                    const linkX = cardX + cardWidth - doc.getTextWidth(linkText) - 1;
+                    doc.textWithLink(linkText, linkX, textY - 0.2, { url: plan.visio_link });
+                    // Underline
+                    doc.setDrawColor(37, 99, 235);
+                    doc.line(linkX, textY, linkX + doc.getTextWidth(linkText), textY);
+                }
+
+                textY += 3.5;
+
+                // 2) UE Name
+                if (textY < yStart + heightCard - 2) {
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(15, 23, 42); // slate-900
+                    const titleText = plan.ue_name || plan.title || 'Sans titre';
+                    const ueLines = doc.splitTextToSize(titleText, textMaxWidth);
+                    
+                    ueLines.forEach((line: string) => {
+                        if (textY < yStart + heightCard - 2) {
+                            doc.text(line, textMarginL, textY);
+                            textY += 3;
+                        }
+                    });
+                }
+                
+                // 3) Teacher Name
+                if (textY < yStart + heightCard - 2) {
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(71, 85, 105);
+                    const teacherName = `${plan.teacher_first_name} ${plan.teacher_last_name}`.trim();
+                    if(teacherName !== 'undefined undefined' && teacherName !== '') {
+                         const tLines = doc.splitTextToSize(teacherName, textMaxWidth);
+                         tLines.forEach((line: string) => {
+                            if (textY < yStart + heightCard - 2) {
+                                doc.text(line, textMarginL, textY);
+                                textY += 3;
+                            }
+                         });
+                    }
+                }
+
+                // 4) Times
+                if (heightCard >= 15 && (textY < yStart + heightCard - 2)) {
+                    // Push to bottom of card if tall enough
+                    const bottomY = yStart + heightCard - 1.5;
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(100, 116, 139); // slate-500
+                    
+                    const t = plan.start_time 
+                        ? `${plan.start_time.substring(0,5)} - ${plan.end_time.substring(0,5)}`
+                        : `Fin: ${plan.end_time.substring(0,5)}`;
+                        
+                    doc.text(t, textMarginL, Math.max(textY, bottomY));
+                }
+
+            });
+        });
+
+        doc.save(`planning-${(this.selectedParcours || 'toutes-les-classes').replace(/\s+/g, '-')}.pdf`);
+      } catch (e) {
+        console.error(e);
+        this.toastService.error('Erreur lors de la génération du PDF');
+      }
+    } else {
+      // Create a tabular PDF if not in calendar view
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text(`Planning: ${this.selectedParcours || 'Toutes les classes'}`, 14, 20);
+      doc.setFontSize(12);
+      doc.text(`Semaine: ${this.getWeekLabel()}`, 14, 30);
+
+      const tableData = this.visiblePlannings.map((p) => {
+        const timeStr = p.start_time 
+          ? `${p.start_time.substring(0, 5)} - ${p.end_time.substring(0, 5)}`
+          : `Date Butoir: ${p.end_time.substring(0, 5)}`;
+
+        return [
+          p.date ? format(parseISO(p.date), 'dd/MM/yyyy') : '',
+          timeStr,
+          p.ue_name || p.title || '',
+          `${p.teacher_first_name} ${p.teacher_last_name}`,
+          p.session_type || '',
+          p.status || '',
+        ];
+      });
+
+      autoTable(doc, {
+        head: [['Date', 'Heure', 'UE', 'Enseignant', 'Type', 'Statut']],
+        body: tableData,
+        startY: 40,
+      });
+
+      doc.save(`planning-${this.selectedParcours || 'toutes-les-classes'}.pdf`);
+    }
+  }
+
+  // Positioning logic for calendar blocks
+  getTopPosition(startTime?: string): string {
+    if (!startTime) return '0px';
+    const [h, m] = startTime.split(':').map(Number);
+    
+    // Assume 8am start
+    const startHour = 8;
+    // Calculate pixels offset (140px per hour)
+    const hoursFromStart = h - startHour + (m / 60);
+    const offset = hoursFromStart * 140;
+
+    return `${Math.max(0, offset)}px`;
+  }
+
+  getHeight(startTime?: string, endTime?: string): string {
+    if (!endTime) return '140px'; 
+    
+    // If no start time, default to 1 hour duration or similar visually
+    let startH: number, startM: number;
+    let endH: number, endM: number;
+
+    [endH, endM] = endTime.split(':').map(Number);
+
+    if (startTime) {
+        [startH, startM] = startTime.split(':').map(Number);
+    } else {
+        // If deadline only, maybe make it look like a 1h block ending at deadline?
+        // Or make it start 1h before deadline
+        startH = endH - 1; 
+        startM = endM;
+    }
+
+    const pixelsPerHour = 140;
+
+    const startOffset = startH + startM / 60;
+    const endOffset = endH + endM / 60;
+    
+    // Minimum height of ~50 mins (0.85 hours)
+    const height = Math.max(0.85, endOffset - startOffset) * pixelsPerHour;
+
+    return `${height}px`;
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'Supervisé':
+        return 'bg-emerald-100 text-emerald-700';
+      case 'Annulé':
+        return 'bg-rose-100 text-rose-700';
+      default:
+        return 'bg-amber-100 text-amber-700'; // À superviser
+    }
+  }
+
+  getStatusIconColor(status: string): string {
+    switch (status) {
+      case 'Supervisé':
+        return 'text-emerald-500';
+      case 'Annulé':
+        return 'text-rose-500';
+      default:
+        return 'text-amber-500'; // À superviser
+    }
+  }
+}

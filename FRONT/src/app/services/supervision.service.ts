@@ -1,9 +1,10 @@
 
 import { Injectable, inject } from '@angular/core';
-import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy, where } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, docData, addDoc, updateDoc, deleteDoc, query, orderBy, where, getDocs, getDoc, runTransaction } from '@angular/fire/firestore';
 import { Observable, from, throwError } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { planningFingerprint } from './planning-rules';
 
 @Injectable({
   providedIn: 'root'
@@ -17,15 +18,38 @@ export class SupervisionService {
 
   constructor() { }
 
+  getByPlanningId(planningId: string): Observable<any | null> {
+    const q = query(collection(this.firestore, 'supervisions'), where('planning_id', '==', planningId));
+    return from(getDocs(q).then(snapshot => snapshot.empty ? null : {
+      id: snapshot.docs[0].id, ...snapshot.docs[0].data()
+    }));
+  }
+
   create(data: any): Observable<any> {
     const user = this.authService.currentUserValue;
+    const {planning_slot_fingerprint: expectedFingerprint, ...formFields} = data;
     const newData = {
-        ...data,
+        ...formFields,
         user_id: user ? user.uid : null,
         created_at: new Date()
     };
     const colRef = collection(this.firestore, 'supervisions');
-    return from(addDoc(colRef, newData));
+    if (!newData.planning_id) return from(addDoc(colRef, newData));
+    const supervisionRef = doc(colRef);
+    const planningRef = doc(this.firestore, 'plannings', newData.planning_id);
+    // An atomic association prevents two supervisors from creating duplicate linked forms.
+    return from(runTransaction(this.firestore, async tx => {
+      const planning = await tx.get(planningRef);
+      if (!planning.exists()) throw new Error('La séance du planning est introuvable.');
+      if (planning.data()['status'] === 'Annulé') throw new Error('Une séance annulée ne peut pas être supervisée.');
+      if (expectedFingerprint && planningFingerprint(planning.data() as any) !== expectedFingerprint) {
+        throw new Error('La séance a été reprogrammée depuis l’ouverture de la fiche. Rechargez-la avant de continuer.');
+      }
+      if (planning.data()['supervision_id']) throw new Error('Une fiche de supervision existe déjà pour cette séance.');
+      tx.set(supervisionRef, newData);
+      tx.update(planningRef, {supervision_id:supervisionRef.id,status:'Supervisé',updated_at:new Date()});
+      return {id:supervisionRef.id};
+    }));
   }
 
   update(id: string, data: any): Observable<void> {
@@ -75,8 +99,24 @@ export class SupervisionService {
   }
 
   delete(id: string): Observable<void> {
-    const docRef = doc(this.firestore, `supervisions/${id}`);
-    return from(deleteDoc(docRef));
+    const supervisionRef = doc(this.firestore, 'supervisions', id);
+    return from((async () => {
+      const snapshot = await getDoc(supervisionRef);
+      if (!snapshot.exists()) throw new Error('Fiche introuvable.');
+      const planId = snapshot.data()['planning_id'];
+      if (!planId) {await deleteDoc(supervisionRef); return;}
+      const planningRef = doc(this.firestore, 'plannings', planId);
+      await runTransaction(this.firestore, async tx => {
+        const supervision = await tx.get(supervisionRef);
+        const planning = await tx.get(planningRef);
+        if (!supervision.exists()) throw new Error('Fiche déjà supprimée.');
+        if (supervision.data()['planning_id'] !== planId) throw new Error('Fiche modifiée. Actualisez.');
+        if (planning.exists() && planning.data()['supervision_id'] === id) {
+          tx.update(planningRef, {supervision_id:null,status:'À superviser',updated_at:new Date()});
+        }
+        tx.delete(supervisionRef);
+      });
+    })());
   }
 
   sendReport(id: string, data: { pdfBase64: string, teacherEmail: string, subject?: string, message?: string }): Observable<any> {

@@ -1,4 +1,6 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
+import { normalizeAcademicSearch, filterAcademicUes } from '../shared/utils/academic-search';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlanningService, Planning } from '../services/planning.service';
@@ -13,18 +15,24 @@ import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay
 import { fr } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { SupervisionService } from '../services/supervision.service';
+import { sortedTeacherSchedule, validateSlot } from '../services/planning-rules';
 import { parseDate } from '../shared/utils/date.utils';
+import { activeEdtSessions, edtHourRange, dayKey } from '../shared/utils/edt-week';
+import { exportWeeklyTimetablePdf } from '../shared/utils/edt-pdf';
 
 @Component({
   selector: 'app-plannings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [AcademicSearchSelectComponent,CommonModule, FormsModule],
   templateUrl: './plannings.html',
   styleUrls: ['./plannings.scss'],
 })
 export class Plannings implements OnInit, OnDestroy {
   @ViewChild('calendarPdfArea') calendarPdfArea!: ElementRef;
+  @ViewChild('actionDialogRef') actionDialogRef?: ElementRef<HTMLElement>;
 
   // Filters
   parcoursList: string[] = [];
@@ -45,7 +53,250 @@ export class Plannings implements OnInit, OnDestroy {
   private planningsSubscription: Subscription | null = null;
 
   // View State
-  currentView: 'supervisor' | 'calendar' = 'supervisor';
+  currentView: 'supervisor' | 'calendar' | 'teacher' = 'supervisor';
+  selectedTeacherForSchedule = '';
+  isSavingPlanning = false;
+  isScheduleLoading = false;
+  scheduleError = '';
+  changeReason = '';
+  actionDialog: { kind: 'delete' | 'status'; planning: Planning; targetStatus?: Planning['status']; reason: string; busy: boolean; error: string } | null = null;
+  fullCalendarHours = false;
+  ueSearch = '';
+  classSearch = '';
+  modalClassId = '';
+
+  // AURA-V2: chaque recherche est independante et ne modifie jamais la selection
+  // jusqu'a une action explicite de l'utilisateur.
+  quickSearch = '';
+  teacherViewQuery = '';
+  teacherViewOpen = false;
+  modalTeacherQuery = '';
+  modalTeacherOpen = false;
+  modalUeOpen = false;
+  modalUeActiveIndex = 0;
+  private modalTrigger: HTMLElement | null = null;
+  @ViewChild('planningDialog') planningDialog?: ElementRef<HTMLElement>;
+
+  private normalizeSearch(value: unknown): string {
+    return normalizeAcademicSearch(value);
+  }
+
+  get filteredTeachers(): any[] {
+    const term = this.normalizeSearch(this.modalTeacherQuery);
+    return this.teachers.filter(t => !term || this.normalizeSearch(`${t.first_name} ${t.last_name} ${t.email || ''} ${t.department || ''}`).includes(term));
+  }
+  get filteredTeacherScheduleOptions(): any[] {
+    const term = this.normalizeSearch(this.teacherViewQuery);
+    return this.teachers.filter(t => !term || this.normalizeSearch(`${t.first_name} ${t.last_name} ${t.email || ''} ${t.department || ''}`).includes(term));
+  }
+  get filteredUes(): any[] {
+    // Un champ déjà sélectionné doit rester réouvrable sans effacer sa valeur.
+    if (this.selectedModalUe && this.ueSearch === this.selectedModalUeLabel) return this.ues;
+    return filterAcademicUes(this.ues, this.ueSearch);
+  }
+  get selectedModalUe(): any | undefined {
+    return this.ues.find(ue => String(ue.id) === String(this.modalData.ue_id ?? ''));
+  }
+  get selectedModalUeLabel(): string {
+    const ue = this.selectedModalUe;
+    return ue ? `${ue.code || ''} · ${ue.name || ''}`.trim() : '';
+  }
+  // La saisie seule ne doit jamais conserver l'ID d'une UE auparavant choisie.
+  onModalUeQueryChange(value: string): void {
+    this.ueSearch = value;
+    if (value !== this.selectedModalUeLabel) this.modalData.ue_id = undefined;
+    this.modalUeActiveIndex = 0;
+    this.modalUeOpen = true;
+  }
+  selectModalUe(ue: any): void {
+    this.modalData.ue_id = ue.id;
+    this.ueSearch = `${ue.code || ''} · ${ue.name || ''}`.trim();
+    this.modalUeOpen = false;
+  }
+  clearModalUe(): void {
+    this.modalData.ue_id = undefined;
+    this.ueSearch = '';
+    this.modalUeActiveIndex = 0;
+    this.modalUeOpen = true;
+  }
+  handleModalUeKeydown(event: Event): void {
+    const keyboard = event as KeyboardEvent;
+    if (keyboard.key === 'Escape') {
+      this.modalUeOpen = false;
+      keyboard.stopPropagation();
+      return;
+    }
+    if (keyboard.key === 'ArrowDown' || keyboard.key === 'ArrowUp') {
+      keyboard.preventDefault();
+      this.modalUeOpen = true;
+      const delta = keyboard.key === 'ArrowDown' ? 1 : -1;
+      const count = this.filteredUes.length;
+      this.modalUeActiveIndex = count ? (this.modalUeActiveIndex + delta + count) % count : 0;
+      return;
+    }
+    if (keyboard.key === 'Enter' && this.modalUeOpen) {
+      const ue = this.filteredUes[this.modalUeActiveIndex];
+      if (ue) { keyboard.preventDefault(); this.selectModalUe(ue); }
+    }
+  }
+  onModalTeacherQueryChange(value: string): void {
+    this.modalTeacherQuery = value;
+    if (value !== this.selectedModalTeacherName) this.modalData.teacher_id = undefined;
+    this.modalTeacherOpen = true;
+  }
+  onTeacherViewQueryChange(value: string): void {
+    this.teacherViewQuery = value;
+    if (value !== this.teacherScheduleName) this.selectedTeacherForSchedule = '';
+    this.teacherViewOpen = true;
+  }
+  private focusPlanningDialog(): void {
+    this.modalTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setTimeout(() => this.planningDialog?.nativeElement.focus(), 0);
+  }
+  onModalBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget && !this.isSavingPlanning) this.closeModal();
+  }
+  @HostListener('document:keydown.escape')
+  onDialogEscape(): void {
+    if (this.actionDialog) { this.closeActionDialog(); return; }
+    if (this.modalUeOpen) { this.modalUeOpen = false; return; }
+    if (this.modalTeacherOpen) { this.modalTeacherOpen = false; return; }
+    if (this.isAddModalOpen && !this.isSavingPlanning) this.closeModal();
+  }
+  @HostListener('document:keydown.tab', ['$event'])
+  keepDialogFocus(event: Event): void {
+    const dialog = this.actionDialog && this.actionDialogRef
+      ? this.actionDialogRef.nativeElement
+      : this.isAddModalOpen && this.planningDialog
+        ? this.planningDialog.nativeElement : null;
+    if (!dialog) return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]):not([hidden]), input:not([disabled]):not([hidden]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]'
+    )).filter(el => el.getClientRects().length > 0);
+    if (!focusable.length) { event.preventDefault(); dialog.focus(); return; }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if ((event as KeyboardEvent).shiftKey && (active === first || active === dialog)) { event.preventDefault(); last.focus(); }
+    else if (!(event as KeyboardEvent).shiftKey && (active === last || !dialog.contains(active))) { event.preventDefault(); first.focus(); }
+  }
+
+  get filteredClasses(): any[] {
+    const term = this.normalizeSearch(this.classSearch);
+    return this.databaseClasses.filter(c => !term || this.normalizeSearch(c.name).includes(term));
+  }
+  get visiblePlannings(): Planning[] {
+    const term = this.normalizeSearch(this.quickSearch);
+    return this.plannings.filter(p => {
+      // Teacher view must aggregate all of their classes, regardless of a previous class filter.
+      const matchesClass = this.currentView === 'teacher' || !this.selectedParcours || p.parcours === this.selectedParcours || p.classe_name === this.selectedParcours;
+      const matchesStatus = this.currentView !== 'supervisor' || !this.selectedStatus || p.status === this.selectedStatus;
+      const text = `${p.ue_code || ''} ${p.ue_name || ''} ${p.title || ''} ${p.teacher_first_name || ''} ${p.teacher_last_name || ''} ${p.parcours || ''} ${p.classe_name || ''} ${p.session_type || ''}`;
+      return matchesClass && matchesStatus && (!term || this.normalizeSearch(text).includes(term));
+    });
+  }
+  /** Two timetable projections (class / teacher), both exclude cancelled sessions. */
+  get timetableSessions(): Planning[] {
+    const active = activeEdtSessions(this.visiblePlannings);
+    return this.currentView === 'teacher'
+      ? active.filter(p => String(p.teacher_id || '') === this.selectedTeacherForSchedule)
+      : active;
+  }
+  get calendarRange(): {startHour: number; endHour: number} {
+    return edtHourRange(this.timetableSessions, this.fullCalendarHours);
+  }
+  get calendarHours(): number[] {
+    const {startHour,endHour}=this.calendarRange;
+    return Array.from({length:endHour-startHour},(_,i)=>startHour+i);
+  }
+  get calendarHeight(): number { return this.calendarHours.length*140; }
+  getTimetableForDay(day: Date): Planning[] {
+    const key=format(day, 'yyyy-MM-dd');
+    return this.timetableSessions.filter(plan => dayKey(plan.date)===key);
+  }
+  getCancellationReason(plan: Planning): string {
+    return [...(plan.status_history || [])].reverse().find(change => change.to === 'Annulé')?.reason || '';
+  }
+  get activeDays(): Date[] {
+    return this.daysOfWeek.filter(day => this.getPlanningsForDay(day).length > 0);
+  }
+  get awaitingCount(): number { return this.visiblePlannings.filter(p => p.status === 'À superviser').length; }
+  get supervisedCount(): number { return this.visiblePlannings.filter(p => p.status === 'Supervisé').length; }
+  get cancelledCount(): number { return this.visiblePlannings.filter(p => p.status === 'Annulé').length; }
+  get teacherSchedule(): Planning[] {
+    return sortedTeacherSchedule(this.visiblePlannings, this.selectedTeacherForSchedule) as Planning[];
+  }
+  get teacherScheduleName(): string {
+    const t = this.teachers.find(t => t.id === this.selectedTeacherForSchedule);
+    return t ? `${t.first_name} ${t.last_name}`.trim() : 'Enseignant';
+  }
+  get selectedModalTeacherName(): string {
+    const t = this.teachers.find(t => t.id === this.modalData.teacher_id);
+    return t ? `${t.first_name} ${t.last_name}`.trim() : '';
+  }
+  chooseFirstTeacherForSchedule(event: Event) {
+    const first = this.filteredTeacherScheduleOptions[0];
+    if (first && this.teacherViewOpen) { event.preventDefault(); this.selectTeacherForSchedule(first); }
+  }
+  chooseFirstModalTeacher(event: Event) {
+    const first = this.filteredTeachers[0];
+    if (first && this.modalTeacherOpen) { event.preventDefault(); this.selectModalTeacher(first); }
+  }
+  selectTeacherForSchedule(t: any) {
+    this.selectedTeacherForSchedule = t.id;
+    this.teacherViewQuery = `${t.first_name} ${t.last_name}`.trim();
+    this.teacherViewOpen = false;
+  }
+  selectModalTeacher(t: any) {
+    this.modalData.teacher_id = t.id;
+    this.modalTeacherQuery = `${t.first_name} ${t.last_name}`.trim();
+    this.modalTeacherOpen = false;
+  }
+  @HostListener('document:click', ['$event'])
+  closeTeacherMenusOnOutsideClick(event: MouseEvent) {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.closest('.aura-teacher-view-picker')) this.teacherViewOpen = false;
+    if (!target.closest('.aura-teacher-modal-picker')) this.modalTeacherOpen = false;
+    if (!target.closest('.aura-ue-modal-picker')) this.modalUeOpen = false;
+  }
+  changeView(next: 'supervisor' | 'calendar' | 'teacher') {
+    this.currentView = next;
+    if (next === 'teacher' && !this.selectedTeacherForSchedule && this.teachers.length) {
+      this.selectTeacherForSchedule(this.teachers[0]);
+    }
+    this.loadPlannings();
+  }
+
+  onModalClassChange() {
+    const cls = this.databaseClasses.find(c => c.id === this.modalClassId);
+    this.modalData.classe_id = cls?.id || null;
+    if (cls?.name) this.modalData.parcours = cls.name;
+    this.modalData.classe_name = cls?.name || this.modalData.parcours;
+    this.modalData.parcours_id = cls?.parcours_id || null;
+    // Ne pas modifier l'UE déjà choisie : aucune contrainte UE/classe n'existait auparavant.
+  }
+
+  // AURA V2.3: conversion explicite pour préserver les IDs Firestore et les noms historiques.
+  onPlanningClassSelected(value: string | number | null): void {
+    this.selectedParcours = String(value ?? '');
+    this.onFilterChange();
+  }
+  onViewTeacherSelected(value: string | number | null): void {
+    this.selectedTeacherForSchedule = String(value ?? '');
+    this.teacherViewQuery = this.teacherScheduleName;
+  }
+  onModalClassSelected(value: string | number | null): void {
+    this.modalClassId = String(value ?? '');
+    if (!this.modalClassId) { this.modalData.parcours = ''; this.modalData.classe_name = ''; }
+    this.onModalClassChange();
+  }
+  onModalUeSelected(value: string | number | null): void {
+    this.modalData.ue_id = value ? String(value) : undefined;
+  }
+  onModalTeacherSelected(value: string | number | null): void {
+    this.modalData.teacher_id = value ? String(value) : undefined;
+  }
 
   // Modal State
   isAddModalOpen = false;
@@ -54,7 +305,6 @@ export class Plannings implements OnInit, OnDestroy {
   modalData: Partial<Planning> = this.getEmptyPlanning();
 
   daysOfWeek: Date[] = [];
-  calendarHours = Array.from({ length: 16 }, (_, i) => i + 8); // 8:00 to 24:00
 
   private subscriptions: Subscription = new Subscription();
 
@@ -67,13 +317,31 @@ export class Plannings implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private activityService: ActivityService,
     private classeService: ClasseService,
+    private supervisionService: SupervisionService,
+    private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    // Deep links from operational dashboard are explicit, validated filters.
+    const params = this.route.snapshot.queryParamMap;
+    const status = params.get('status');
+    if (status && ['À superviser','Supervisé','Annulé'].includes(status)) this.selectedStatus = status;
+    const week = params.get('week');
+    if (week && /^\d{4}-\d{2}-\d{2}$/.test(week)) {
+      const parsed = parseISO(week);
+      if (!isNaN(parsed.getTime())) {
+        this.currentDate = parsed;
+        this.weekStart = startOfWeek(parsed, {weekStartsOn:1});
+        this.weekEnd = endOfWeek(parsed, {weekStartsOn:1});
+      }
+    }
     this.updateDaysOfWeek();
     this.loadUesAndTeachers();
     this.loadParcours();
+    this.loadPlannings();
+    if (params.get('add') === '1') this.openAddModal();
   }
   
   ngOnDestroy() {
@@ -86,10 +354,6 @@ export class Plannings implements OnInit, OnDestroy {
       this.parcoursService.getAll().subscribe({
         next: (data) => {
           this.parcoursList = data.map(p => p.name);
-          if (this.parcoursList.length > 0 && !this.selectedParcours) {
-              this.selectedParcours = this.parcoursList[0];
-              this.loadPlannings();
-          }
           this.cdr.detectChanges();
         },
         error: () => this.toastService.error('Erreur lors du chargement des parcours')
@@ -108,19 +372,25 @@ export class Plannings implements OnInit, OnDestroy {
   loadUesAndTeachers() {
     this.subscriptions.add(
       this.ueService.getAll().subscribe({
-        next: (data) => { this.ues = data; this.cdr.detectChanges(); },
+        next: (data) => {
+          this.ues = data;
+          if (this.isAddModalOpen && this.modalData.ue_id && !this.ueSearch) {
+            this.ueSearch = this.selectedModalUeLabel;
+          }
+          this.cdr.detectChanges();
+        },
         error: () => this.toastService.error('Erreur de chargement des UEs'),
       })
     );
     this.subscriptions.add(
       this.teacherService.getAll().subscribe({
-        next: (data) => { this.teachers = data; this.cdr.detectChanges(); },
+        next: (data) => { this.teachers = data; if (!this.selectedTeacherForSchedule && data.length) this.selectTeacherForSchedule(data[0]); this.cdr.detectChanges(); },
         error: () => this.toastService.error('Erreur de chargement des enseignants'),
       })
     );
     this.subscriptions.add(
       this.classeService.getAll().subscribe({
-        next: (data) => { this.databaseClasses = data; this.cdr.detectChanges(); },
+        next: (data) => { this.databaseClasses = data;  this.cdr.detectChanges(); },
         error: () => this.toastService.error('Erreur de chargement des classes'),
       })
     );
@@ -131,21 +401,23 @@ export class Plannings implements OnInit, OnDestroy {
         this.planningsSubscription.unsubscribe(); 
     }
 
+    this.isScheduleLoading = true;
+    this.scheduleError = '';
     const filters = {
-      parcours: this.selectedParcours,
+      ...(this.currentView !== 'teacher' && this.selectedParcours ? {parcours: this.selectedParcours} : {}),
       startDate: format(this.weekStart, 'yyyy-MM-dd'),
       endDate: format(this.weekEnd, 'yyyy-MM-dd'),
-      ...(this.selectedStatus ? { status: this.selectedStatus } : {}),
+      ...(this.currentView === 'supervisor' && this.selectedStatus ? { status: this.selectedStatus } : {}),
     };
 
     this.planningsSubscription = this.planningService.getPlannings(filters).subscribe({
-      next: (data) => { this.plannings = data; this.cdr.detectChanges(); },
-      error: () => this.toastService.error('Erreur lors du chargement des plannings'),
+      next: (data) => { this.plannings = data; this.isScheduleLoading = false; this.cdr.detectChanges(); },
+      error: () => {this.isScheduleLoading = false; this.scheduleError = 'Erreur lors du chargement des plannings'; this.toastService.error(this.scheduleError); this.cdr.detectChanges();},
     });
   }
 
   getPlanningsForDay(day: Date): Planning[] {
-    return this.plannings.filter((p) => p.date && isSameDay(parseDate(p.date), day));
+    return this.visiblePlannings.filter((p) => p.date && isSameDay(parseDate(p.date), day));
   }
 
   formatDateHeader(date: Date): { dayName: string; dayDate: string } {
@@ -155,8 +427,10 @@ export class Plannings implements OnInit, OnDestroy {
     };
   }
 
+  formatMonthYear(day: Date): string { return format(day, 'MMMM yyyy', {locale: fr}); }
+
   getWeekLabel(): string {
-    return `${format(this.weekStart, 'dd MMM', { locale: fr })} - ${format(this.weekEnd, 'dd MMM yyyy', { locale: fr })}`;
+    return `${format(this.weekStart, 'dd MMM', { locale: fr })} — ${format(this.weekEnd, 'dd MMM yyyy', { locale: fr })}`;
   }
 
   updateDaysOfWeek() {
@@ -186,15 +460,35 @@ export class Plannings implements OnInit, OnDestroy {
     this.loadPlannings();
   }
 
+  todayWeek() {
+    this.currentDate = new Date();
+    this.weekStart = startOfWeek(this.currentDate, {weekStartsOn: 1});
+    this.weekEnd = endOfWeek(this.currentDate, {weekStartsOn: 1});
+    this.updateDaysOfWeek();
+    this.loadPlannings();
+  }
+  resetFilters() {
+    this.quickSearch = '';
+    this.selectedParcours = '';
+    this.selectedStatus = '';
+    this.loadPlannings();
+  }
+
   openAddModal() {
     this.isEditMode = false;
     this.isActivityMode = false;
     this.modalData = this.getEmptyPlanning();
+    this.modalClassId = this.databaseClasses.find(c => c.name === this.selectedParcours)?.id || '';
+    this.onModalClassChange();
     this.modalData.date = format(
       this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
       'yyyy-MM-dd',
     );
+    this.changeReason = '';
+    this.modalTeacherQuery = ''; this.modalTeacherOpen = false;
+    this.ueSearch = ''; this.modalUeOpen = false; this.modalUeActiveIndex = 0;
     this.isAddModalOpen = true;
+    this.focusPlanningDialog();
   }
 
   openAddActivityModal() {
@@ -206,12 +500,16 @@ export class Plannings implements OnInit, OnDestroy {
       this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
       'yyyy-MM-dd',
     );
+    this.modalTeacherQuery = ''; this.modalTeacherOpen = false;
+    this.ueSearch = ''; this.modalUeOpen = false; this.modalUeActiveIndex = 0;
     this.isAddModalOpen = true;
+    this.focusPlanningDialog();
   }
 
   openEditModal(planning: Planning) {
     this.isEditMode = true;
     this.modalData = { ...planning };
+    this.modalClassId = planning.classe_id || this.databaseClasses.find(c => c.name === planning.parcours)?.id || '';
     // Determine mode based on data
     this.isActivityMode = !this.modalData.ue_id && !!this.modalData.title;
     
@@ -226,11 +524,21 @@ export class Plannings implements OnInit, OnDestroy {
     if (this.modalData.date && this.modalData.date.includes('T')) {
       this.modalData.date = this.modalData.date.split('T')[0];
     }
+    this.changeReason = '';
+    this.modalTeacherQuery = this.selectedModalTeacherName;
+    this.modalTeacherOpen = false;
+    this.ueSearch = this.selectedModalUeLabel;
+    this.modalUeOpen = false; this.modalUeActiveIndex = 0;
     this.isAddModalOpen = true;
+    this.focusPlanningDialog();
   }
 
   closeModal() {
     this.isAddModalOpen = false;
+    this.modalUeOpen = false;
+    this.modalTeacherOpen = false;
+    this.modalTrigger?.focus();
+    this.modalTrigger = null;
   }
 
   savePlanning() {
@@ -245,10 +553,15 @@ export class Plannings implements OnInit, OnDestroy {
       return;
     }
 
+    const error = validateSlot(this.modalData as Planning);
+    if (error) {this.toastService.error(error); return;}
+    if (this.isSavingPlanning) return;
+    this.isSavingPlanning = true;
     if (this.isEditMode && this.modalData.id) {
       this.subscriptions.add(
-      this.planningService.updatePlanning(this.modalData.id, this.modalData).subscribe({
+      this.planningService.updatePlanning(this.modalData.id, {...this.modalData, change_reason:this.changeReason}).subscribe({
         next: () => {
+          this.isSavingPlanning = false;
           this.toastService.success('Séance mise à jour');
           const ueName = this.modalData.title || 'Inconnue';
           this.activityService.logActivity('Mise à jour de séance', `Le planning de "${ueName}" a été mis à jour.`, 'Planning');
@@ -261,13 +574,14 @@ export class Plannings implements OnInit, OnDestroy {
           this.closeModal();
           this.loadPlannings();
         },
-        error: () => this.toastService.error('Erreur lors de la mise à jour'),
+        error: (err) => {this.isSavingPlanning = false; this.toastService.error(err.message || 'Erreur de mise à jour');},
       })
       );
     } else {
       this.subscriptions.add(
       this.planningService.createPlanning(this.modalData as Planning).subscribe({
         next: () => {
+          this.isSavingPlanning = false;
           this.toastService.success('Séance ajoutée au planning');
           const ueName = this.modalData.title || 'Inconnue';
           this.activityService.logActivity('Nouvelle séance planifiée', `Une séance "${ueName}" a été ajoutée.`, 'Planning');
@@ -280,46 +594,89 @@ export class Plannings implements OnInit, OnDestroy {
           this.closeModal();
           this.loadPlannings();
         },
-        error: () => this.toastService.error("Erreur lors de l'ajout de la séance"),
+        error: (err) => {this.isSavingPlanning = false; this.toastService.error(err.message || 'Erreur de création');},
       })
       );
     }
   }
 
-  deletePlanning(id: any) {
-    if (confirm('Voulez-vous vraiment supprimer cette séance ?')) {
-      const plan = this.plannings.find(p => p.id === id);
-      const title = plan ? (plan.ue_name || plan.title || 'Inconnue') : 'Inconnue';
-      this.subscriptions.add(
-      this.planningService.deletePlanning(String(id)).subscribe({
+  private openActionDialog(dialog: NonNullable<Plannings['actionDialog']>): void {
+    this.actionDialog = dialog;
+    setTimeout(() => this.actionDialogRef?.nativeElement.focus(), 0);
+  }
+
+  deletePlanning(id: any): void {
+    const planning = this.plannings.find(p => String(p.id) === String(id));
+    if (!planning) { this.toastService.error('Séance introuvable'); return; }
+    this.openActionDialog({kind:'delete',planning,reason:'',busy:false,error:''});
+  }
+
+  changeStatus(planning: Planning, event: Event): void {
+    const element = event.target as HTMLSelectElement;
+    const targetStatus = element.value as Planning['status'];
+    element.value = planning.status || 'À superviser'; // Do not imply a write before confirmation.
+    if (targetStatus === planning.status) return;
+    this.openActionDialog({kind:'status',planning,targetStatus,reason:'',busy:false,error:''});
+  }
+
+  closeActionDialog(): void {
+    if (this.actionDialog?.busy) return;
+    this.actionDialog = null;
+  }
+
+  onActionBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeActionDialog();
+  }
+
+  confirmActionDialog(): void {
+    const action = this.actionDialog;
+    if (!action || action.busy || !action.planning.id) return;
+    if (action.kind === 'status' && action.targetStatus === 'Annulé' && !action.reason.trim()) {
+      action.error = 'Veuillez renseigner le motif de cette annulation.';
+      return;
+    }
+    action.busy = true;
+    action.error = '';
+    const plan = action.planning;
+    const title = plan.ue_name || plan.title || 'Séance';
+    if (action.kind === 'delete') {
+      this.subscriptions.add(this.planningService.deletePlanning(String(plan.id)).subscribe({
         next: () => {
+          this.actionDialog = null;
           this.toastService.success('Séance supprimée');
           this.activityService.logActivity('Séance supprimée', `La séance "${title}" a été supprimée du planning.`, 'Planning');
-          this.notificationService.createNotification({
-            title: 'Séance supprimée',
-            message: `Vous avez supprimé la séance "${title}".`,
-            type: 'warning',
-            read: false
-          });
-          this.loadPlannings(); // This might be redundant if we use real-time listeners, but harmless for now.
+          this.notificationService.createNotification({title:'Séance supprimée',message:`La séance "${title}" a été supprimée.`,type:'warning',read:false});
+          this.loadPlannings();
         },
-        error: () => this.toastService.error('Erreur de suppression'),
-      })
-      );
+        error: (err) => {action.busy=false;action.error=err?.message || 'Erreur de suppression.';}
+      }));
+      return;
     }
+    const status = action.targetStatus;
+    if (!status) { action.busy=false; return; }
+    const reason = action.reason.trim();
+    this.subscriptions.add(this.planningService.updatePlanning(String(plan.id), {
+      status,
+      change_reason: status === 'Annulé' ? reason : (reason || '')
+    }).subscribe({
+      next: () => {
+        this.actionDialog = null;
+        this.toastService.success(status === 'Annulé' ? 'Séance annulée et conservée dans le suivi' : 'Statut mis à jour');
+        this.activityService.logActivity('Statut de séance', `La séance "${title}" est passée à "${status}".`, 'Planning');
+        this.loadPlannings();
+      },
+      error: (err) => {action.busy=false;action.error=err?.message || 'Échec du changement de statut.';}
+    }));
   }
 
-  changeStatus(planning: Planning, newStatus: Event | any) {
-    const statusValue = (newStatus.target as HTMLSelectElement).value;
-    this.subscriptions.add(
-    this.planningService.updatePlanning(planning.id!, { status: statusValue as any }).subscribe({
-      next: () => {
-        planning.status = statusValue as any;
-        this.toastService.success('Statut mis à jour');
-      },
-      error: () => this.toastService.error('Erreur lors de la mise à jour du statut'),
-    })
-    );
+  async openSupervision(planning: Planning) {
+    if (planning.status === 'Annulé') { this.toastService.error('Impossible de superviser une séance annulée.'); return; }
+    if (!planning.id) return;
+    if (planning.supervision_id) {this.router.navigate(['/admin/supervision-form'],{queryParams:{id:planning.supervision_id}}); return;}
+    try {
+      const linked = await firstValueFrom(this.supervisionService.getByPlanningId(planning.id));
+      this.router.navigate(['/admin/supervision-form'], {queryParams:linked?.id ? {id:linked.id} : {planningId:planning.id}});
+    } catch (e:any) {this.toastService.error(e.message || 'Impossible de charger la fiche.');}
   }
 
   // Exports and Print
@@ -328,282 +685,56 @@ export class Plannings implements OnInit, OnDestroy {
   }
 
   async exportPDF() {
-    if (this.currentView === 'calendar') {
-      this.toastService.success('Génération du PDF en cours...', 'Veuillez patienter');
-      try {
-        const doc = new jsPDF({
-          orientation: 'landscape',
-          unit: 'mm',
-          format: 'a4' // 297 width x 210 height
-        });
-
-        // Margins and dimensions
-        const marginLeft = 10;
-        const marginTop = 10;
-        const pageWidth = 297;
-        const pageHeight = 210;
-        
-        const gridX = marginLeft;
-        const gridY = 30; // space for header
-        const gridWidth = pageWidth - (marginLeft * 2);
-        const gridHeight = pageHeight - gridY - 10; // extra bottom margin
-
-        // Draw Document Header
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.setTextColor(30, 41, 59); // slate-800
-        doc.text(`Planning: ${this.selectedParcours}`, marginLeft, marginTop + 5);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(12);
-        doc.setTextColor(100, 116, 139); // slate-500
-        doc.text(this.getWeekLabel(), marginLeft, marginTop + 12);
-
-        // Variables for the Grid
-        const daysCount = 7;
-        const colWidth = gridWidth / daysCount;
-        
-        // Define day start and end time limits
-        const startHour = 8;
-        const endHour = 24;
-        const totalHours = endHour - startHour;
-        const rowHeight = gridHeight / totalHours;
-
-        // Draw Day columns and headers
-        doc.setFontSize(9);
-        for (let i = 0; i < daysCount; i++) {
-           const dayTextX = gridX + (i * colWidth);
-           // Col Header Box
-           doc.setDrawColor(226, 232, 240); // slate-200
-           doc.setFillColor(248, 250, 252); // slate-50
-           doc.rect(dayTextX, gridY - 12, colWidth, 12, 'FD');
-
-           // Col Header Text
-           const day = this.daysOfWeek[i];
-           const headerInfo = this.formatDateHeader(day);
-           
-           doc.setFont('helvetica', 'bold');
-           doc.setTextColor(100, 116, 139); // slate-500
-           doc.setFontSize(8);
-           const dayNameText = headerInfo.dayName.toUpperCase();
-           doc.text(dayNameText, dayTextX + (colWidth / 2), gridY - 7, { align: 'center' });
-
-           doc.setFont('helvetica', 'bold');
-           doc.setTextColor(30, 41, 59); // slate-800
-           doc.setFontSize(10);
-           doc.text(headerInfo.dayDate, dayTextX + (colWidth / 2), gridY - 2, { align: 'center' });
-
-           // Vert Column Lines
-           if (i > 0) {
-              doc.setDrawColor(226, 232, 240);
-              doc.line(dayTextX, gridY, dayTextX, gridY + gridHeight);
-           }
-        }
-        
-        // Box around header and grid
-        doc.setDrawColor(226, 232, 240);
-        doc.rect(gridX, gridY, gridWidth, gridHeight); // Grid outer box
-        doc.rect(gridX, gridY - 12, gridWidth, 12); // Header outer box
-
-        // Draw Hour rows
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184); // slate-400
-        for (let h = 0; h <= totalHours; h++) {
-           const yLine = gridY + (h * rowHeight);
-           const hourLabel = startHour + h;
-           
-           if (h > 0 && h < totalHours) {
-              doc.setDrawColor(241, 245, 249); // slate-100 (light inline)
-              doc.line(gridX, yLine, gridX + gridWidth, yLine);
-           }
-           
-           // label
-           if (h < totalHours) {
-               // small label on left side
-               doc.text(`${hourLabel}:00`, gridX + 1, yLine + 4);
-           }
-        }
-
-        // Draw Cards
-        const COLORS: Record<string, { bg: number[], text: number[], border: number[] }> = {
-            'CM': { bg: [239, 246, 255], text: [29, 78, 216], border: [59, 130, 246] },      // blue
-            'TP': { bg: [253, 244, 255], text: [162, 28, 175], border: [217, 70, 239] },    // fuchsia
-            'TD': { bg: [236, 253, 245], text: [4, 120, 87], border: [16, 185, 129] },      // emerald
-            'Atelier': { bg: [255, 247, 237], text: [194, 65, 12], border: [249, 115, 22] }, // orange
-            'DEFAULT': { bg: [248, 250, 252], text: [71, 85, 105], border: [148, 163, 184] } // slate
-        };
-
-        const calcY = (timeStr: string) => {
-            const [h, m] = timeStr.split(':').map(Number);
-            const decTime = h + (m / 60);
-            const clamped = Math.max(startHour, Math.min(endHour, decTime));
-            const yOffset = (clamped - startHour) * rowHeight;
-            return gridY + yOffset;
-        };
-
-        this.daysOfWeek.forEach((day, dayIndex) => {
-            const colX = gridX + (dayIndex * colWidth);
-            const items = this.getPlanningsForDay(day);
-
-            items.forEach(plan => {
-                if (!plan.start_time || !plan.end_time) return;
-
-                const yStart = calcY(plan.start_time);
-                const yEnd = calcY(plan.end_time);
-                let heightCard = Math.max(10, yEnd - yStart); // min 10mm
-                
-                // Adjust if overflows grid bottom
-                if (yStart + heightCard > gridY + gridHeight) {
-                    heightCard = (gridY + gridHeight) - yStart;
-                }
-                
-                if (heightCard <= 2) return; // Ignore very small blocks
-
-                const padX = 1; // 1mm horizontal padding
-                const cardX = colX + padX;
-                const cardWidth = colWidth - (padX * 2);
-                const sessionType = plan.session_type || 'DEFAULT';
-                const typeColor = COLORS[sessionType] || COLORS['DEFAULT'];
-
-                // Draw background
-                doc.setFillColor(typeColor.bg[0], typeColor.bg[1], typeColor.bg[2]);
-                doc.roundedRect(cardX, yStart, cardWidth, heightCard, 1, 1, 'F');
-                
-                // Draw left colored strip
-                doc.setFillColor(typeColor.border[0], typeColor.border[1], typeColor.border[2]);
-                // using a small rect for left strip instead of line to look better
-                doc.rect(cardX, yStart, 1.5, heightCard, 'F'); 
-                
-                // Stroke border around card
-                doc.setDrawColor(226, 232, 240); // slate-200
-                doc.roundedRect(cardX, yStart, cardWidth, heightCard, 1, 1, 'S');
-
-                // Internal text layout
-                let textY = yStart + 3.5;
-                const textMarginL = cardX + 2.5;
-                const textMaxWidth = cardWidth - 3;
-
-                // 1) Type Badge & Visio Link
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(typeColor.text[0], typeColor.text[1], typeColor.text[2]);
-                
-                // badge rect
-                const tWidth = doc.getTextWidth(sessionType) + 2;
-                doc.setFillColor(typeColor.bg[0] - 12, typeColor.bg[1] - 12, typeColor.bg[2] - 12);
-                doc.roundedRect(textMarginL - 0.5, textY - 2.5, tWidth, 3.5, 0.5, 0.5, 'F');
-                doc.text(sessionType, textMarginL + 0.5, textY - 0.2);
-
-                if (plan.visio_link) {
-                    const linkText = "Rejoindre la visio";
-                    doc.setFontSize(6);
-                    doc.setTextColor(37, 99, 235); // blue-600
-                    const linkX = cardX + cardWidth - doc.getTextWidth(linkText) - 1;
-                    doc.textWithLink(linkText, linkX, textY - 0.2, { url: plan.visio_link });
-                    // Underline
-                    doc.setDrawColor(37, 99, 235);
-                    doc.line(linkX, textY, linkX + doc.getTextWidth(linkText), textY);
-                }
-
-                textY += 3.5;
-
-                // 2) UE Name
-                if (textY < yStart + heightCard - 2) {
-                    doc.setFontSize(8);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(15, 23, 42); // slate-900
-                    const titleText = plan.ue_name || plan.title || 'Sans titre';
-                    const ueLines = doc.splitTextToSize(titleText, textMaxWidth);
-                    
-                    ueLines.forEach((line: string) => {
-                        if (textY < yStart + heightCard - 2) {
-                            doc.text(line, textMarginL, textY);
-                            textY += 3;
-                        }
-                    });
-                }
-                
-                // 3) Teacher Name
-                if (textY < yStart + heightCard - 2) {
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(71, 85, 105);
-                    const teacherName = `${plan.teacher_first_name} ${plan.teacher_last_name}`.trim();
-                    if(teacherName !== 'undefined undefined' && teacherName !== '') {
-                         const tLines = doc.splitTextToSize(teacherName, textMaxWidth);
-                         tLines.forEach((line: string) => {
-                            if (textY < yStart + heightCard - 2) {
-                                doc.text(line, textMarginL, textY);
-                                textY += 3;
-                            }
-                         });
-                    }
-                }
-
-                // 4) Times
-                if (heightCard >= 15 && (textY < yStart + heightCard - 2)) {
-                    // Push to bottom of card if tall enough
-                    const bottomY = yStart + heightCard - 1.5;
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(100, 116, 139); // slate-500
-                    
-                    const t = plan.start_time 
-                        ? `${plan.start_time.substring(0,5)} - ${plan.end_time.substring(0,5)}`
-                        : `Fin: ${plan.end_time.substring(0,5)}`;
-                        
-                    doc.text(t, textMarginL, Math.max(textY, bottomY));
-                }
-
-            });
-        });
-
-        doc.save(`planning-${this.selectedParcours.replace(/\s+/g, '-')}.pdf`);
-      } catch (e) {
-        console.error(e);
-        this.toastService.error('Erreur lors de la génération du PDF');
+    if (this.currentView === 'calendar' || this.currentView === 'teacher') {
+      if (this.currentView === 'teacher' && !this.selectedTeacherForSchedule) {
+        this.toastService.error('Sélectionnez un enseignant avant l’export.');
+        return;
       }
-    } else {
-      // Create a tabular PDF if not in calendar view
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text(`Planning: ${this.selectedParcours}`, 14, 20);
-      doc.setFontSize(12);
-      doc.text(`Semaine: ${this.getWeekLabel()}`, 14, 30);
-
-      const tableData = this.plannings.map((p) => {
-        const timeStr = p.start_time 
-          ? `${p.start_time.substring(0, 5)} - ${p.end_time.substring(0, 5)}`
-          : `Date Butoir: ${p.end_time.substring(0, 5)}`;
-
-        return [
-          p.date ? format(parseISO(p.date), 'dd/MM/yyyy') : '',
-          timeStr,
-          p.ue_name || p.title || '',
-          `${p.teacher_first_name} ${p.teacher_last_name}`,
-          p.session_type || '',
-          p.status || '',
-        ];
-      });
-
-      autoTable(doc, {
-        head: [['Date', 'Heure', 'UE', 'Enseignant', 'Type', 'Statut']],
-        body: tableData,
-        startY: 40,
-      });
-
-      doc.save(`planning-${this.selectedParcours}.pdf`);
+      if (this.isScheduleLoading || this.scheduleError) {
+        this.toastService.error('Le planning n’est pas encore disponible.');
+        return;
+      }
+      try {
+        exportWeeklyTimetablePdf({
+          kind: this.currentView === 'teacher' ? 'teacher' : 'class',
+          subject: this.currentView === 'teacher' ? this.teacherScheduleName : (this.selectedParcours || 'Toutes les classes'),
+          start: this.weekStart,
+          end: this.weekEnd,
+          sessions: this.timetableSessions
+        });
+      } catch (err) {
+        console.error('Erreur de génération de l’EDT', err);
+        this.toastService.error('Impossible de générer cet emploi du temps.');
+      }
+      return;
     }
+    // Preserve supervisor export semantics: this is an operational trace, not an EDT.
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(`Suivi des séances : ${this.selectedParcours || 'Toutes les classes'}`, 14, 20);
+    doc.setFontSize(10); doc.text(this.getWeekLabel(), 14, 28);
+    autoTable(doc, {
+      startY: 34,
+      head: [['Date','Horaires','UE / activité','Enseignant','Classe','Statut']],
+      body: this.visiblePlannings.map(p => [p.date || '',`${p.start_time || ''} - ${p.end_time || ''}`,
+        p.ue_name || p.title || '',`${p.teacher_first_name || ''} ${p.teacher_last_name || ''}`.trim(),
+        p.classe_name || p.parcours || '',p.status || '']),
+    });
+    doc.save(`suivi-supervision-${format(this.weekStart,'yyyy-MM-dd')}.pdf`);
   }
 
   // Positioning logic for calendar blocks
-  getTopPosition(startTime?: string): string {
+  getTopPosition(startTime?: string, endTime?: string): string {
+    if (!startTime && endTime) {
+      const [hour,minute] = endTime.split(':').map(Number);
+      const offset = Math.max(0, (hour+minute/60 - 1 - this.calendarRange.startHour)*140);
+      return `${offset}px`;
+    }
     if (!startTime) return '0px';
     const [h, m] = startTime.split(':').map(Number);
     
-    // Assume 8am start
-    const startHour = 8;
+    // Both teacher and student calendars share a compact, data-derived time axis.
+    const startHour = this.calendarRange.startHour;
     // Calculate pixels offset (140px per hour)
     const hoursFromStart = h - startHour + (m / 60);
     const offset = hoursFromStart * 140;
@@ -634,8 +765,8 @@ export class Plannings implements OnInit, OnDestroy {
     const startOffset = startH + startM / 60;
     const endOffset = endH + endM / 60;
     
-    // Minimum height of ~50 mins (0.85 hours)
-    const height = Math.max(0.85, endOffset - startOffset) * pixelsPerHour;
+    // Match actual durations; keep a minimum clickable area for short sessions.
+    const height = Math.max(28, (endOffset - startOffset) * pixelsPerHour);
 
     return `${height}px`;
   }

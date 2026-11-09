@@ -1,3 +1,4 @@
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -11,7 +12,7 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 @Component({
   selector: 'app-ues',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmationModalComponent],
+  imports: [AcademicSearchSelectComponent,CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './ues.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -42,6 +43,7 @@ export class UesComponent implements OnInit, OnDestroy {
     code: '',
     name: '',
     responsible: '',
+    responsible_id: null,
     department: '',
     level: '',
     semester: '',
@@ -57,6 +59,29 @@ export class UesComponent implements OnInit, OnDestroy {
     private toastService: ToastService,
     private cdr: ChangeDetectorRef
   ) { }
+
+  /** Preserve old UE documents (`responsible`: name) and introduce a stable teacher ID. */
+  get responsibleTeacherId(): string {
+    const id = String(this.currentUE.responsible_id ?? '');
+    if (id) return id;
+    const oldName = String(this.currentUE.responsible || '').trim().toLocaleLowerCase('fr');
+    if (!oldName) return '';
+    const matches = this.teachers.filter(t => this.teacherDisplayName(t).toLocaleLowerCase('fr') === oldName);
+    // Never guess a UID when two teachers have the same full name.
+    return matches.length === 1 ? String(matches[0].id) : '';
+  }
+
+  teacherDisplayName(teacher: any): string {
+    return `${teacher?.first_name || ''} ${teacher?.last_name || ''}`.trim();
+  }
+
+  onResponsibleTeacherSelected(value: string | number | null): void {
+    const teacher = this.teachers.find(t => String(t.id) === String(value ?? ''));
+    // Explicit choice updates both the stable link and the legacy display field.
+    this.currentUE.responsible_id = teacher ? String(teacher.id) : null;
+    this.currentUE.responsible = teacher ? this.teacherDisplayName(teacher) : '';
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     this.loadUEs();
@@ -164,6 +189,7 @@ export class UesComponent implements OnInit, OnDestroy {
         code: '', 
         name: '', 
         responsible: '',
+        responsible_id: null,
         department: '', 
         level: '', 
         semester: '', 
@@ -180,6 +206,11 @@ export class UesComponent implements OnInit, OnDestroy {
   }
 
   saveUE() {
+    if (this.isLoading) return;
+    // Link unambiguous historical names when a UE is saved again. Never infer a homonym.
+    if (!this.currentUE.responsible_id && this.responsibleTeacherId) {
+      this.currentUE.responsible_id = this.responsibleTeacherId;
+    }
     this.isLoading = true;
     this.currentUE.credits = Number(this.currentUE.credits) || 0;
     this.currentUE.modules_count = this.currentUE.credits; // double write for compatibility

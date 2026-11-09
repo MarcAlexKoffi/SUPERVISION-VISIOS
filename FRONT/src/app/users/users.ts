@@ -44,10 +44,12 @@ export class UsersComponent implements OnInit, OnDestroy {
     // Check both potential locations for role to be safe
     const role = currentUser?.user?.role || currentUser?.role;
 
-    // if (role !== 'admin') {
-    //   this.router.navigate(['/']); // Redirect if not admin
-    //   return;
-    // }
+    // This is a UX guard only. Firestore rules and the backend API enforce
+    // authorization independently of the browser's cached display profile.
+    if (role !== 'admin') {
+      this.router.navigate(['/admin/dashboard']);
+      return;
+    }
     this.loadUsers();
   }
 
@@ -114,7 +116,7 @@ export class UsersComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Erreur modification', err);
-            alert('Erreur lors de la modification de l\'utilisateur');
+            alert(this.userOperationError(err, 'Erreur lors de la modification de l’utilisateur.'));
           }
         })
       );
@@ -127,15 +129,7 @@ export class UsersComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Erreur création', err);
-            let errorMsg = 'Erreur lors de la création de l\'utilisateur.';
-            if (err?.code === 'auth/email-already-in-use') {
-              errorMsg = 'Cet adresse email est déjà utilisée.';
-            } else if (err?.code === 'auth/weak-password') {
-              errorMsg = 'Le mot de passe doit contenir au moins 6 caractères.';
-            } else if (err?.code === 'auth/invalid-email') {
-              errorMsg = 'L\'adresse email est invalide.';
-            }
-            alert(errorMsg);
+            alert(this.userOperationError(err, 'Erreur lors de la création de l’utilisateur.'));
           }
         })
       );
@@ -152,11 +146,21 @@ export class UsersComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error(err);
-            alert('Erreur lors de la suppression');
+            alert(this.userOperationError(err, 'Erreur lors de la suppression.'));
           }
         })
       );
     }
+  }
+
+  private userOperationError(error: any, fallback: string): string {
+    if (error?.status === 0) {
+      return 'Le service de gestion des utilisateurs est indisponible. Vérifiez le backend avant de réessayer.';
+    }
+    if (error?.status === 401) return 'Session expirée. Reconnectez-vous.';
+    if (error?.status === 403) return 'Opération réservée aux administrateurs.';
+    if (typeof error?.error?.message === 'string') return error.error.message;
+    return fallback;
   }
 
   getAvatar(name: string) {

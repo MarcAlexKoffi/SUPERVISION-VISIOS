@@ -23,3 +23,6 @@ serviceAccountKey.json
 
 
 serviceAccountKey.json
+
+# Lot 3 standalone unit test output
+.lot3-test-output/

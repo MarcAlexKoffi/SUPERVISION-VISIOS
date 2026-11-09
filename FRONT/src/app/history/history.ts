@@ -1,7 +1,9 @@
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal';
+import { AcademicUeSelectComponent } from '../shared/components/academic-ue-select/academic-ue-select';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -19,12 +21,22 @@ import autoTable from 'jspdf-autotable';
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ConfirmationModalComponent],
+  imports: [AcademicSearchSelectComponent,AcademicUeSelectComponent, CommonModule, FormsModule, RouterModule, ConfirmationModalComponent],
   templateUrl: './history.html',
   styleUrl: './history.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HistoryComponent implements OnInit, OnDestroy {
+  onHistoryTeacherSelected(value: string | number | null): void {
+    this.filters.teacher = String(value ?? '');
+    this.onTeacherChange();
+  }
+
+  onCourseSelected(value: string | number | null): void {
+    this.filters.course = String(value ?? '');
+    this.applyFilters();
+  }
+
   filters = {
     teacher: '',
     course: '',
@@ -47,6 +59,17 @@ export class HistoryComponent implements OnInit, OnDestroy {
   // Filters Options
   teachers: string[] = [];
   courses: string[] = [];
+  private coursesCache: { courses: string[]; ues: any[]; options: {name:string;code:string}[] } | null = null;
+  get searchableCourses(): {name:string; code:string}[] {
+    if (this.coursesCache?.courses === this.courses && this.coursesCache.ues === this.uesData) {
+      return this.coursesCache.options;
+    }
+    const codes = new Map(this.uesData.map(u => [String(u.name ?? ''), String(u.code ?? '')]));
+    const options = this.courses.map(name => ({name,code:codes.get(name) || ''}));
+    this.coursesCache = { courses: this.courses, ues: this.uesData, options };
+    return options;
+  }
+
   
   // Teachers data for email lookup
   teachersData: any[] = [];

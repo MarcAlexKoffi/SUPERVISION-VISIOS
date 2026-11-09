@@ -30,7 +30,11 @@ export const register = async (req: Request, res: Response) => {
         }
     }
 
-    const roleName = role || 'user';
+    const allowedRoles = new Set(['admin', 'enseignant', 'superviseur', 'user']);
+    const roleName = typeof role === 'string' ? role.trim().toLowerCase() : 'user';
+    if (!allowedRoles.has(roleName)) {
+      return res.status(400).json({ message: 'Rôle invalide.' });
+    }
     
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -45,16 +49,18 @@ export const register = async (req: Request, res: Response) => {
     };
 
     const docRef = await usersRef.add(newUser);
-    const userDoc = await docRef.get();
-    const userData = userDoc.data();
 
-    // Generate token
-    const token = generateToken(docRef.id, roleName); 
-
-    res.status(201).json({ 
+    // Administrator provisioning never issues an impersonation token, nor
+    // exposes the hashed password in the API response.
+    res.status(201).json({
         message: 'Utilisateur créé avec succès.',
-        token,
-        user: { id: docRef.id, ...userData }
+        user: {
+            id: docRef.id,
+            username,
+            email: email || null,
+            role: roleName,
+            created_at: newUser.created_at
+        }
     });
 
   } catch (err) {

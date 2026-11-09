@@ -15,9 +15,18 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 
   try {
-    // 1. Try to verify as a custom JWT (fallback for old backend auth)
-    const user = verifyToken(token);
-    req.user = user;
+    // Legacy custom JWT: never trust its embedded role, which can be stale.
+    const payload = verifyToken(token);
+    if (typeof payload === 'string' || !payload.id || !['string', 'number'].includes(typeof payload.id)) {
+      throw new Error('Invalid legacy token payload');
+    }
+    const userId = String(payload.id);
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) {
+      throw new Error('Legacy JWT user no longer exists');
+    }
+    const role = userDoc.data()?.role;
+    req.user = { id: userId, role: typeof role === 'string' ? role : 'user' };
     return next();
   } catch (err) {
     // 2. If custom JWT fails, try verifying as a Firebase ID Token
@@ -39,7 +48,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
   // console.log('User Role:', req.user?.role); // Debug
-  if (!req.user || req.user.role.toLowerCase() !== 'admin') {
+  if (!req.user || typeof req.user.role !== 'string' || req.user.role.toLowerCase() !== 'admin') {
     return res.status(403).json({ message: 'Accès refusé. Rôle administrateur requis.' });
   }
   next();

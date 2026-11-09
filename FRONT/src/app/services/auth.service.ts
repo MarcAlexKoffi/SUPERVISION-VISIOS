@@ -1,116 +1,103 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, from, of } from 'rxjs';
-import { map, switchMap, tap, catchError } from 'rxjs/operators';
-import { Auth, authState, signInWithEmailAndPassword, signOut, User } from '@angular/fire/auth';
+import { switchMap } from 'rxjs/operators';
+import { Auth, authState, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private router = inject(Router);
+  private readonly cacheKey = 'currentUser';
 
   private currentUserSubject: BehaviorSubject<any>;
-  public currentUser$: Observable<any>; // Internal observable
-  public get currentUser(): Observable<any> { return this.currentUser$; } // Alias for compatibility
-
-  public get currentUserValue(): any {
-    return this.currentUserSubject.value; 
-  }
+  public currentUser$: Observable<any>;
+  public get currentUser(): Observable<any> { return this.currentUser$; }
+  public get currentUserValue(): any { return this.currentUserSubject.value; }
 
   constructor() {
-    this.currentUserSubject = new BehaviorSubject<any>(JSON.parse(localStorage.getItem('currentUser') || 'null'));
+    this.currentUserSubject = new BehaviorSubject<any>(this.getCachedProfile());
     this.currentUser$ = this.currentUserSubject.asObservable();
 
-    // Listen to Firebase Auth state
     authState(this.auth).pipe(
-      switchMap(async (firebaseUser) => {
-        if (firebaseUser) {
-           // User is signed in. Fetch profile from Firestore.
-           const userDocRef = doc(this.firestore, `users/${firebaseUser.uid}`);
-           try {
-             const userSnapshot = await getDoc(userDocRef);
-             if (userSnapshot.exists()) {
-               const userData = userSnapshot.data();
-               const token = await firebaseUser.getIdToken();
-               return {
-                 uid: firebaseUser.uid,
-                 email: firebaseUser.email,
-                 token: token,
-                 ...userData // username, role, etc.
-               };
-             } else {
-               // Fallback if no firestore doc
-               return {
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
-                  username: firebaseUser.displayName || 'User',
-                  role: 'user'
-               };
-             }
-           } catch (e) {
-             console.error('Error fetching user profile', e);
-             return { uid: firebaseUser.uid, email: firebaseUser.email };
-           }
-        } else {
-          return null;
+      switchMap(async firebaseUser => {
+        if (!firebaseUser) return null;
+        try {
+          const snapshot = await getDoc(doc(this.firestore, `users/${firebaseUser.uid}`));
+          return this.toDisplayProfile(firebaseUser, snapshot.exists() ? snapshot.data() : {});
+        } catch (error) {
+          console.error('Error fetching user profile', error);
+          return this.toDisplayProfile(firebaseUser, {});
         }
       })
-    ).subscribe(user => {
-      if (user) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        this.currentUserSubject.next(user);
-      } else {
-        localStorage.removeItem('currentUser');
-        this.currentUserSubject.next(null);
-      }
+    ).subscribe(user => this.rememberProfile(user));
+  }
+
+  // Only non-sensitive display information is retained between refreshes.
+  // Firebase Auth, not localStorage, is the source of live session credentials.
+  private stripSecrets(user: any): any {
+    if (!user || typeof user !== 'object') return null;
+    const { token: _oldToken, password: _oldPassword, ...safe } = user;
+    if (safe.uid && !safe.id) safe.id = safe.uid;
+    return safe;
+  }
+
+  private getCachedProfile(): any {
+    try {
+      const cached = JSON.parse(localStorage.getItem(this.cacheKey) || 'null');
+      const safe = this.stripSecrets(cached);
+      // Remove any raw token/password written by older application versions.
+      if (safe) localStorage.setItem(this.cacheKey, JSON.stringify(safe));
+      else localStorage.removeItem(this.cacheKey);
+      return safe;
+    } catch {
+      localStorage.removeItem(this.cacheKey);
+      return null;
+    }
+  }
+
+  private toDisplayProfile(firebaseUser: any, data: any): any {
+    return this.stripSecrets({
+      uid: firebaseUser.uid,
+      id: firebaseUser.uid,
+      email: firebaseUser.email,
+      username: data?.username || firebaseUser.displayName || 'Utilisateur',
+      name: data?.name,
+      role: typeof data?.role === 'string' ? data.role : 'user'
     });
+  }
+
+  private rememberProfile(user: any): void {
+    const safe = this.stripSecrets(user);
+    if (safe) localStorage.setItem(this.cacheKey, JSON.stringify(safe));
+    else localStorage.removeItem(this.cacheKey);
+    this.currentUserSubject.next(safe);
   }
 
   login(email: string, password: string): Observable<any> {
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
-      switchMap(async userCredential => {
-         const uid = userCredential.user.uid;
-         const userDocRef = doc(this.firestore, `users/${uid}`);
-         const snapshot = await getDoc(userDocRef);
-         const userData = snapshot.exists() ? snapshot.data() : {};
-         const token = await userCredential.user.getIdToken();
-         
-         const user = {
-             uid,
-             email: userCredential.user.email,
-             token,
-             ...userData
-         };
-         // Update local storage immediately for faster feedback if needed, 
-         // though authState subscription will also do it.
-         localStorage.setItem('currentUser', JSON.stringify(user));
-         this.currentUserSubject.next(user);
-         return user;
+      switchMap(async credential => {
+        const firebaseUser = credential.user;
+        const snapshot = await getDoc(doc(this.firestore, `users/${firebaseUser.uid}`));
+        const user = this.toDisplayProfile(firebaseUser, snapshot.exists() ? snapshot.data() : {});
+        this.rememberProfile(user);
+        return user;
       })
     );
   }
 
-  // Not used in this context but kept for interface compatibility
-  register(email: string, password: string, username?: string): Observable<any> {
-     // TODO: Implement registration logic with createUserWithEmailAndPassword + setDoc
-     return of(null);
+  // Historical registration method kept for compatibility with callers.
+  register(_email: string, _password: string, _username?: string): Observable<any> {
+    return of(null);
   }
 
-  logout(returnUrl?: string) {
+  logout(returnUrl?: string): void {
     signOut(this.auth).then(() => {
-        // Manually clear the user state to avoid race conditions with authState
-        localStorage.removeItem('currentUser');
-        this.currentUserSubject.next(null);
-        
-        if (returnUrl) {
-            this.router.navigate(['/login'], { queryParams: { returnUrl: returnUrl }});
-        } else {
-            this.router.navigate(['/login']);
-        }
+      this.rememberProfile(null);
+      if (returnUrl) this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      else this.router.navigate(['/login']);
     });
   }
 }

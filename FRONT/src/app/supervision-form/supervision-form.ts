@@ -1,6 +1,10 @@
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 import { Component, ElementRef, ViewChild, AfterViewInit, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { AcademicUeSelectComponent } from '../shared/components/academic-ue-select/academic-ue-select';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { planningFingerprint } from '../services/planning-rules';
+import { PlanningService, Planning } from '../services/planning.service';
 import { SupervisionService } from '../services/supervision.service';
 import { UeService } from '../services/ue.service';
 import { TeacherService } from '../services/teacher.service';
@@ -14,7 +18,7 @@ import { ActivityService } from '../services/activity.service';
 @Component({
   selector: 'app-supervision-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [AcademicSearchSelectComponent,AcademicUeSelectComponent, CommonModule, FormsModule],
   templateUrl: './supervision-form.html',
   styleUrl: './supervision-form.scss',
 })
@@ -23,6 +27,12 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('teacherCanvas') teacherCanvas!: ElementRef<HTMLCanvasElement>;
   
   editingId: string | null = null;
+  linkedPlanningId: string | null = null;
+  private plannedFingerprint: string | null = null;
+  private originalSupervision: any = null;
+  private suppressSavedDraft = false;
+  private planningSub: Subscription | null = null;
+  prefillError = '';
   private routeSub: Subscription | null = null;
 
   currentDate = new Date();
@@ -38,11 +48,11 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   teachers: any[] = [];
   classesList: any[] = [];
   selectedUECode: string = '';
-  selectedTeacherId: number | null = null;
+  selectedTeacherId: string | null = null;
 
   formData = {
-    teacherId: null as number | null,
-    ueId: null as number | null,
+    teacherId: null as string | null,
+    ueId: null as string | null,
     teacherName: '', 
     module: '',
     level: '',
@@ -75,6 +85,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
   constructor(
     private supervisionService: SupervisionService,
+    private planningService: PlanningService,
     private ueService: UeService,
     private teacherService: TeacherService,
     private classeService: ClasseService,
@@ -86,6 +97,15 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {}
 
+  onSyncTeacherSelected(value: string | number | null): void {
+    this.selectedTeacherId = value ? String(value) : null;
+    this.onTeacherChange();
+  }
+  onSyncClassSelected(value: string | number | null): void {
+    this.formData.level = String(value ?? '');
+    this.onClassChange();
+  }
+
   ngOnInit() {
     this.scriptLoader();
 
@@ -96,16 +116,19 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
     this.routeSub = this.route.queryParams.subscribe(params => {
       if (params['id']) {
+        this.suppressSavedDraft = true;
         this.editingId = params['id'];
         if (this.editingId) this.loadSupervision(this.editingId);
+      } else if (params['planningId']) {
+        this.suppressSavedDraft = true;
+        this.prefillFromPlanning(String(params['planningId']));
       }
     });
   }
 
   ngOnDestroy() {
-    if (this.routeSub) {
-      this.routeSub.unsubscribe();
-    }
+    if (this.routeSub) this.routeSub.unsubscribe();
+    if (this.planningSub) this.planningSub.unsubscribe();
   }
 
   scriptLoader() {
@@ -116,55 +139,99 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
   loadSupervision(id: string) {
     this.supervisionService.getById(id).subscribe({
-      next: (data) => {
-        if (!data) return;
-        
-        this.selectedTeacherId = (data.teacher && data.teacher.id) ? Number(data.teacher.id) : null; 
-        
+      next: data => {
+        if (!data) {this.prefillError = 'Fiche introuvable.'; return;}
+        this.originalSupervision = data;
+        this.linkedPlanningId = data.planning_id || null;
+        this.selectedTeacherId = String(data.teacherId || data.teacher_id || data.teacher?.id || '') || null;
         this.formData = {
-          teacherId: this.selectedTeacherId as any,
-          ueId: (data.ue && data.ue.id) ? Number(data.ue.id) : null,
-          teacherName: data.teacher?.name || '',
-          module: data.ue?.name || '',
-          
-          level: data.session?.level || data.level || '',
-          sessionNumber: data.session?.number || data.sessionNumber || 1,
-          platform: data.session?.platform || data.platform || 'Zoom',
-          presentCount: data.session?.students?.present ?? data.presentCount ?? 0,
-          totalStudents: data.session?.students?.total ?? data.totalStudents ?? 0,
-          
-          date: data.visit_date || data.date || new Date().toISOString().split('T')[0],
-          startTime: data.start_time || data.startTime || '',
-          endTime: data.end_time || data.endTime || '',
-          
-          technical: data.evaluation?.technical || data.technical || { internet: '', audioVideo: '', punctuality: '' },
-          pedagogical: data.evaluation?.pedagogical || data.pedagogical || { objectives: '', contentMastery: '', interaction: '', toolsUsage: '' },
-          
-          observations: data.observations || '',
-          supervisorName: data.supervisor?.name || data.supervisorName || (this.authService.currentUserValue?.username || '')
+          teacherId:this.selectedTeacherId,
+          ueId:String(data.ueId || data.ue_id || data.ue?.id || '') || null,
+          teacherName:data.teacherName || data.teacher?.name || '',
+          module:data.module || data.ue?.name || '',
+          level:data.level || data.session?.level || '',
+          sessionNumber:data.sessionNumber || data.session?.number || 1,
+          platform:data.platform || data.session?.platform || 'Zoom',
+          presentCount:data.presentCount ?? data.session?.students?.present ?? 0,
+          totalStudents:data.totalStudents ?? data.session?.students?.total ?? 0,
+          date:data.date || data.visit_date || new Date().toISOString().split('T')[0],
+          startTime:data.startTime || data.start_time || '',
+          endTime:data.endTime || data.end_time || '',
+          technical:data.technical || data.evaluation?.technical || {internet:'',audioVideo:'',punctuality:''},
+          pedagogical:data.pedagogical || data.evaluation?.pedagogical || {objectives:'',contentMastery:'',interaction:'',toolsUsage:''},
+          observations:data.observations || '',
+          supervisorName:data.supervisorName || data.supervisor?.name || this.authService.currentUserValue?.username || ''
         };
-
-        if (this.selectedTeacherId) {
-             this.onTeacherChange();
-        }
-
-        if (data.signatures) {
-             if (data.signatures.supervisor) {
-                 this.loadSignature('supervisor', data.signatures.supervisor);
-             }
-             if (data.signatures.teacher) {
-                 this.loadSignature('teacher', data.signatures.teacher);
-             }
-        }
+        this.syncSelections();
+        const supervisorSig = data.supervisorSignature || data.signatures?.supervisor;
+        const teacherSig = data.teacherSignature || data.signatures?.teacher;
+        if (supervisorSig) this.loadSignature('supervisor',supervisorSig);
+        if (teacherSig) this.loadSignature('teacher',teacherSig);
+        this.cdr.detectChanges();
       },
-      error: (e) => console.error(e)
+      error: () => this.prefillError = 'Erreur de chargement de la fiche de supervision.'
     });
+  }
+
+  prefillFromPlanning(id: string) {
+    this.planningSub = this.planningService.getById(id).subscribe({
+      next: (planning: Planning | null) => {
+        if (!planning) {this.prefillError = 'Séance introuvable.'; return;}
+        if (planning.status === 'Annulé') {this.prefillError = 'Cette séance est annulée.'; return;}
+        if (planning.supervision_id) {
+          this.router.navigate(['/admin/supervision-form'],{queryParams:{id:planning.supervision_id}});
+          return;
+        }
+        this.linkedPlanningId = id;
+        this.plannedFingerprint = planningFingerprint(planning);
+        this.selectedTeacherId = planning.teacher_id || null;
+        this.formData.teacherId = this.selectedTeacherId;
+        this.formData.teacherName = `${planning.teacher_first_name || ''} ${planning.teacher_last_name || ''}`.trim();
+        this.formData.ueId = planning.ue_id || null;
+        this.formData.module = planning.ue_name || '';
+        this.selectedUECode = planning.ue_code || '';
+        if (planning.ue_id && planning.ue_code && !this.ues.some(u => u.id === planning.ue_id)) {
+          this.ues = [...this.ues, {id:planning.ue_id,code:planning.ue_code,name:planning.ue_name || planning.ue_code}];
+        }
+        this.formData.level = planning.classe_name || planning.parcours;
+        if (this.formData.level && !this.classesList.some(c => c.name === this.formData.level)) {
+          this.classesList = [...this.classesList, {id:planning.classe_id,name:this.formData.level,effectif:0}];
+        }
+        this.formData.date = planning.date;
+        this.formData.startTime = planning.start_time?.slice(0,5) || '';
+        this.formData.endTime = planning.end_time?.slice(0,5) || '';
+        const platform = planning.platform === 'Teams' ? 'Microsoft Teams' : planning.platform;
+        if (platform) this.formData.platform = platform;
+        this.syncSelections();
+        this.onClassChange();
+        this.cdr.detectChanges();
+      },
+      error: () => this.prefillError = 'Impossible de préremplir la séance.'
+    });
+  }
+
+  private syncSelections() {
+    if (this.formData.ueId) {
+      const ue = this.ues.find(u => u.id === this.formData.ueId);
+      if (ue) {this.selectedUECode = ue.code; this.formData.module = ue.name;}
+    } else if (!this.selectedUECode && this.formData.module) {
+      const ue = this.ues.find(u => u.name === this.formData.module);
+      if (ue) {this.selectedUECode = ue.code; this.formData.ueId = ue.id;}
+    }
+    if (this.selectedTeacherId) {
+      const t = this.teachers.find(t => t.id === this.selectedTeacherId);
+      if (t) this.formData.teacherName = `${t.first_name} ${t.last_name}`.trim();
+    } else if (this.formData.teacherName) {
+      const t = this.teachers.find(t => `${t.first_name} ${t.last_name}`.trim() === this.formData.teacherName);
+      if (t) {this.selectedTeacherId = t.id; this.formData.teacherId = t.id;}
+    }
   }
 
   loadClasses() {
     this.classeService.getAll().subscribe({
       next: (data) => {
-        this.classesList = data;
+        this.classesList = [...data, ...this.classesList.filter(c => c.name === this.formData.level && !data.some(d => d.name === c.name))];
+        this.onClassChange();
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading classes', err)
@@ -174,7 +241,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   loadTeachers() {
     this.teacherService.getAll().subscribe({
         next: (data) => {
-            this.teachers = data.filter(t => t.status === 'active');
+            this.teachers = data.filter(t => t.status === 'active' || t.id === this.selectedTeacherId);
+            this.syncSelections();
             this.cdr.detectChanges();
         },
         error: (err) => console.error('Error loading teachers', err)
@@ -184,19 +252,24 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   ngAfterViewInit() {
     this.setupCanvas(this.supervisorCanvas.nativeElement, 'supervisor');
     this.setupCanvas(this.teacherCanvas.nativeElement, 'teacher');
-    if (!this.editingId) {
-        this.loadSavedData();
-    }
+    if (!this.suppressSavedDraft) this.loadSavedData();
   }
 
   loadUEs() {
     this.ueService.getAll().subscribe({
       next: (data) => {
-        this.ues = data;
+        this.ues = [...data, ...this.ues.filter(u => u.id === this.formData.ueId && !data.some(d => d.id === u.id))];
+        this.syncSelections();
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading UEs', err)
     });
+  }
+
+  onUeCodeSelected(value: string | number | null): void {
+    this.selectedUECode = String(value ?? '');
+    if (!this.selectedUECode) { this.formData.ueId = null; this.formData.module = ''; }
+    else this.onUEChange();
   }
 
   onUEChange() {
@@ -390,7 +463,12 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
     const currentUser = this.authService.currentUserValue;
 
+    // Preserve additional historical fields when editing an existing record.
+    const {id: _oldId, ...previousData} = this.originalSupervision || {};
     const payload = {
+        ...previousData,
+        ...(this.linkedPlanningId ? { planning_id:this.linkedPlanningId } : {}),
+        ...(this.linkedPlanningId && !this.editingId ? {planning_slot_fingerprint:this.plannedFingerprint} : {}),
         // Champs plats attendus par le backend MySQL
         date: this.formData.date,
         startTime: this.formData.startTime,
@@ -501,7 +579,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
 
   closeSuccessModal() {
     this.showSuccessModal = false;
-    window.location.reload();
+    if (this.linkedPlanningId) this.router.navigate(['/admin/plannings']);
+    else window.location.reload();
   }
   
   closeErrorModal() {

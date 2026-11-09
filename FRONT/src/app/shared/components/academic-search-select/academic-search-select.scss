@@ -1,0 +1,13 @@
+/* AURA 2.3: a single institutional search field; dropdown is portalled to body. */
+:host { display:block; width:100%; min-width:0; font-family:'Manrope','Inter','Segoe UI',Arial,sans-serif; }
+.academic-search-field { width:100%; min-width:0; }
+.academic-search-input-wrap { width:100%; position:relative; }
+.academic-search-input-wrap>span { position:absolute; top:50%; left:12px; transform:translateY(-50%); font-size:19px; color:#8091aa; pointer-events:none; }
+.academic-search-input-wrap input { display:block; width:100%; min-height:43px; padding:10px 41px 10px 39px; border:1px solid #dfe6f0; border-radius:10px; background:#fff; color:#152744; font:500 13px 'Manrope','Segoe UI',sans-serif; outline:0; }
+.academic-search-input-wrap input::placeholder {color:#899ab0;}
+.academic-search-input-wrap input:focus-visible { border-color:#7199dd; box-shadow:0 0 0 3px rgba(22,73,171,.14); }
+.academic-search-input-wrap input:disabled { opacity:.55; background:#f4f6f9; cursor:not-allowed; }
+.academic-search-clear { position:absolute; top:50%; right:8px; transform:translateY(-50%); width:27px; height:27px; display:grid; place-items:center; border:0; border-radius:7px; color:#72829b; background:white; cursor:pointer; }
+.academic-search-clear:hover {background:#eff3ff; color:#1649ab;}
+.academic-search-clear span {font-size:16px;}
+/* Detached from drawer scroll/stacking contexts; namespaced global rule in styles.scss. */

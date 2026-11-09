@@ -1,0 +1,67 @@
+/* AURA-V2-PREMIUM - Enseignants; functional table, forms, sorting and pagination untouched. */
+:host{display:block}
+.aura-teachers-page,.aura-teachers-modal{font-family:'Manrope','Plus Jakarta Sans','Segoe UI',sans-serif;color:#0d1e40;}
+.aura-teachers-page{padding:34px clamp(17px,2.5vw,38px) 65px;max-width:1700px;margin:auto;min-height:100%;}
+.aura-teachers-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:26px;}
+.aura-kicker{color:#1852bd;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:800;margin-bottom:11px;}
+.aura-teachers-heading h1{font-weight:800;color:#0a1e40;font-size:clamp(25px,2.25vw,34px);letter-spacing:-1.1px;line-height:1.2;}
+.aura-teachers-heading p:not(.aura-kicker){color:#6a7f9e;font-size:13px;margin-top:11px;line-height:1.6;}
+.aura-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid #d9e3f2;border-radius:11px;padding:10px 16px;min-height:45px;background:#fff;color:#355175;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 4px 11px rgba(34,73,143,.055);}
+.aura-btn .material-symbols-outlined{font-size:19px;}
+.aura-btn:hover{color:#0d46c5;background:#f6f9ff;}
+.aura-btn-primary{color:white;background:linear-gradient(180deg,#1559d7,#0640b8);border-color:#0c45c5;box-shadow:0 8px 22px rgba(15,75,185,.2);}
+.aura-btn-primary:hover{background:#0841b8;color:#fff;}
+.aura-teachers-workspace{background:#fff;border:1px solid #dce6f4;border-radius:19px;overflow:hidden;box-shadow:0 14px 35px rgba(25,69,139,.075);}
+.aura-teachers-filter-row{display:grid;grid-template-columns:minmax(210px,1.5fr) minmax(160px,.9fr) minmax(135px,.7fr) auto;gap:12px;align-items:end;padding:20px 23px;border-bottom:1px solid #e8edf5;}
+.aura-field{min-width:0;}
+.aura-field>label{display:block;margin-bottom:8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#627797;}
+.aura-field input,.aura-field select{width:100%;min-height:45px;border:1px solid #d8e4f3;border-radius:11px;background:#f9fbff;padding:0 14px;color:#20375c;outline:none;font-size:12px;font-weight:600;}
+.aura-field input::placeholder{color:#93a5be;}
+.aura-field input:focus,.aura-field select:focus{border-color:#7ca8f1;background:#fff;box-shadow:0 0 0 3px rgba(48,119,231,.13);}
+.aura-input-wrap{position:relative;}
+.aura-input-wrap .material-symbols-outlined{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a7c3;pointer-events:none;font-size:20px;}
+.aura-input-wrap input{padding-left:41px;}
+.aura-teachers-results-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 23px;}
+.aura-teachers-results-head h2{font-size:16px;font-weight:800;color:#11284d;}
+.aura-teachers-results-head p{font-size:11px;color:#8193ae;margin-top:5px;}
+.aura-meta-pill{border:1px solid #dde6f4;background:#f5f8fd;color:#61799b;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:750;white-space:nowrap;}
+.aura-teachers-workspace>div:not(.aura-teachers-filter-row):not(.aura-teachers-results-head){border:0;border-radius:0;box-shadow:none;margin:0;}
+.aura-teachers-workspace table th{color:#69809f;font-size:11px;letter-spacing:.6px;background:#f7f9fe;}
+.aura-teachers-workspace table td{font-size:12px;color:#344c70;}
+.aura-teachers-workspace table tbody tr:hover{background:#f8faff;}
+.aura-teachers-workspace table td>div .font-bold{color:#152c51;font-weight:800;}
+.aura-teachers-workspace table td:last-child button{border-radius:9px;color:#0d46c5;}
+.aura-teachers-workspace table td:last-child button:hover{background:#edf3ff;color:#0641b8;border-color:#bcd2ee;}
+.aura-teachers-workspace table td:last-child button:last-child:hover{background:#fff1f3;color:#b42e50;}
+.aura-teachers-modal>div{border-radius:18px;box-shadow:0 22px 60px rgba(12,42,97,.3);}
+.aura-teachers-modal h3{font-weight:800;color:#10264c;}
+.aura-teachers-modal input,.aura-teachers-modal select{font-size:12px;border-color:#d8e4f3;background:#f9fbff;color:#213b65;}
+.aura-teachers-modal button[type=submit]{background:linear-gradient(180deg,#1559d7,#0640b8);}
+.aura-teachers-page button:focus-visible,.aura-teachers-page input:focus-visible,.aura-teachers-page select:focus-visible,.aura-teachers-modal button:focus-visible{outline:3px solid #7ca5f2;outline-offset:2px;}
+@media(max-width:1050px){.aura-teachers-filter-row{grid-template-columns:1fr 1fr;}.aura-field-search{grid-column:1/-1;}.aura-teachers-heading{flex-wrap:wrap;}}
+@media(max-width:600px){.aura-teachers-page{padding:20px 12px 45px;}.aura-teachers-heading{gap:14px;}.aura-teachers-filter-row{grid-template-columns:1fr;padding:14px;}.aura-field-search{grid-column:auto;}.aura-teachers-results-head{padding:16px 14px;}.aura-teachers-heading h1{font-size:25px;}}
+@media(prefers-reduced-motion:reduce){.aura-teachers-page *, .aura-teachers-modal *{animation:none!important;transition:none!important;}}
+@media print{.aura-teachers-heading button,.aura-teachers-filter-row,.aura-teachers-workspace .pagination{display:none!important;}}
+
+/* AURA V2.2 — page Enseignants, logique de recherche/tri inchangée. */
+.aura-teachers-page, .aura-teachers-modal { color:#152744; font-family:'Manrope','Inter','Segoe UI',Arial,sans-serif; }
+.aura-teachers-page { padding:26px clamp(18px,2.5vw,38px) 65px; }
+.aura-teachers-heading { margin-bottom:20px; }
+.aura-kicker { color:#456db4; font-size:10.5px; margin-bottom:7px; }
+.aura-teachers-heading h1 { color:#152744; font-size:clamp(25px,2vw,29px); letter-spacing:-.6px; }
+.aura-teachers-heading p:not(.aura-kicker) { color:#7587a0; margin-top:7px; font-weight:450; }
+.aura-btn { background:#fff; color:#415574; border:1px solid #e4eaf2; border-radius:10px; min-height:39px; box-shadow:0 3px 15px rgba(25,49,87,.035); font-weight:700; }
+.aura-btn-primary, .aura-btn.aura-btn-primary { color:#fff; background:#1649ab; border-color:#1649ab; box-shadow:0 4px 13px rgba(22,73,171,.11); }
+.aura-btn-primary:hover,.aura-btn.aura-btn-primary:hover { color:#fff; background:#103c91; }
+.aura-teachers-workspace { border-color:#e4eaf2; border-radius:15px; box-shadow:0 3px 15px rgba(25,49,87,.035); }
+.aura-teachers-filter-row { border-bottom-color:#e4eaf2; }
+.aura-field>label { color:#7587a0; }
+.aura-field input,.aura-field select { background:#fff; border-color:#dfe6f0; border-radius:10px; min-height:43px; font-weight:500; color:#152744; }
+.aura-field input:focus,.aura-field select:focus { border-color:#6891d7; background:#fff; box-shadow:0 0 0 3px rgba(22,73,171,.12); }
+.aura-teachers-results-head h2 { color:#152744; }
+.aura-teachers-workspace table th { background:#f8fafc; color:#415574; }
+.aura-teachers-workspace table td { color:#415574; }
+.aura-meta-pill { color:#415574; background:#f8fafc; border-color:#e4eaf2; }
+.aura-teachers-modal>div { border-radius:15px; box-shadow:0 15px 42px rgba(15,33,64,.15); }
+.aura-teachers-modal input,.aura-teachers-modal select { background:#fff; border-color:#dfe6f0; }
+.aura-teachers-modal button[type=submit] { background:#1649ab; }

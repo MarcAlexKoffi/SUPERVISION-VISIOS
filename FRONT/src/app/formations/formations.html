@@ -1,11 +1,11 @@
-<div class="p-6 md:p-8 space-y-8 w-full h-full overflow-y-auto">
+<div class="aura-uniform-page p-6 md:p-8 space-y-8 w-full h-full overflow-y-auto">
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Gestion des Parcours</h1>
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez les cursus académiques et les spécialisations.</p>
     </div>
     <button (click)="openModal()"
-      class="px-5 py-2.5 bg-[#004edd] hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+      class="aura-ui-primary px-5 py-2.5 bg-[#004edd] hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition-colors flex items-center gap-2">
       <span class="material-symbols-outlined text-[20px]">add</span>
       Ajouter un parcours
     </button>
@@ -20,7 +20,7 @@
     </div>
 
     <div *ngFor="let p of parcoursList; trackBy: trackById"
-      class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 flex items-center justify-between group hover:shadow-md transition-shadow">
+      class="aura-ui-card bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5 flex items-center justify-between group hover:shadow-md transition-shadow">
       
       <div class="flex items-center gap-4">
         <!-- Dynamic Icon -->

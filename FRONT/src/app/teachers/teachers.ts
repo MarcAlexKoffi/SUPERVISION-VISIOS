@@ -1,4 +1,6 @@
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 
+import { normalizeAcademicSearch } from '../shared/utils/academic-search';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -11,8 +13,9 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 @Component({
   selector: 'app-teachers',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmationModalComponent],
+  imports: [AcademicSearchSelectComponent,CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './teachers.html',
+  styleUrl: './teachers.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TeachersComponent implements OnInit, OnDestroy {
@@ -22,6 +25,17 @@ export class TeachersComponent implements OnInit, OnDestroy {
   trackById(index: number, item: any): any { return item?.id || index; }
   teachers: any[] = [];
   searchQuery: string = '';
+  selectedDepartment = '';
+  selectedTeacherStatus = '';
+  private normalizeSearch(value: unknown): string {
+    return normalizeAcademicSearch(value);
+  }
+  resetTeacherFilters() {
+    this.searchQuery = '';
+    this.selectedDepartment = '';
+    this.selectedTeacherStatus = '';
+    this.currentPage = 1;
+  }
   sortDirection: 'asc' | 'desc' = 'asc';
   currentPage = 1;
   itemsPerPage = 10;
@@ -33,15 +47,12 @@ export class TeachersComponent implements OnInit, OnDestroy {
   get displayedTeachers(): any[] {
     let result = [...this.teachers];
     
-    if (this.searchQuery) {
-      const lowerQuery = this.searchQuery.toLowerCase();
-      result = result.filter(t => 
-        t.first_name?.toLowerCase().includes(lowerQuery) || 
-        t.last_name?.toLowerCase().includes(lowerQuery) ||
-        t.email?.toLowerCase().includes(lowerQuery) ||
-        t.department?.toLowerCase().includes(lowerQuery)
-      );
+    const query = this.normalizeSearch(this.searchQuery);
+    if (query) {
+      result = result.filter(t => this.normalizeSearch(`${t.first_name} ${t.last_name} ${t.email || ''} ${t.department || ''}`).includes(query));
     }
+    if (this.selectedDepartment) result = result.filter(t => t.department === this.selectedDepartment);
+    if (this.selectedTeacherStatus) result = result.filter(t => (t.status || 'active') === this.selectedTeacherStatus);
 
     result.sort((a, b) => {
       const nameA = (a.last_name || '').toLowerCase();

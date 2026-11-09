@@ -1,4 +1,6 @@
-﻿import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { AcademicUeSelectComponent } from '../shared/components/academic-ue-select/academic-ue-select';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsyncSupervisionService } from '../services/async-supervision.service';
@@ -13,7 +15,7 @@ import { NotificationService } from '../services/notification.service';
 @Component({
   selector: 'app-async-supervision-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [AcademicSearchSelectComponent,AcademicUeSelectComponent, CommonModule, FormsModule],
   templateUrl: './async-supervision-form.html',
   styleUrl: './async-supervision-form.scss',
 })
@@ -68,6 +70,14 @@ export class AsyncSupervisionForm implements OnInit, OnDestroy, AfterViewInit {
     private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  onAsyncTeacherSelected(value: string | number | null): void {
+    this.formData.teacherId = value ? String(value) : null;
+  }
+  onAsyncClassSelected(value: string | number | null): void {
+    this.formData.classe = String(value ?? '');
+    this.onClassChange();
+  }
 
   ngOnInit() {
     this.loadUEs();

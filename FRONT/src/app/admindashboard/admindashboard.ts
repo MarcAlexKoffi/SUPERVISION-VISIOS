@@ -78,6 +78,18 @@ export class Admindashboard implements OnInit, OnDestroy {
     }
   }
 
+  get currentPageLabel(): string {
+    const segment = this.router.url.split('?')[0].split('/')[2] || 'dashboard';
+    const titles: Record<string, string> = {
+      dashboard: 'Tableau de bord', plannings: 'Planning Visios',
+      'supervision-form': 'Visio (Synchrone)', 'async-supervision': 'Forum (Asynchrone)',
+      teachers: 'Enseignants', ues: "Unités d'enseignement",
+      formations: 'Parcours', classes: 'Classes', users: 'Utilisateurs',
+      history: 'Historique', 'my-history': 'Mon historique', honoraires: 'Honoraires'
+    };
+    return titles[segment] || 'Espace de supervision';
+  }
+
   get user(): any {
     return this.authService.currentUserValue;
   }

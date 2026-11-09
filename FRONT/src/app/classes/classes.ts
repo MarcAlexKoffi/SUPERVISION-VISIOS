@@ -1,3 +1,4 @@
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -10,7 +11,7 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 @Component({
   selector: 'app-classes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmationModalComponent],
+  imports: [AcademicSearchSelectComponent,CommonModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './classes.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,6 +38,10 @@ export class ClassesComponent implements OnInit, OnDestroy {
     private toastService: ToastService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  onClassParcoursSelected(value: string | number | null): void {
+    this.newClasse.parcours_id = value ? String(value) : null;
+  }
 
   ngOnInit() {
     this.loadClasses();

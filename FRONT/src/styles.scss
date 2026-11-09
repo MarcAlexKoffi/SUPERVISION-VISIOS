@@ -56,3 +56,382 @@ body {
 
 @tailwind utilities;
 
+
+/* AURA V2.2 — style transversal, limité au shell admin, hors impression.
+   Les styles de composants propres aux fiches restent prioritaires pour l'impression. */
+@media screen {
+  .aura-academic-shell .aura-shell-main {
+    font-family: 'Manrope','Inter','Segoe UI',Arial,sans-serif;
+    color: #152744;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-dashboard-home,app-ues,app-classes,app-formations,app-users,app-history,app-user-history,app-supervision-form,app-async-supervision-form,app-honoraires) > div:not(.hidden) {
+    color: #152744;
+    background-color: transparent;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-dashboard-home,app-ues,app-classes,app-formations,app-users,app-history,app-user-history,app-honoraires) h1:not(.print-title) {
+    color: #152744 !important;
+    font-size: clamp(23px, 2vw, 29px) !important;
+    line-height: 1.25;
+    letter-spacing: -.55px;
+    font-weight: 800 !important;
+    text-transform: none;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-dashboard-home,app-ues,app-classes,app-formations,app-users,app-history,app-user-history,app-honoraires) h2 {
+    color: #152744;
+    letter-spacing: -.25px;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-classes,app-formations,app-users,app-history,app-user-history,app-honoraires,app-dashboard-home) :is(input[type='text'],input[type='search'],input[type='date'],input[type='email'],input[type='number'],select,textarea),
+  .aura-academic-shell .aura-shell-main :is(app-supervision-form,app-async-supervision-form) :is(input[type='text'],input[type='date'],select,textarea) {
+    color: #152744;
+    background: #fff;
+    border: 1px solid #dfe6f0;
+    border-radius: 10px;
+    font-family: inherit;
+    box-shadow: none;
+  }
+  .aura-academic-shell .aura-shell-main :is(input,select,textarea):focus-visible {
+    border-color: #6792da !important;
+    outline: 3px solid rgba(22,73,171,.16);
+    outline-offset: 1px;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-dashboard-home,app-ues,app-classes,app-formations,app-users,app-history,app-user-history,app-honoraires) table {
+    background: #fff;
+    border-color: #e4eaf2;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-dashboard-home,app-ues,app-users,app-history,app-user-history,app-honoraires) table thead {
+    background: #f8fafc;
+    color: #415574;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-users,app-dashboard-home,app-history,app-user-history,app-honoraires) table :is(th,td) { border-color: #e9edf4; }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-users,app-dashboard-home,app-history,app-user-history,app-honoraires) table tbody tr:hover { background: #fafcff; }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-users,app-classes,app-formations,app-history,app-user-history,app-honoraires) :is(button.bg-\[\#0f42a5\],button.bg-\[\#0047FF\],button.bg-\[\#004edd\]) {
+    background: #1649ab !important;
+    box-shadow: 0 3px 12px rgba(22,73,171,.11) !important;
+    border-radius: 10px;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-users,app-classes,app-formations) :is(.bg-white,.bg-slate-50) {
+    border-color: #e4eaf2;
+  }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero {
+    background: #fff !important;
+    border-color: #e4eaf2 !important;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px rgba(25,49,87,.035) !important;
+    color: #152744 !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero h1 { color: #152744 !important; }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero p { color: #5f728d !important; }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero > .absolute { display:none; }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero button { border-radius: 10px; box-shadow: none; transform: none; }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero button:first-child { background: #1649ab !important; color: #fff !important; border: 1px solid #1649ab; }
+  .aura-academic-shell .aura-shell-main .aura-v22-hero button:nth-child(2) { background: #fff !important; color: #1649ab !important; border: 1px solid #dfe6f0; }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-classes,app-formations,app-users,app-dashboard-home) .shadow-lg:not(button) { box-shadow: 0 3px 15px rgba(25,49,87,.035); }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-classes,app-formations,app-users,app-history,app-user-history) .rounded-2xl { border-radius: 15px; }
+}
+
+/* ATLAS AURA V2.3 - Portalled dropdown; outside overflow-hidden drawer. */
+.academic-search-popup { box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain; padding:5px; background:#fff; border:1px solid #dfe6f0; border-radius:11px; box-shadow:0 14px 28px rgba(25,49,87,.16); font:500 13px 'Manrope','Segoe UI',sans-serif; }
+.academic-search-popup button { display:block; box-sizing:border-box; width:100%; padding:10px 12px; margin:0; text-align:left; border:0; border-radius:7px; background:transparent; color:#243b60; cursor:pointer; font:inherit; }
+.academic-search-popup button:hover,.academic-search-popup button.is-active,.academic-search-popup button[aria-selected='true'] { background:#eff3ff; color:#1649ab; }
+.academic-search-popup button .academic-search-name { display:block; font-weight:700; line-height:1.35; }
+.academic-search-popup button small { display:block; color:#7587a0; margin-top:4px; font-size:11px; font-weight:450; }
+.academic-search-popup button.academic-search-empty { color:#60738e; border-bottom:1px solid #edf1f6; border-radius:0; }
+.academic-search-popup p { padding:10px 12px; margin:0; color:#60738e; font-size:12px; }
+
+/* V2.3: remove legacy absolute select arrows when a searchable field replaces a native select. */
+.aura-academic-shell .relative:has(> app-academic-search-select) > .material-symbols-outlined {display:none!important;}
+
+
+/* AURA V2.3.1 | Harmonisation globale, sans changement des parcours metier.
+   Source visuelle: AURA V2.3; reference de densite: Enseignants et Tableau de bord.
+   Aucun style de topbar, sidebar, Planning, Enseignants ou des fiches imprimees n'est modifie. */
+@media screen {
+  .aura-academic-shell {
+    --aura-ui-ink: #152744;
+    --aura-ui-muted: #64758e;
+    --aura-ui-blue: #1649ab;
+    --aura-ui-border: #e3eaf2;
+    --aura-ui-surface: #ffffff;
+    --aura-ui-height: 44px;
+    --aura-ui-radius: 11px;
+  }
+
+  /* Paddings et titres: meme hierarchy sur les rubriques. */
+  .aura-academic-shell .aura-shell-main .aura-uniform-page {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 28px 30px !important;
+    color: var(--aura-ui-ink);
+    background-color: transparent !important;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page h1:not(.print-title) {
+    margin: 0;
+    font-family: inherit;
+    color: var(--aura-ui-ink) !important;
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    line-height: 1.25;
+    letter-spacing: -.5px;
+    text-transform: none;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page h2 {
+    color: var(--aura-ui-ink);
+    font-size: 18px;
+    font-weight: 750;
+    line-height: 1.4;
+    letter-spacing: -.2px;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page h3 {
+    color: var(--aura-ui-ink);
+    font-size: 15px;
+    line-height: 1.4;
+    letter-spacing: -.1px;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page > div:first-child > div:first-child > p,
+  .aura-academic-shell .aura-shell-main .aura-uniform-page > header > div:first-child > p {
+    font-size: 13px !important;
+    color: var(--aura-ui-muted);
+    line-height: 1.6;
+  }
+
+  /* Cartes et tableaux de gestion - densite reference enseignants. */
+  .aura-academic-shell .aura-shell-main .aura-uniform-page .aura-ui-card {
+    padding: 19px 20px !important;
+    border: 1px solid var(--aura-ui-border) !important;
+    border-radius: 14px !important;
+    background: var(--aura-ui-surface) !important;
+    box-shadow: 0 2px 11px rgba(25, 49, 87, .035) !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page .aura-ui-card:hover {
+    border-color: #d6e1ef !important;
+    box-shadow: 0 6px 16px rgba(25, 49, 87, .065) !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table {
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px !important;
+    line-height: 1.5;
+    border-color: var(--aura-ui-border);
+    background-color: #fff;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table thead th {
+    padding: 13px 16px !important;
+    font-size: 11.5px !important;
+    font-weight: 750 !important;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: .65px;
+    color: #60738e;
+    background-color: #f8fafc;
+    white-space: normal;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table tbody td {
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    line-height: 1.5;
+    vertical-align: middle;
+    color: var(--aura-ui-ink);
+    border-color: #ecf0f5;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table tbody td p.font-bold,
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table tbody td > .font-bold {
+    font-size: 14px !important;
+    font-weight: 750 !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table tbody td .text-slate-500 {
+    font-size: 12px !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page .aura-ui-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    flex-shrink: 0;
+  }
+
+  /* Form fields: same geometry without touching checkbox, radio or hidden fields. */
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page)
+  :is(input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not([type='file']), select, textarea) {
+    min-height: var(--aura-ui-height);
+    border-radius: var(--aura-ui-radius) !important;
+    border-color: var(--aura-ui-border);
+    font-family: inherit;
+    font-size: 13px !important;
+    line-height: 1.5;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page) label:not(:has(input[type='checkbox'], input[type='radio'])) {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: .25px;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page)
+  :is(input,select,textarea):focus-visible {
+    outline: 3px solid rgba(22,73,171,.15) !important;
+    outline-offset: 1px;
+    border-color: #729ce0 !important;
+  }
+
+  /* Actions nommees. Les boutons d'icones, toggles et confirmations critiques restent distincts. */
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page)
+  :is(.aura-ui-primary,.aura-ui-secondary) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--aura-ui-height);
+    padding: 0 16px !important;
+    border-radius: var(--aura-ui-radius) !important;
+    font-family: inherit;
+    font-size: 13px !important;
+    font-weight: 750 !important;
+    line-height: 1.35;
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(25,49,87,.055) !important;
+    transition: color .15s, background-color .15s, border-color .15s !important;
+    text-decoration: none;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page) .aura-ui-primary {
+    color: #fff !important;
+    background: var(--aura-ui-blue) !important;
+    border: 1px solid var(--aura-ui-blue) !important;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page) .aura-ui-primary:hover {
+    background: #103c91 !important;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page) .aura-ui-secondary {
+    color: #354b69 !important;
+    background: #fff !important;
+    border: 1px solid #dfe6f0 !important;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page) .aura-ui-secondary:hover {
+    background: #f7f9fc !important;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page)
+  :is(.aura-ui-primary,.aura-ui-secondary):focus-visible {
+    outline: 3px solid rgba(22,73,171,.24);
+    outline-offset: 2px;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page)
+  :is(.aura-ui-primary,.aura-ui-secondary):disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+  .aura-academic-shell .aura-shell-main :is(.aura-uniform-page,.aura-form-page)
+  :is(.aura-ui-primary,.aura-ui-secondary) .material-symbols-outlined {font-size:18px!important;}
+
+  /* Fiches: harmoniser les controle sans modifier les valeurs, le flux ou l'impression. */
+  .aura-academic-shell .aura-shell-main .aura-form-page {
+    box-sizing: border-box;
+    padding: 26px 28px !important;
+    color: var(--aura-ui-ink);
+    font-size: 14px;
+  }
+  .aura-academic-shell .aura-shell-main .aura-form-page .container-sheet {
+    border: 1px solid var(--aura-ui-border) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(25,49,87,.055) !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-form-page .container-sheet > header h1 {
+    font-size: 22px !important;
+    line-height: 1.3;
+    letter-spacing: -.3px;
+    color: var(--aura-ui-ink) !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-form-page .container-sheet section h2 {
+    font-size: 17px !important;
+    color: var(--aura-ui-ink);
+    line-height: 1.45;
+  }
+  .aura-academic-shell .aura-shell-main .aura-form-page .container-sheet .bg-\[\#f0f9ff\] {
+    background: #f7faff !important;
+    border-color: #e2eaf7 !important;
+    border-radius: 13px !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-form-page .container-sheet .bg-\[\#f0f9ff\] > label {
+    color: #31568f !important;
+    letter-spacing: .4px;
+  }
+
+  /* Cartes de classes/parcours : proportions partagees plutot que gros titres et grosses icones. */
+  .aura-academic-shell .aura-shell-main .aura-uniform-page .aura-ui-card :is(h2,h3) {
+    font-size: 15px !important;
+    line-height: 1.45;
+    font-weight: 750;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page .aura-ui-card .w-12.h-12 {
+    width: 42px !important;
+    height: 42px !important;
+  }
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table .rounded-full {
+    font-size: 11.5px !important;
+    line-height: 1.3;
+  }
+  /* Dialogues de referentiels parfois rendus a cote du conteneur de page. */
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-users,app-formations,app-classes) > div.fixed.inset-0 > div {
+    border: 1px solid var(--aura-ui-border);
+    border-radius: 16px !important;
+    background: #fff;
+    box-shadow: 0 16px 44px rgba(20,44,81,.13) !important;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .aura-academic-shell .aura-shell-main :is(app-ues,app-users,app-formations,app-classes) > div.fixed.inset-0 :is(input,select,textarea) {
+    min-height: 44px;
+    border-radius: 10px !important;
+    font-family: inherit;
+    font-size: 13px !important;
+  }
+  /* Modales de referentiels: presentation cohérente, structure et fonctions inchangees. */
+  .aura-academic-shell .aura-shell-main .aura-uniform-page
+  [class*='rounded-2xl'][class*='bg-white'][class*='shadow-xl'] {
+    border: 1px solid var(--aura-ui-border);
+    border-radius: 16px !important;
+    box-shadow: 0 12px 36px rgba(20,44,81,.11) !important;
+  }
+}
+@media screen and (max-width: 640px) {
+  .aura-academic-shell .aura-shell-main .aura-uniform-page {padding: 18px 15px !important;}
+  .aura-academic-shell .aura-shell-main .aura-form-page {padding: 16px 12px !important;}
+  .aura-academic-shell .aura-shell-main .aura-uniform-page h1:not(.print-title) {font-size: 23px !important;}
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table thead th,
+  .aura-academic-shell .aura-shell-main .aura-uniform-page table tbody td {padding: 11px 12px !important;}
+}
+
+/* Tableau de bord enseignant, en dehors du shell administrateur : meme charte ecran. */
+@media screen {
+  app-user-dashboard > .aura-uniform-page {
+    font-family: 'Manrope','Inter','Segoe UI',Arial,sans-serif;
+    color: #152744;
+    background: #f8fafc !important;
+    padding: 28px 30px !important;
+    font-size: 14px;
+  }
+  app-user-dashboard > .aura-uniform-page h1 {
+    font-size: 28px !important;
+    line-height: 1.3;
+    letter-spacing: -.5px;
+  }
+  app-user-dashboard > .aura-uniform-page p.text-lg {font-size: 13px !important;}
+  app-user-dashboard > .aura-uniform-page .aura-ui-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px !important;
+    font-size: 13px !important;
+    font-weight: 750;
+    color: #fff !important;
+    background: #1649ab !important;
+    border-radius: 11px !important;
+    box-shadow: none !important;
+  }
+}
+@media screen and (max-width:640px) {
+  app-user-dashboard > .aura-uniform-page {padding:18px 15px!important;}
+  app-user-dashboard > .aura-uniform-page h1 {font-size:23px!important;}
+}

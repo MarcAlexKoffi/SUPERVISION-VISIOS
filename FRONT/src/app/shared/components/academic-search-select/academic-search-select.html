@@ -1,0 +1,15 @@
+<div class="academic-search-field">
+  <div class="academic-search-input-wrap">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <input #inputRef [id]="inputId || id" type="text" [value]="query" [placeholder]="placeholder" [disabled]="disabled"
+      autocomplete="off" (input)="onInput($event)" (focus)="open()" (click)="open()"
+      (keydown)="onKeydown($event)" role="combobox" [attr.aria-label]="ariaLabel"
+      aria-autocomplete="list" aria-haspopup="listbox" [attr.aria-expanded]="isOpen"
+      [attr.aria-required]="required" [attr.aria-controls]="id+'-options'"
+      [attr.aria-activedescendant]="isOpen && filteredOptions.length ? id+'-option-'+activeIndex : null"/>
+    <button *ngIf="query" class="academic-search-clear" type="button" [disabled]="disabled"
+      [attr.aria-label]="'Effacer : '+ariaLabel" (click)="clear()">
+      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+    </button>
+  </div>
+</div>

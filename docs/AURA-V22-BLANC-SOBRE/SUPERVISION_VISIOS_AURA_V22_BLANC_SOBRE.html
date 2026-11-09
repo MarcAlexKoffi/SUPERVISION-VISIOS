@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>UDMCI • Supervision | AURA V2.2 Blanc & Sobre — DESIGN_REVIEW</title>
+<style>
+:root{--brand:#1649aa;--brand-strong:#103983;--brand-light:#edf4ff;--ink:#17253e;--ink2:#304463;--muted:#6a7892;--muted2:#8d9bb0;--bg:#f5f7fb;--white:#fff;--line:#e2e8f1;--line2:#edf0f5;--green:#20725c;--green-bg:#eaf8f1;--amber:#9a6315;--amber-bg:#fff6e7;--red:#ad4355;--red-bg:#fff0f2;--blue-bg:#eef5ff;--shadow:0 4px 18px rgba(24,47,91,.038);--radius:15px;--sidebar:229px;font:14px/1.45 'Inter','Segoe UI',Arial,sans-serif;color:var(--ink)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{background:var(--bg);-webkit-font-smoothing:antialiased}body.modal-open{overflow:hidden}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}a{color:inherit}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #a7c8ff;outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}.hide{display:none!important}.svg{width:18px;height:18px;stroke-width:1.85;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}svg.svg.sm{width:15px;height:15px}svg.svg.lg{width:21px;height:21px}.app{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100vh}.sidebar{background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0;height:100vh;z-index:22}.side-brand{height:80px;display:flex;align-items:center;gap:12px;padding:17px 20px;border-bottom:1px solid var(--line2)}.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--brand);color:#fff;box-shadow:0 5px 14px #1649aa22}.brand-n{font-weight:850;letter-spacing:.015em;line-height:1.08;font-size:16px}.brand-s{font-size:9px;color:#8491a5;font-weight:800;letter-spacing:2.1px;margin-top:4px}.nav{padding:26px 12px 20px;overflow-y:auto;flex:1}.nav-caption{font-size:10px;letter-spacing:1.45px;color:#93a0b2;font-weight:800;text-transform:uppercase;margin:0 10px 11px}.nav-item{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:10px;background:transparent;color:#5f6f87;text-align:left;font-weight:600;font-size:12.5px;padding:12px 13px;margin:3px 0;transition:background .15s,color .15s}.nav-item .svg{color:#7d8aa3}.nav-item:hover{background:#f5f8fe;color:var(--brand-strong)}.nav-item.active{background:#edf3ff;color:var(--brand);box-shadow:inset 3px 0 var(--brand);font-weight:750}.nav-item.active .svg{color:var(--brand)}.nav-item .nav-badge{margin-left:auto;border-radius:4px;background:#eaf0ff;color:#3a5ca1;font-size:9px;padding:2px 5px}.side-user{padding:14px 16px 16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}.avatar{width:37px;height:37px;display:grid;place-items:center;background:#fce9d9;color:#a75e32;border-radius:50%;font-weight:800;font-size:12px}.user-name{font-weight:800;font-size:12px}.user-role{font-size:10px;color:#70839a;display:flex;align-items:center;gap:5px}.user-role:before{content:'';width:6px;height:6px;background:#29a16b;border-radius:50%}.main{min-width:0}.topbar{height:68px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:18}.crumb{display:flex;align-items:center;gap:10px;font-size:12px;color:#8a99ac}.crumb strong{color:#2b3b58;font-weight:760}.top-right{display:flex;align-items:center;gap:13px}.preview{color:#4967a0;background:#f0f5ff;border:1px solid #d9e5fa;border-radius:7px;padding:5px 9px;font-size:10px;letter-spacing:.045em;font-weight:800}.online{display:inline-flex;align-items:center;gap:7px;color:#68809c;font-size:11px}.online:before{content:'';width:7px;height:7px;border-radius:50%;background:#39a278}.mobile-menu{display:none!important}.content{padding:26px clamp(18px,2.5vw,38px) 70px;max-width:1600px;margin:0 auto}.heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}.kicker{font-size:10.5px;letter-spacing:1.9px;color:#3c69ba;font-weight:850;text-transform:uppercase;margin-bottom:6px}.heading h1{font-size:25px;font-weight:820;letter-spacing:-.8px;line-height:1.18;margin:0 0 8px}.lead{font-size:12.5px;color:#74829a;margin:0;max-width:690px}.heading-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding-top:6px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;white-space:nowrap;border:1px solid #dce4ef;background:#fff;color:#455874;padding:9px 13px;font-size:12px;border-radius:9px;font-weight:720;transition:background .15s,border .15s,transform .1s}.btn:hover{background:#f5f8ff;border-color:#bbcde8}.btn:active{transform:translateY(1px)}.btn.primary{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 4px 11px #184ea321}.btn.primary:hover{background:var(--brand-strong)}.btn.quiet{background:transparent;border-color:transparent;color:#71819b}.btn.quiet:hover{background:#f0f5ff;color:var(--brand)}.btn.ghost-danger{border-color:#f1d8df;color:#af435a}.btn.ghost-danger:hover{background:#fff0f2}.btn.icon-only{min-width:38px;padding:8px}.btn .svg{width:16px;height:16px}.stats{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:19px;border:1px solid var(--line);background:#fff;border-radius:11px;min-height:53px;padding:8px 14px;box-shadow:var(--shadow)}.stat{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#687992;padding:5px 12px;border-right:1px solid var(--line);background:none;cursor:pointer;border-top:0;border-bottom:0;border-left:0}.stat:first-child{padding-left:4px}.stat:last-child{border-right:0}.stat:hover,.stat.active{color:var(--brand)}.stat strong{font-size:16px;color:#182a47;letter-spacing:-.4px}.stat.active strong{color:var(--brand)}.stat-dot{width:7px;height:7px;border-radius:50%;background:#a5afbd}.stat-dot.todo{background:#d99a37}.stat-dot.done{background:#349b79}.stat-dot.cancel{background:#d67584}.workspace{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);overflow:visible}.controls{padding:15px 19px 12px;border-bottom:1px solid var(--line)}.control-top{display:flex;align-items:center;justify-content:space-between;gap:14px}.tabs{display:flex;gap:3px;padding:3px;background:#f0f3f8;border-radius:10px;align-items:center}.tab{display:flex;align-items:center;gap:7px;padding:8px 12px;border:0;background:transparent;color:#748098;border-radius:8px;font-size:12px;font-weight:740;white-space:nowrap}.tab[aria-selected="true"]{background:#fff;color:var(--brand);box-shadow:0 1px 4px #23385b17}.tab:hover:not([aria-selected="true"]){color:#2a4b89;background:#e7eef9}.week-control{display:flex;align-items:center;gap:7px}.week-label{padding:2px 12px;min-width:177px;text-align:center}.week-label strong{display:block;font-size:12.5px;letter-spacing:-.12px}.week-label small{display:block;color:#95a2b5;font-size:10px}.filters{display:grid;grid-template-columns:minmax(240px,1.7fr) minmax(180px,1.05fr) minmax(165px,.95fr) auto;align-items:end;gap:10px;margin-top:13px}.field-label{display:block;font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.7px;color:#7a889e;margin-bottom:6px}.input,.select,.textarea{height:38px;width:100%;border:1px solid #e0e6ef;background:#fbfcfe;border-radius:9px;padding:9px 12px;outline:none;font-size:12px;color:#314564}.input:focus,.select:focus,.textarea:focus{border-color:#76a5f1;background:white;box-shadow:0 0 0 3px #a4c4f533}.input::placeholder,.textarea::placeholder{color:#a2adbd}.input-icon{position:relative}.input-icon .svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ba9bd;width:16px;height:16px;pointer-events:none}.input-icon input{padding-left:36px}.input-icon .clear-x{position:absolute;right:5px;top:5px;min-height:28px;width:28px;padding:5px}.reset{justify-self:end;min-width:92px}.content-header{padding:15px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px}.content-header h2{font-size:14px;margin:0;letter-spacing:-.25px}.content-header p{margin:4px 0 0;color:#8390a5;font-size:11px}.meta-pill{border:1px solid #e6ebf2;background:#f7f9fc;color:#748299;border-radius:7px;padding:5px 9px;font-size:10.5px;font-weight:650}.schedule-body{padding:0 19px 20px}.date-group{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:10px}.date-header{background:#f8fafd;min-height:37px;display:flex;align-items:center;gap:9px;padding:8px 13px;border-bottom:1px solid #eaf0f5}.date-square{width:29px;height:29px;border-radius:7px;background:#e8f0ff;color:#244f9e;display:grid;place-items:center;font-weight:800;font-size:11px}.date-header strong{font-size:11.8px}.date-header small{font-size:10.5px;color:#98a4b6}.date-header .count{margin-left:auto;color:#78889e;background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:6px;font-size:10px}.session-row{display:grid;grid-template-columns:100px minmax(185px,1.2fr) minmax(125px,.85fr) minmax(120px,.85fr) 111px minmax(130px,auto);align-items:center;gap:12px;padding:13px 12px;border-bottom:1px solid var(--line2)}.session-row:last-child{border-bottom:0}.session-row:hover{background:#fcfdff}.time{font-size:12.5px;color:#1c3050;font-weight:780;white-space:nowrap;display:flex;align-items:center;gap:6px}.time .svg{color:#9cacc3;width:14px;height:14px}.time small{font-size:10px;color:#98a5b8;font-weight:500}.session-title{font-weight:740;font-size:12px;line-height:1.35;display:block}.session-secondary{font-size:10.5px;color:#8795a9;margin-top:3px;display:block}.cell{font-size:11.5px;color:#50617c;min-width:0}.cell small{display:block;color:#9ba7b7;font-size:10px;margin-top:2px}.status-badge{white-space:nowrap;padding:5px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:750;border:1px solid transparent}.status-badge:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}.badge-todo{background:var(--amber-bg);color:var(--amber);border-color:#f5e6c7}.badge-done{background:var(--green-bg);color:var(--green);border-color:#d2efe0}.badge-cancel{background:var(--red-bg);color:var(--red);border-color:#f3dce1}.row-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px}.action-btn{border:1px solid transparent;background:transparent;color:#687e9c;border-radius:7px;padding:6px;min-width:29px;min-height:29px;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:10.5px;font-weight:680}.action-btn:hover{background:#edf3ff;border-color:#e1ebff;color:var(--brand)}.action-btn.text{color:#285aaf;border-color:#e1eaf8;background:#f5f8ff;padding:6px 9px}.action-btn.text:hover{background:#eaf2ff}.action-btn.danger:hover{background:#fff0f2;color:#b9475b}.action-btn:disabled{opacity:.4}
+.action-btn .svg{width:15px;height:15px}
+.status-select{width:120px;max-width:100%;appearance:none;border:1px solid #eedfbd;border-radius:7px;min-height:32px;padding:6px 18px 6px 9px;background:var(--amber-bg);color:var(--amber);font-size:10px;font-weight:760;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px;background-size:4px 4px;background-repeat:no-repeat}
+.status-select.done{background-color:var(--green-bg);color:var(--green);border-color:#d2efe0}
+.status-select.cancel{background-color:var(--red-bg);color:var(--red);border-color:#f3dce1}
+.calendar-body{display:grid;grid-template-columns:62px repeat(7,minmax(107px,1fr));min-width:850px}
+.time-axis{border-right:1px solid var(--line);background:#fbfcfe}
+.axis-label{height:76px;border-bottom:1px solid #e7edf6;position:relative;color:#8da0b7;font-size:10px;text-align:center;padding-top:5px}
+.calendar-day{height:1216px;position:relative;border-right:1px solid var(--line);background:repeating-linear-gradient(to bottom,#fff 0,#fff 75px,#e9eef6 75px,#e9eef6 76px)}
+.calendar-event{position:absolute;left:4px;right:4px;z-index:2;border-radius:7px;background:#eaf1ff;color:#164ba5;padding:7px 7px;font-size:10px;font-weight:750;display:flex;flex-direction:column;text-align:left;white-space:normal;overflow:hidden;border:0;border-left:3px solid #3f70cf;line-height:1.3;box-shadow:0 1px 4px #1f396410}
+.calendar-event small{font-weight:500;opacity:.85;margin-top:5px}
+.calendar-event.done{background:#e9f8f0;color:#21775c;border-left-color:#38a179}
+.calendar-event.cancel{background:#fff0f2;color:#ad4355;border-left-color:#d47788}
+.calendar-event:hover{z-index:8;filter:brightness(.974);box-shadow:0 4px 12px #263b5f20}
+.empty-group{padding:10px 13px;color:#a0adbf;font-size:11px;background:#fff;display:flex;align-items:center;gap:7px}.empty-group:before{content:'';width:5px;height:5px;border-radius:50%;background:#cad3df}.empty-state{min-height:190px;padding:35px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#8b9bb1;gap:9px;text-align:center}.empty-state .empty-icon{display:grid;place-items:center;background:#f1f5fb;border-radius:14px;width:46px;height:46px;color:#7593c8}.empty-state strong{font-size:13px;color:#475b78}.empty-state p{font-size:11.5px;margin:0;max-width:380px}.empty-state button{margin-top:5px}.table-wrapper{overflow-x:auto}.data-table{border-collapse:collapse;width:100%;text-align:left}.data-table thead th{font-size:10px;letter-spacing:.55px;color:#8593a8;text-transform:uppercase;background:#f8fafd;font-weight:800;border-bottom:1px solid var(--line);padding:12px 14px;white-space:nowrap}.data-table td{padding:13px 14px;border-bottom:1px solid var(--line2);font-size:11.7px;color:#455774}.data-table tbody tr:hover{background:#fafcff}.data-table tbody tr:last-child td{border-bottom:0}.data-table td strong{color:#1c2c4a}.data-table .person{display:flex;align-items:center;gap:9px}.person-bubble{width:31px;height:31px;border-radius:9px;background:#ecf2fc;color:#426aad;display:grid;place-items:center;font-weight:820;font-size:10px;flex-shrink:0}.person strong{font-size:11.8px}.person small{display:block;font-size:10px;color:#95a3b4;margin-top:1px}.table-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--line2);font-size:11px;color:#8090a6}.table-footer .pages{display:flex;align-items:center;gap:6px}.calendar-scroll{overflow-x:auto;border-top:1px solid var(--line2)}.calendar-grid{min-width:850px;display:grid;grid-template-columns:62px repeat(7,minmax(107px,1fr));border-top:1px solid transparent;position:relative}.calendar-head,.calendar-hour,.calendar-cell{border-right:1px solid #e8edf5;border-bottom:1px solid #e8edf5}.calendar-head{background:#f9fbfe;padding:12px 5px;text-align:center;font-size:11px;font-weight:780}.calendar-head small{display:block;color:#98a5b5;font-weight:550;font-size:10px}.calendar-hour{font-size:10px;color:#91a1b6;padding:7px 8px;background:#fff;text-align:center}.calendar-cell{min-height:68px;padding:3px;position:relative}.calendar-block{border-radius:6px;background:#eaf1ff;color:#164ba5;padding:6px 6px;font-size:10px;font-weight:750;display:block;text-align:left;white-space:normal;width:100%;border-left:3px solid #3f70cf;line-height:1.3;border-top:0;border-right:0;border-bottom:0}.calendar-block small{font-weight:500;opacity:.8;display:block;margin-top:3px}.calendar-block.done{background:#e9f8f0;color:#21775c;border-left-color:#38a179}.calendar-block.cancel{background:#fff0f2;color:#ad4355;border-left-color:#d47788}.calendar-block:hover{filter:brightness(.975)}.divider-note{color:#94a1b4;font-size:11px;margin-top:14px;text-align:center}.panel-note{background:#f8fbff;border:1px solid #e0eafa;color:#637d9e;padding:10px 14px;border-radius:10px;font-size:11px;line-height:1.5;margin-top:14px}.teacher-toolbar{padding:16px;display:grid;grid-template-columns:minmax(210px,1.3fr) minmax(175px,.8fr) minmax(155px,.7fr) auto;gap:10px;align-items:end;border-bottom:1px solid var(--line)}.teacher-count{font-size:11px;color:#8190a8}.sortbtn{font-weight:inherit;font-size:inherit;border:none;background:none;color:inherit;text-transform:inherit;letter-spacing:inherit;padding:0;display:inline-flex;gap:6px;align-items:center}.sortbtn:hover{color:var(--brand)}.overlay{position:fixed;inset:0;background:rgba(14,25,45,.39);backdrop-filter:blur(3px);z-index:60;display:none;justify-content:flex-end}.overlay.open{display:flex}.drawer{height:100%;max-height:100dvh;background:#fff;width:min(100%,494px);box-shadow:-20px 0 70px #101c3550;display:flex;flex-direction:column;animation:slideIn .2s ease both}.drawer-head{padding:23px 26px 17px;border-bottom:1px solid var(--line);display:flex;align-items:start;justify-content:space-between}.drawer-head h2{margin:0;font-size:19px;letter-spacing:-.5px}.drawer-head p{margin:5px 0 0;color:#8b9bb0;font-size:11.5px}.drawer-body{flex:1;overflow-y:auto;padding:20px 26px 26px}.drawer-footer{border-top:1px solid var(--line);padding:15px 26px;background:#fbfcfe;display:flex;justify-content:flex-end;gap:9px}.drawer-field{margin-bottom:15px}.drawer-field .field-label{font-size:10.5px;text-transform:none;letter-spacing:0;color:#465a79}.drawer .input,.drawer .select{height:42px}.drawer .textarea{height:auto;min-height:72px;resize:vertical}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.switch-row{display:flex;align-items:center;background:#f3f6fb;padding:4px;border-radius:9px;margin-bottom:18px}.switch-row button{flex:1;border:0;background:transparent;padding:9px;border-radius:7px;color:#7b8ca7;font-size:11.5px;font-weight:740}.switch-row button.active{background:#fff;box-shadow:0 1px 5px #192e5120;color:#24539c}.choice-row{display:flex;gap:7px;flex-wrap:wrap}.choice{min-width:52px;padding:7px 9px;border:1px solid #e0e6f1;border-radius:8px;background:#fff;color:#74849c;font-size:11px;font-weight:800}.choice.active{background:#edf4ff;color:#214f9e;border-color:#76a0e8}.combobox{position:relative}.combo-list{position:absolute;left:0;right:0;top:calc(100% + 4px);max-height:216px;overflow-y:auto;border:1px solid #dce5f1;background:#fff;border-radius:10px;box-shadow:0 14px 30px #1e34512c;z-index:90;display:none;padding:5px}.combo-list.open{display:block}.combo-option{border:0;width:100%;text-align:left;border-radius:7px;padding:9px;display:flex;align-items:center;gap:9px;background:#fff;color:#344763;font-size:12px}.combo-option:hover,.combo-option:focus-visible{background:#edf4ff}.combo-option small{display:block;color:#8b9ab0;font-size:10px}.combo-none{color:#8797ac;font-size:11px;padding:13px 10px}.required{color:#cc5766}.form-tip{font-size:10.5px;color:#92a0b4;margin-top:5px}.form-error{background:#fff0f1;border:1px solid #f2cfda;color:#a74458;padding:9px;border-radius:8px;font-size:11px;margin-bottom:13px}.dialog-overlay{position:fixed;inset:0;background:#14203965;z-index:75;display:none;align-items:center;justify-content:center;padding:18px}.dialog-overlay.open{display:flex}.dialog{border-radius:14px;background:white;box-shadow:0 18px 60px #1828443d;max-width:410px;width:100%;padding:23px}.dialog h3{margin:0 0 10px;font-size:16px}.dialog p{font-size:12px;color:#708198;line-height:1.6}.dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}.toast{position:fixed;bottom:25px;right:24px;z-index:120;background:#1b2f50;color:#fff;padding:12px 16px;border-radius:11px;font-size:11.5px;font-weight:600;box-shadow:0 12px 35px #1c2e4840;display:none;align-items:center;gap:9px;max-width:400px}.toast.show{display:flex}.toast .svg{color:#9fd1af}.mock-note{position:fixed;bottom:18px;left:calc(var(--sidebar) + 18px);z-index:15;background:#f8fbffef;border:1px solid #dfebfb;backdrop-filter:blur(5px);border-radius:8px;padding:7px 11px;font-size:10px;color:#56729d;box-shadow:0 2px 9px #18294709}.mock-note strong{color:#2d5dab}.mobile-backdrop{display:none}@keyframes slideIn{from{transform:translateX(20px);opacity:.8}to{transform:translateX(0);opacity:1}}@media(max-width:1250px){.session-row{grid-template-columns:85px minmax(145px,1.4fr) 130px 114px 110px;gap:8px}.session-row .cell.teacher{display:none}.filters{grid-template-columns:1.4fr 1fr 1fr auto}}@media(max-width:1030px){:root{--sidebar:76px}.side-brand{justify-content:center;padding:13px}.brand-copy,.nav-caption,.nav-label,.side-user .user-copy,.nav-item .nav-badge{display:none}.nav{padding:20px 8px}.nav-item{justify-content:center;padding:12px 8px}.nav-item .svg{width:20px;height:20px}.side-user{justify-content:center;padding:13px}.mock-note{left:90px}.stats{gap:0}.stat{padding:5px 9px}}@media(max-width:830px){.control-top{flex-wrap:wrap}.week-control{width:100%;justify-content:flex-end}.filters,.teacher-toolbar{grid-template-columns:1fr 1fr}.reset{justify-self:start}.session-row{grid-template-columns:92px minmax(185px,1.4fr) 110px auto}.session-row .cell.teacher,.session-row .cell.classe{display:none}.content{padding:22px 16px 70px}.topbar{padding:0 18px}}@media(max-width:620px){:root{--sidebar:0px}.app{display:block}.sidebar{position:fixed;left:0;top:0;width:249px;transform:translateX(-105%);transition:transform .2s}.sidebar.open{transform:translateX(0)}.brand-copy,.nav-caption,.nav-label,.side-user .user-copy{display:block}.nav{padding:22px 12px}.nav-item{justify-content:flex-start;padding:12px 13px}.side-user{justify-content:flex-start}.mobile-backdrop.open{display:block;position:fixed;inset:0;background:#10234466;z-index:20}.topbar{height:58px;padding:0 14px}.mobile-menu{display:inline-flex!important;margin-right:8px}.crumb{font-size:11px;gap:6px}.top-right .online{display:none}.preview{font-size:9px}.heading{display:block}.heading h1{font-size:22px}.heading-actions{justify-content:flex-start;margin-top:14px}.heading-actions .btn{font-size:11px}.stats{overflow-x:auto;flex-wrap:nowrap;padding:8px}.stat{white-space:nowrap;flex-shrink:0}.controls{padding:12px}.tabs{width:100%;justify-content:space-between}.tab{padding:9px 7px;font-size:10px;gap:4px}.tab .svg{width:14px;height:14px}.week-control{justify-content:space-between}.week-label{min-width:auto}.filters,.teacher-toolbar{grid-template-columns:1fr;gap:8px}.content-header{padding:13px}.schedule-body{padding:0 10px 14px}.session-row{grid-template-columns:72px minmax(0,1fr);gap:9px}.session-row>div:has(.status-select){grid-column:2;justify-self:start}.session-row .row-actions{grid-column:1/-1;justify-content:flex-start}.session-row .time{font-size:11px}.date-header{padding:7px 10px}.mock-note{left:9px;right:9px;bottom:8px;text-align:center}.drawer-head{padding:19px}.drawer-body{padding:16px 19px}.drawer-footer{padding:13px 19px}.form-grid{gap:8px}.data-table td,.data-table th{padding:12px 9px}.data-table{min-width:690px}.teacher-page .data-table{min-width:710px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}@media print{.sidebar,.topbar,.heading-actions,.controls,.mock-note,.toast,.overlay,.dialog-overlay,.row-actions,.table-footer,.stats,.preview,.mobile-menu,.panel-note{display:none!important}.app{display:block}.content{padding:0}.workspace{border:0;box-shadow:none}.schedule-body{padding:0}.heading{margin:0 0 18px}.date-group{break-inside:avoid}.date-header,.session-row,.status-badge{print-color-adjust:exact;-webkit-print-color-adjust:exact}body{background:#fff}}
+
+/* AURA V2 PREMIUM - DESIGN_VALIDATED 2026-11-08.
+ * Purely presentational refinements. All DOM, navigation and JS behavior are inherited from V2.
+ * Manrope is preferred when available; Inter is a robust local fallback.
+ */
+:root {
+  --brand:#0d46c5;
+  --brand-strong:#0738a8;
+  --brand-light:#eaf1ff;
+  --ink:#0d1e40;
+  --ink2:#2b4267;
+  --muted:#647897;
+  --muted2:#889bb7;
+  --bg:#f3f6fd;
+  --line:#dde5f4;
+  --line2:#ecf0f8;
+  --shadow:0 8px 26px rgba(27,67,139,.07),0 1px 4px rgba(27,67,139,.025);
+  --radius:17px;
+  font-family:'Manrope','Inter','Segoe UI',Arial,sans-serif;
+  color:var(--ink);
+}
+body {background:linear-gradient(132deg,#f6f8fd 0%,#eff4ff 58%,#f5f8ff 100%);letter-spacing:-.015em;}
+.sidebar{background:#fff;border-right-color:#dee7f8;box-shadow:1px 0 14px rgba(34,75,142,.028)}
+.side-brand{border-bottom-color:#e6ecf7}
+.logo{background:linear-gradient(140deg,#155adf,#0640bd);border-radius:13px;box-shadow:0 8px 17px rgba(12,67,189,.22)}
+.brand-n{font-size:17px;letter-spacing:-.035em;font-weight:850;color:#0d1e40}
+.brand-s{font-size:9px;letter-spacing:2.25px;color:#7286ab}
+.nav-caption{color:#7587a5;letter-spacing:1.65px}
+.nav-item{font-weight:650;color:#586c8a;border-radius:11px;transition:background .16s,color .16s,box-shadow .16s}
+.nav-item .svg{color:#6b82a5}
+.nav-item.active{background:linear-gradient(100deg,#eaf2ff 0%,#e5edfd 100%);color:#073cb5;box-shadow:inset 3px 0 #0b55dc,0 4px 11px rgba(24,78,173,.045);font-weight:800}
+.nav-item.active .svg{color:#0a49c1}
+.nav-item:hover:not(.active){background:#f1f5fc}
+.side-user{border-color:#e6edf7;background:linear-gradient(180deg,#fff 0%,#fcfdff 100%)}
+.topbar{background:rgba(255,255,255,.94);border-bottom-color:#dfe7f4;box-shadow:0 1px 3px rgba(39,72,126,.025)}
+.crumb{color:#7a8eab}
+.crumb strong{color:#14284c;font-weight:850}
+.preview{color:#1645a3;background:#edf3ff;border-color:#d8e4fa;font-weight:850}
+.content{background:transparent}
+.kicker{color:#1350c3;font-size:10.8px;letter-spacing:2.1px;font-weight:850}
+.heading h1{color:#0a1d43;font-weight:850;letter-spacing:-1.05px;font-size:clamp(25px,2.1vw,30px);text-wrap:balance}
+.lead{color:#667a9c;font-size:12.9px;font-weight:500}
+.btn{border-color:#d9e3f2;color:#344f7a;background:linear-gradient(180deg,#fff 0%,#fbfcff 100%);border-radius:10px;font-weight:800;box-shadow:0 3px 9px rgba(33,70,136,.06),0 1px 2px rgba(33,70,136,.025)}
+.btn:hover{background:#f7faff;border-color:#c3d5f3;box-shadow:0 6px 16px rgba(28,75,154,.10)}
+.btn.primary{background:linear-gradient(180deg,#1556d3 0%,#063db5 100%);border-color:#0c45c4;color:#fff;box-shadow:0 8px 20px rgba(11,70,185,.22);font-weight:850}
+.btn.primary:hover{background:linear-gradient(180deg,#0b4dc9 0%,#0435a1 100%);box-shadow:0 9px 24px rgba(11,70,185,.27)}
+.btn.quiet{background:transparent;box-shadow:none}
+.stats{background:rgba(255,255,255,.97);border-color:#dce6f5;border-radius:13px;box-shadow:0 9px 26px rgba(34,74,150,.065),0 2px 4px rgba(34,74,150,.025)}
+.stat{font-weight:600;color:#5d7295;border-color:#dce5f4}
+.stat strong{color:#0d2149;font-weight:850;font-size:17px}
+.stat.active strong{color:#0b49c3}
+.workspace{background:#fff;border-color:#dbe5f4;box-shadow:0 14px 34px rgba(25,69,139,.066),0 1px 5px rgba(25,69,139,.03);border-radius:18px}
+.controls{border-bottom-color:#e3eaf6}
+.tabs{background:#edf2fa;border:1px solid #e5ebf6;border-radius:12px}
+.tab{border-radius:9px;color:#647696;font-weight:750}
+.tab[aria-selected="true"]{background:linear-gradient(180deg,#fff 0%,#f9fbff 100%);color:#0748bf;box-shadow:0 3px 9px rgba(28,73,149,.13),0 1px 2px rgba(28,73,149,.045);font-weight:850}
+.tab:hover:not([aria-selected="true"]){color:#1447a8}
+.week-label strong{color:#132953;font-weight:850}
+.week-label small{color:#8799b6}
+.field-label{color:#637796;font-weight:850;letter-spacing:.8px}
+.input,.select,.textarea{border-color:#d8e3f3;background:#f9fbff;color:#183055;border-radius:10px;box-shadow:0 2px 5px rgba(36,76,142,.025);font-weight:600}
+.input:focus,.select:focus,.textarea:focus{border-color:#6093ea;background:#fff;box-shadow:0 0 0 3px rgba(67,130,238,.15)}
+.input::placeholder,.textarea::placeholder{color:#97a8c0;font-weight:500}
+.input-icon .svg{color:#92a4c1}
+.content-header h2{color:#10224a;font-weight:850;font-size:14.5px}
+.content-header p{color:#7488a7}
+.meta-pill{background:#f4f7fd;border-color:#dfe8f5;color:#597195;font-weight:750}
+.date-group{border-color:#dfe7f3;border-radius:12px;box-shadow:0 3px 12px rgba(33,74,142,.023)}
+.date-header{background:linear-gradient(90deg,#f4f7fe,#f9fbff);border-bottom-color:#e7edf7}
+.date-square{background:#e2edff;color:#0b4bc3;border-radius:8px}
+.date-header strong{color:#132752;font-weight:850}
+.date-header .count{border-color:#dfe8f5;background:#fff}
+.session-row:hover{background:#f8faff}
+.session-title{font-weight:800;color:#183059}
+.time{color:#17335d;font-weight:850}
+.status-badge{border-radius:8px;font-weight:800}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important;scroll-behavior:auto!important}}
+
+
+/* AURA GLOBAL V2.1 - Style system preview, layered over validated V2 */
+@media(max-width:760px){
+ .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px;padding:10px}
+ .stat{border-right:0;padding:8px 7px;min-width:0;flex-wrap:wrap;white-space:normal;border-bottom:1px solid #edf1f7}
+ .stat:nth-last-child(-n+2){border-bottom:0}
+ .stat strong{font-size:16px}
+ .stat span:last-child{flex:1;font-size:10px;min-width:0}
+}
+@media(max-width:410px){.top-right .preview{display:none}}
+
+:root{--ui-primary:#0d46c5;--ui-primary-deep:#0a3ca6;--ui-focus:#6c9ff5;--ui-ink:#0d1e40;--ui-body:#405574;--ui-muted:#71829f;--ui-border:#dce6f4;--ui-bg:#f2f6fd;--ui-radius:16px;--ui-shadow:0 7px 25px rgba(22,59,131,.055)}
+body{background:radial-gradient(ellipse at 70% 20%,#eef4ff 0%,#f6f8fd 65%,#f6f8fb 100%)}
+.app{background:transparent}
+.sidebar{box-shadow:4px 0 30px rgba(12,43,104,.025)}
+.nav-item,.btn,.input,.select,.textarea{transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease}
+.nav-item.active{background:linear-gradient(90deg,#e8f0ff 0%,#f2f6ff 100%);box-shadow:inset 3px 0 #1c55dd,0 2px 8px rgba(28,77,165,.035)}
+.nav-logout{color:#b04352;margin-top:8px;border-top:1px solid #eef1f7;border-radius:0;padding-top:20px}
+.topbar{background:#fffdfa;border-bottom-color:#e3eaf6}
+.heading h1{color:#0a1e40}
+.heading .kicker{color:#0a50bb}
+.btn.primary{background:linear-gradient(130deg,#1657dd,#0a41b5);border-color:#0c47be;box-shadow:0 8px 19px rgba(14,74,181,.16)}
+.btn.primary:hover{background:linear-gradient(130deg,#165ce9,#093ca5);box-shadow:0 9px 23px rgba(14,74,181,.22)}
+.workspace,.stats{box-shadow:var(--ui-shadow);border-color:var(--ui-border)}
+.btn:focus-visible,.tab:focus-visible,.nav-item:focus-visible{outline:3px solid #91b4ff;outline-offset:2px}
+.selection-note{font-size:11px;color:#456487;align-self:center;padding-top:17px;display:flex;gap:7px;white-space:normal;align-items:center}
+.combo-list{border-radius:12px;padding:5px;box-shadow:0 16px 30px rgba(23,50,107,.16);border:1px solid #d6e4f6}
+.combo-option{border-radius:9px;font-size:12.5px;font-weight:650;min-height:50px;padding:10px 13px}
+.combo-option small{font-size:10.5px;font-weight:500;margin-top:3px}
+.combo-option.is-selected{background:#eaf1ff;color:#0f4cca}
+.combo-option[aria-selected='true']{box-shadow:inset 3px 0 #0b50ce}
+.combobox[data-combo='teacher-view'] .person-bubble{display:none}
+.combobox[data-combo='teacher-view'] .combo-option{display:block}
+.input:focus,.select:focus,.textarea:focus{box-shadow:0 0 0 3px rgba(116,164,245,.22),0 2px 5px rgba(12,55,125,.035)}
+.drawer{width:min(100%,560px);box-shadow:-16px 0 70px rgba(15,42,90,.22)}
+.drawer-head{padding-top:27px;padding-bottom:22px;background:linear-gradient(120deg,#fff,#f8faff)}
+.drawer-footer{box-shadow:0 -6px 18px rgba(21,48,99,.04);background:#fff}
+.other-page .heading{margin-bottom:20px}
+.global-shell-section{border:1px solid var(--ui-border);border-radius:17px;background:#fff;box-shadow:var(--ui-shadow);overflow:hidden;margin-bottom:18px}
+.global-shell-head{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:20px 23px;border-bottom:1px solid #e8eef8}
+.global-shell-head h2{margin:0;font-size:16px;color:var(--ui-ink);letter-spacing:-.35px}
+.global-shell-head p{margin:4px 0 0;font-size:11.5px;color:var(--ui-muted)}
+.global-panel-body{padding:20px 23px}
+.global-toolbar{display:flex;align-items:end;gap:12px;padding:18px 23px;border-bottom:1px solid #e8eef8;flex-wrap:wrap}
+.global-toolbar>div{min-width:160px;flex:1}
+.global-toolbar>div:first-child{flex:1.5;min-width:220px}
+.global-toolbar .btn{align-self:end}
+.global-table-wrap{overflow-x:auto}
+.global-table{border-collapse:collapse;width:100%;min-width:660px;text-align:left;font-size:12px}
+.global-table thead{background:#f7f9fe}
+.global-table th{font-size:10px;letter-spacing:.45px;text-transform:uppercase;color:#7788a4;font-weight:800;padding:14px 18px;border-bottom:1px solid #e8eef8}
+.global-table td{padding:16px 18px;border-bottom:1px solid #edf1f8;color:#405574;vertical-align:middle}
+.global-table tr:last-child td{border-bottom:0}
+.global-table tbody tr:hover{background:#fbfdff}
+.global-table strong{color:#10254a;font-size:12px;font-weight:750}
+.global-table small{display:block;color:#8192ad;margin-top:3px}
+.global-cell-actions{display:flex;gap:7px;justify-content:flex-end}
+.global-cell-actions button{min-width:33px;height:32px;border:1px solid #e1e9f6;background:#fff;border-radius:9px;display:grid;place-items:center;color:#53739d}
+.global-cell-actions button:hover{background:#eef5ff;color:#0b4aca}
+.global-cell-actions .svg{width:15px;height:15px}
+.global-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 23px;background:#fff;border-top:1px solid #eff2f9;color:#8191a6;font-size:11px}
+.global-status{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:10.5px;font-weight:740;background:#edf4ff;color:#1255b9;border:1px solid #d8e8ff}
+.global-status.green{background:#e8f8f0;color:#217356;border-color:#d2eee1}
+.global-status.warn{background:#fff4e7;color:#976320;border-color:#f9e7c8}
+.global-status.red{background:#fff0f1;color:#a94459;border-color:#f5dce3}
+.global-statgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:18px}
+.global-metric{background:#fff;border:1px solid #e1e9f5;border-radius:15px;padding:18px 20px;box-shadow:var(--ui-shadow)}
+.global-metric .k{font-size:10.5px;color:#7486a2;letter-spacing:.2px;font-weight:700}
+.global-metric .v{font-size:25px;color:#112b56;letter-spacing:-1px;font-weight:850;margin-top:6px}
+.global-metric .n{color:#93a0b2;font-size:10px;margin-top:5px}
+.global-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;padding:20px 23px}
+.global-card{border:1px solid #e1e8f4;border-radius:14px;background:#fff;padding:18px;min-width:0}
+.global-card h3{font-size:13px;margin:0 0 6px;letter-spacing:-.2px;color:#11244c}
+.global-card p{color:#6e819b;font-size:11px;margin:0 0 12px;min-height:29px}
+.global-card .meta{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-top:12px;border-top:1px solid #eef2f8}
+.global-card .meta span{font-size:10.5px;color:#778ba6}
+.global-card .btn{padding:7px 9px;min-height:30px}
+.global-tip{margin-top:12px;font-size:11px;color:#7b8da7;display:flex;align-items:center;gap:7px}
+.global-form-shell{padding:22px 24px}
+.global-form-group{border:1px solid #e0e8f4;border-radius:13px;padding:18px;margin-bottom:15px;background:#fff}
+.global-form-group>h3{font-size:13px;color:#122955;margin:0 0 14px}
+.global-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.global-form-grid>div{min-width:0}
+.global-note{font-size:10px;color:#8091a8;margin-top:12px}
+.global-empty{padding:42px 20px;text-align:center;color:#8595a9}
+.global-empty b{display:block;color:#1c3258;font-size:14px;margin-bottom:5px}
+.global-empty .svg{width:27px;height:27px;color:#9badc6;margin:0 auto 10px}
+.global-head-tag{font-size:10px;letter-spacing:.4px;color:#0f50b5;background:#ecf3ff;border-radius:8px;padding:7px 10px;white-space:nowrap}
+.global-toggle{display:inline-flex;background:#f0f4fa;border-radius:10px;padding:4px;gap:4px}
+.global-toggle button{border:0;border-radius:8px;background:transparent;padding:9px 14px;font-size:11px;font-weight:700;color:#71829e}
+.global-toggle button.active{background:white;color:#144bb7;box-shadow:0 1px 5px #182e5a17}
+.other-page .heading .lead{max-width:720px}
+.global-form-preview{position:relative}
+@media(max-width:1100px){.global-statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.global-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.global-toolbar{padding:13px;gap:10px}.global-shell-head,.global-panel-body,.global-form-shell{padding:16px}.global-table th,.global-table td{padding:12px}.global-card-grid{grid-template-columns:1fr;padding:14px}.global-statgrid{grid-template-columns:1fr 1fr;gap:9px}.global-metric{padding:13px}.global-form-grid{grid-template-columns:1fr}.global-footer{padding:13px 15px}.global-shell-head{align-items:flex-start;flex-wrap:wrap}.global-shell-head h2{font-size:14px}.drawer{width:min(100%,560px)}}
+@media(max-width:410px){.global-statgrid{grid-template-columns:1fr 1fr}.global-metric .v{font-size:21px}.selection-note{padding-top:8px}}
+@media(prefers-reduced-motion:reduce){.drawer,.btn,.nav-item{animation:none!important;transition:none!important}}
+
+/* ================================================================
+   AURA V2.2 | BLANC INSTITUTIONNEL — 2026-11-09
+   Direction visuelle uniquement. Structure V2.1 et JS intacts.
+   ================================================================ */
+:root{
+  --brand:#1649ab;--brand-strong:#103c91;--brand-light:#eff4ff;
+  --ink:#152744;--ink2:#415574;--muted:#7587a0;--muted2:#98a6b9;
+  --bg:#f8fafc;--white:#fff;--line:#e4eaf2;--line2:#edf1f6;
+  --green:#237c5b;--green-bg:#edf8f2;
+  --amber:#966727;--amber-bg:#fff7e9;
+  --red:#ae4c60;--red-bg:#fdf1f3;
+  --blue-bg:#f2f6ff;
+  --shadow:0 3px 15px rgba(25,49,87,.035);
+  --radius:15px;
+  --ui-primary:#1649ab;--ui-primary-deep:#103c91;
+  --ui-focus:#8cb3fb;--ui-ink:#152744;--ui-body:#415574;
+  --ui-muted:#7889a2;--ui-border:#e4eaf2;--ui-bg:#f8fafc;
+  --ui-radius:15px;--ui-shadow:0 3px 15px rgba(25,49,87,.035);
+  font-family:'Manrope','Inter','Segoe UI',Arial,sans-serif;
+  color:var(--ink)
+}
+html{color-scheme:light}
+body,.app{background:#f8fafc;letter-spacing:0}
+body{font-weight:450}
+.sidebar{background:#fff;border-color:#e7ebf1;box-shadow:none}
+.side-brand{border-bottom-color:#edf0f4}
+.logo{background:#1649ab;border-radius:11px;box-shadow:0 5px 12px rgba(24,70,150,.11)}
+.brand-n{font-weight:760;color:#182947;letter-spacing:-.025em}
+.brand-s{color:#8c9db5;font-weight:700;letter-spacing:1.8px}
+.nav-caption{color:#8a98ac;letter-spacing:1.3px;font-weight:720}
+.nav-item{border-radius:10px;color:#677a92;font-weight:560;box-shadow:none;transition:background-color .15s ease,color .15s ease}
+.nav-item .svg{color:#8393a9}
+.nav-item.active{background:#eff3ff;color:#1649ab;box-shadow:none;border-left:3px solid #1649ab;padding-left:10px;font-weight:720}
+.nav-item.active .svg{color:#1649ab}
+.nav-item:hover:not(.active){background:#f7f9fc;color:#244a8f}
+.side-user{background:#fff;border-top-color:#edf0f4}
+.avatar{background:#f9e9dd;color:#a76539}
+.topbar{background:#fff;border-bottom-color:#e7ebf1;box-shadow:none}
+.crumb{color:#8798b0;font-weight:450}
+.crumb strong{color:#233958;font-weight:680}
+.preview{color:#3d5f9c;background:#f5f8fd;border:1px solid #e2e9f4;font-weight:700;letter-spacing:.01em}
+.online{color:#8393a6}
+.content{background:transparent}
+.kicker{color:#3563a5;font-size:10.5px;letter-spacing:1.35px;font-weight:720}
+.heading h1{color:#142642;font-weight:770;letter-spacing:-.8px;font-size:clamp(25px,2.1vw,30px)}
+.lead{color:#75869d;font-size:12.8px;font-weight:450}
+.heading{margin-bottom:20px}
+.btn{border:1px solid #e0e7f0;background:#fff;color:#425876;box-shadow:0 1px 4px rgba(30,55,96,.025);border-radius:10px;font-weight:650}
+.btn:hover{border-color:#cbd8ea;background:#f8faff;box-shadow:0 2px 9px rgba(30,55,96,.045)}
+.btn.primary{background:#1649ab;border-color:#1649ab;color:#fff;box-shadow:0 5px 13px rgba(22,73,171,.12);font-weight:720}
+.btn.primary:hover{background:#103c91;border-color:#103c91;box-shadow:0 5px 14px rgba(22,73,171,.16)}
+.btn.quiet{background:transparent;box-shadow:none;color:#6d7f9a;font-weight:600}
+.btn.quiet:hover{background:#f6f8fc;color:#1649ab}
+.btn:focus-visible,.tab:focus-visible,.nav-item:focus-visible{outline:3px solid #a5c4f7;outline-offset:2px}
+.stats{background:#fff;border:1px solid #e4eaf2;border-radius:12px;box-shadow:var(--shadow)}
+.stat{font-weight:500;color:#72839b;border-color:#e7ebf1}
+.stat strong{color:#1b2e50;font-size:16px;font-weight:760}
+.stat.active strong{color:#1649ab}
+.workspace,.global-shell-section,.global-metric{background:#fff;border:1px solid #e3e9f1;box-shadow:var(--shadow);border-radius:15px}
+.controls{border-bottom-color:#e9edf3}
+.tabs,.global-toggle{background:#f4f6f9;border:1px solid #e9edf3;border-radius:11px}
+.tab{color:#6b7d98;font-weight:590;border-radius:8px}
+.tab[aria-selected='true'],.global-toggle button.active{background:#fff;color:#1649ab;box-shadow:0 1px 4px rgba(25,48,88,.055);font-weight:730}
+.tab:hover:not([aria-selected='true']){color:#315d9a;background:#ebeff6}
+.week-label strong{font-weight:740;color:#203759}
+.week-label small{color:#8e9db1}
+.field-label{color:#73839c;font-weight:680;letter-spacing:.52px}
+.input,.select,.textarea{border:1px solid #dce5ef;background:#fff;color:#233957;border-radius:10px;box-shadow:none;font-weight:480}
+.input:focus,.select:focus,.textarea:focus{border-color:#79a4e7;background:#fff;box-shadow:0 0 0 3px rgba(105,151,229,.15)}
+.input::placeholder,.textarea::placeholder{color:#9eacc0;font-weight:450}
+.input-icon .svg{color:#99a8bc}
+.content-header h2{color:#1d3052;font-size:14px;font-weight:730}
+.content-header p{color:#8593a9}
+.meta-pill{background:#f8fafd;color:#6e819c;border:1px solid #e6ebf3;font-weight:580}
+.date-group{background:#fff;border-color:#e4eaf2;border-radius:12px;box-shadow:none}
+.date-header{background:#fafbfe;border-color:#e8edf3}
+.date-square{background:#eaf1ff;color:#2452a0;border-radius:7px}
+.date-header strong{font-weight:710;color:#203555}
+.date-header .count{background:#fff;border-color:#e8edf3}
+.session-row:hover,.global-table tbody tr:hover,.data-table tbody tr:hover{background:#fcfdff}
+.session-title,.time{color:#1d3152;font-weight:710}
+.status-badge,.global-status{font-weight:650;border-radius:8px}
+.selection-note{color:#64809f;font-weight:500}
+.combo-list{border:1px solid #e0e7f0;border-radius:11px;box-shadow:0 13px 26px rgba(25,50,85,.12);padding:5px;background:#fff}
+.combo-option{color:#314660;font-weight:580;border-radius:8px}
+.combo-option small{color:#8796a9;font-weight:420}
+.combo-option:hover,.combo-option:focus-visible{background:#f4f7fd}
+.combo-option.is-selected{background:#eff3ff;color:#1649ab}
+.combo-option[aria-selected='true']{box-shadow:inset 3px 0 #315ec2}
+.overlay{background:rgba(15,30,51,.36);backdrop-filter:blur(2px)}
+.drawer{background:#fff;box-shadow:-16px 0 48px rgba(22,40,68,.19)}
+.drawer-head{background:#fff;border-color:#e8edf3}
+.drawer-head h2{font-weight:750;letter-spacing:-.5px;color:#142744}
+.drawer-head p{color:#7e8ba2}
+.drawer-footer{background:#fff;border-color:#e8edf3;box-shadow:0 -3px 10px rgba(20,43,80,.03)}
+.switch-row{background:#f4f6f9}
+.switch-row button{font-weight:620}
+.switch-row button.active{box-shadow:0 1px 3px rgba(30,55,95,.07);color:#1649ab}
+.choice.active{background:#eff4ff;border-color:#93b2e7;color:#1649ab}
+.global-shell-head,.global-toolbar{border-bottom-color:#e9edf3}
+.global-shell-head h2{font-weight:720;color:#1d3050}
+.global-shell-head p{color:#8494aa}
+.global-table thead,.data-table thead th{background:#fafbfe}
+.global-table th,.data-table thead th{font-weight:670;color:#7d8da4;border-bottom-color:#e9edf3}
+.global-table td,.data-table td{color:#4d607c;border-bottom-color:#edf1f5}
+.global-table strong,.data-table td strong{font-weight:710;color:#253a59}
+.global-card{background:#fff;border-color:#e3e9f1;box-shadow:none}
+.global-card h3{color:#243956;font-weight:710}
+.global-metric{box-shadow:var(--shadow)}
+.global-metric .k{color:#8090a5;font-weight:560}
+.global-metric .v{color:#1d3151;font-weight:730}
+.global-head-tag{background:#f5f8fd;color:#5675a8;border:1px solid #e3eaf3}
+.global-form-group{background:#fff;border-color:#e4eaf2}
+.global-form-group>h3{font-weight:710;color:#223857}
+.global-table tr:last-child td{border-bottom:0}
+.panel-note,.mock-note{background:#fff;color:#8291a6;border:1px solid #e5ebf4;box-shadow:0 1px 6px rgba(25,52,86,.025)}
+.mock-note strong{color:#4a6591}
+.global-footer{border-top-color:#e9edf3;color:#8192a8}
+.global-cell-actions button{border-color:#e6ebf3;color:#7286a2;box-shadow:none}
+.global-cell-actions button:hover{background:#f5f8fe}
+.global-status{border:1px solid #dce7f6}
+.global-status.green{border-color:#d7ede0}
+.global-status.warn{border-color:#f4e4cb}
+.global-status.red{border-color:#f1dce1}
+.toast{background:#203655}
+/* Keep V2.1 mobile layout; change only presentation at mobile sizes. */
+@media(max-width:620px){
+ .topbar{background:#fff}
+ .heading h1{font-size:22px}
+ .nav-item.active{padding-left:10px}
+ .sidebar{box-shadow:6px 0 24px rgba(24,50,82,.12)}
+ .mock-note{background:#fffdfd}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+<symbol id="i-school" viewBox="0 0 24 24"><path d="m2 10 10-5 10 5-10 5-10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5M22 10v6"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h2M13 14h2M8 18h2"/></symbol>
+<symbol id="i-calendarweek" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 13v5M12 13v5M16 13v5"/></symbol>
+<symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+<symbol id="i-message" viewBox="0 0 24 24"><path d="M20 17a3 3 0 0 1-3 3H8l-4 2V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10Z"/><path d="M8 9h8M8 13h6"/></symbol>
+<symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2Zm0 0a2 2 0 0 1 2-2h14M8 8h8M8 12h5"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 10 9 5 9-5M3 18l9 5 9-5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16 4a2.828 2.828 0 0 1 4 4L8 20l-5 1 1-5L16 4Z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M5 6l1 15h12l1-15M10 11v6M14 11v6"/></symbol>
+<symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3"/><path d="M19 13v7H4V5h7"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 2h8l5 5v15H6V2ZM14 2v5h5M9 12h7M9 16h7"/></symbol>
+<symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7v-7Z"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5M12 18h.01"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="m7 6 4-4 4 4M11 2v17M17 18l-4 4-4-4"/></symbol>
+</defs></svg>
+<div class="mobile-backdrop" id="mobileBack"></div>
+<div class="app">
+<aside class="sidebar" id="sidebar" aria-label="Navigation principale">
+  <div class="side-brand"><div class="logo"><svg class="svg lg"><use href="#i-school"/></svg></div><div class="brand-copy"><div class="brand-n">UDMCI</div><div class="brand-s">SUPERVISION</div></div></div>
+  <nav class="nav"><div class="nav-caption">Menu principal</div>
+    <button class="nav-item" data-page="dashboard"><svg class="svg"><use href="#i-grid"/></svg><span class="nav-label">Tableau de bord</span></button>
+    <button class="nav-item active" data-page="planning"><svg class="svg"><use href="#i-calendar"/></svg><span class="nav-label">Planning Visios</span></button>
+    <button class="nav-item" data-page="visio"><svg class="svg"><use href="#i-video"/></svg><span class="nav-label">Visio (Synchrone)</span></button>
+    <button class="nav-item" data-page="forum"><svg class="svg"><use href="#i-message"/></svg><span class="nav-label">Forum (Asynchrone)</span></button>
+    <button class="nav-item" data-page="teachers"><svg class="svg"><use href="#i-person"/></svg><span class="nav-label">Enseignants</span></button>
+    <button class="nav-item" data-page="ues"><svg class="svg"><use href="#i-book"/></svg><span class="nav-label">UEs (Cours)</span></button>
+    <button class="nav-item" data-page="formations"><svg class="svg"><use href="#i-layers"/></svg><span class="nav-label">Parcours</span></button>
+    <button class="nav-item" data-page="classes"><svg class="svg"><use href="#i-users"/></svg><span class="nav-label">Classes</span></button>
+    <button class="nav-item" data-page="users"><svg class="svg"><use href="#i-users"/></svg><span class="nav-label">Utilisateurs</span></button>
+    <button class="nav-item" data-page="history"><svg class="svg"><use href="#i-clock"/></svg><span class="nav-label">Historique</span></button>
+    <button class="nav-item" data-page="planner"><svg class="svg"><use href="#i-calendarweek"/></svg><span class="nav-label">Planner</span></button>
+    <button class="nav-item nav-logout" data-page="logout"><svg class="svg"><use href="#i-external"/></svg><span class="nav-label">Déconnexion</span></button>
+  </nav>
+  <div class="side-user"><div class="avatar">MA</div><div class="user-copy"><div class="user-name">Compte de démonstration</div><div class="user-role">Administrateur · simulation</div></div></div>
+</aside>
+<div class="main">
+  <header class="topbar"><div style="display:flex;align-items:center"><button class="btn icon-only mobile-menu" id="menuBtn" title="Menu" aria-label="Ouvrir la navigation"><svg class="svg"><use href="#i-menu"/></svg></button><div class="crumb"><span>Gestion académique</span><span>/</span><strong id="crumbCurrent">Planning Visios</strong></div></div><div class="top-right"><span class="online">Environnement fictif</span><span class="preview">AURA · V2.2 / DESIGN_REVIEW</span></div></header>
+  <main class="content" id="pageContent">
+    <section id="planningPage" aria-labelledby="planningTitle">
+      <div class="heading"><div><div class="kicker">Organisation & supervision</div><h1 id="planningTitle">Planning des visioconférences</h1><p class="lead">Planifiez les interventions, contrôlez les séances et retrouvez les fiches de supervision.</p></div><div class="heading-actions"><button class="btn" id="exportBtn"><svg class="svg"><use href="#i-doc"/></svg> Exporter PDF</button><button class="btn" id="printBtn"><svg class="svg"><use href="#i-print"/></svg> Imprimer</button><button class="btn primary" id="newSession"><svg class="svg"><use href="#i-plus"/></svg> Ajouter une séance</button></div></div>
+      <div class="stats" id="stats" aria-label="Indicateurs de la semaine"></div>
+      <section class="workspace" aria-label="Gestion des séances">
+        <div class="controls"><div class="control-top"><div class="tabs" role="tablist" aria-label="Mode d'affichage du planning"><button class="tab" data-view="supervisor" role="tab" aria-selected="true"><svg class="svg"><use href="#i-list"/></svg> Superviseur</button><button class="tab" data-view="calendar" role="tab" aria-selected="false"><svg class="svg"><use href="#i-calendarweek"/></svg> Calendrier</button><button class="tab" data-view="teacher" role="tab" aria-selected="false"><svg class="svg"><use href="#i-person"/></svg> Enseignant</button></div><div class="week-control"><button class="btn icon-only" id="prevWeek" title="Semaine précédente" aria-label="Semaine précédente"><svg class="svg"><use href="#i-left"/></svg></button><div class="week-label" aria-live="polite"><strong id="weekLabel"></strong><small>Planning hebdomadaire</small></div><button class="btn icon-only" id="nextWeek" title="Semaine suivante" aria-label="Semaine suivante"><svg class="svg"><use href="#i-right"/></svg></button><button class="btn quiet" id="thisWeek">Aujourd'hui</button></div></div>
+          <div class="filters"><div><label class="field-label" for="planningSearch">Recherche rapide</label><div class="input-icon"><svg class="svg"><use href="#i-search"/></svg><input class="input" id="planningSearch" type="search" placeholder="UE, enseignant, activité…" autocomplete="off" aria-label="Rechercher une séance"></div></div><div id="classFilterGroup"><label class="field-label" for="classFilter">Classe</label><select class="select" id="classFilter"><option value="">Toutes les classes</option></select></div><div><label class="field-label" for="statusFilter">Statut</label><select class="select" id="statusFilter"><option value="">Tous les statuts</option><option value="À superviser">À superviser</option><option value="Supervisé">Supervisé</option><option value="Annulé">Annulé</option></select></div><button class="btn reset" id="resetFilters"><svg class="svg"><use href="#i-refresh"/></svg> Effacer</button></div>
+          <div class="filters hide" id="teacherExtraFilter" style="grid-template-columns:minmax(280px,1fr) minmax(170px,.8fr) auto;margin-top:9px"><div><label class="field-label" for="teacherViewInput">Enseignant concerné</label><div class="combobox" data-combo="teacher-view"><div class="input-icon"><svg class="svg"><use href="#i-search"/></svg><input class="input" id="teacherViewInput" role="combobox" aria-autocomplete="list" aria-controls="teacherViewResults" aria-expanded="false" placeholder="Rechercher ou choisir un enseignant" autocomplete="off"></div><div class="combo-list" id="teacherViewResults" role="listbox"></div></div></div><div><label class="field-label" for="teacherClass">Classe</label><select class="select" id="teacherClass"><option value="">Toutes les classes</option></select></div><div class="selection-note" id="teacherSelectionLabel" aria-live="polite">✓ Sélection active</div></div>
+        </div>
+        <div class="content-header"><div><h2 id="resultTitle">Séances de la semaine</h2><p id="resultSubtitle">Vue opérationnelle par journée, sans défilement horizontal.</p></div><span class="meta-pill" id="resultCount" aria-live="polite">0 séance</span></div>
+        <div id="resultBody" class="schedule-body"></div>
+      </section>
+      <div class="panel-note"><svg class="svg sm" style="display:inline-block;vertical-align:middle;margin-right:5px"><use href="#i-info"/></svg>Cette version sert à valider l'interface. Les données et les actions sont simulées localement ; aucune donnée Firestore n'est lue ou modifiée.</div>
+    </section>
+    <section id="teachersPage" class="hide teacher-page" aria-labelledby="teacherTitle"><div class="heading"><div><div class="kicker">Référentiel académique</div><h1 id="teacherTitle">Enseignants</h1><p class="lead">Retrouvez, ajoutez et gérez les intervenants depuis un espace harmonisé avec le planning.</p></div><div class="heading-actions"><button class="btn primary" id="newTeacher"><svg class="svg"><use href="#i-plus"/></svg> Ajouter un enseignant</button></div></div><section class="workspace"><div class="teacher-toolbar"><div><label class="field-label" for="teacherListSearch">Rechercher un enseignant</label><div class="input-icon"><svg class="svg"><use href="#i-search"/></svg><input type="search" id="teacherListSearch" class="input" placeholder="Nom, prénom ou e-mail"></div></div><div><label class="field-label" for="teacherDepartment">Parcours</label><select class="select" id="teacherDepartment"><option value="">Tous les parcours</option></select></div><div><label class="field-label" for="teacherStatus">Statut</label><select class="select" id="teacherStatus"><option value="">Tous les statuts</option><option value="active">Actif</option><option value="inactive">Inactif</option></select></div><button class="btn" id="teacherReset"><svg class="svg"><use href="#i-refresh"/></svg> Effacer</button></div><div class="content-header"><div><h2>Répertoire des enseignants</h2><p>Liste consultable et administrable</p></div><span class="meta-pill" id="teacherCount">0 résultats</span></div><div id="teacherTable"></div><div id="teacherPagination" class="table-footer"></div></section><div class="panel-note"><svg class="svg sm" style="display:inline-block;vertical-align:middle;margin-right:5px"><use href="#i-info"/></svg>Les ajouts, modifications et suppressions sont uniquement simulés dans cette maquette.</div></section>
+    <section id="otherPage" class="hide other-page" aria-label="Aperçu de rubrique harmonisée">
+      <div id="otherPageContent"></div>
+    </section>
+  </main>
+</div>
+</div>
+<div class="overlay" id="drawerOverlay" aria-hidden="true"><section class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle"><header class="drawer-head"><div><div class="kicker" id="drawerEyebrow">Planification</div><h2 id="drawerTitle">Nouvelle séance</h2><p id="drawerSubtitle">Complétez les informations essentielles</p></div><button class="btn icon-only" id="closeDrawer" aria-label="Fermer la fenêtre"><svg class="svg"><use href="#i-x"/></svg></button></header><div class="drawer-body" id="drawerBody"></div><footer class="drawer-footer"><button class="btn" id="cancelDrawer">Annuler</button><button class="btn primary" id="saveDrawer"><svg class="svg"><use href="#i-check"/></svg><span id="saveDrawerLabel">Ajouter au planning</span></button></footer></section></div>
+<div class="dialog-overlay" id="confirmOverlay"><div class="dialog" role="alertdialog" aria-labelledby="confirmTitle" aria-describedby="confirmDesc"><h3 id="confirmTitle">Confirmer la suppression</h3><p id="confirmDesc"></p><div class="dialog-actions"><button class="btn" id="confirmNo">Annuler</button><button class="btn ghost-danger" id="confirmYes">Supprimer</button></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><svg class="svg"><use href="#i-check"/></svg><span id="toastText"></span></div>
+<div class="mock-note">● <strong>Maquette interactive</strong> · V2.2 AURA · sans backend, sans changement de données</div>
+<script>
+'use strict';
+(()=>{
+const $=id=>document.getElementById(id); const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const icon=(name,extra='')=>`<svg class="svg ${extra}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const DAYS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi']; const pad=n=>String(n).padStart(2,'0');const dateStr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;const parseDate=s=>new Date(`${s}T12:00:00`);
+const dayOffset=(date,n)=>{const d=parseDate(dateStr(date));d.setDate(d.getDate()+n);return d};const startWeek=d=>dayOffset(d,-(d.getDay()+6)%7); const frDate=(d,ops)=>new Intl.DateTimeFormat('fr-FR',ops).format(d);
+const teachers=[{id:'t1',first:'Aminata',last:'Kouadio',email:'aminata.kouadio@exemple.test',department:'MAFIDA',status:'active'},{id:'t2',first:'Serge',last:'Kouamé',email:'serge.kouame@exemple.test',department:'MMA',status:'active'},{id:'t3',first:'Fatou',last:'Koné',email:'fatou.kone@exemple.test',department:'MAE',status:'active'},{id:'t4',first:'Arnaud',last:'Soro',email:'arnaud.soro@exemple.test',department:'MAFIDA',status:'active'},{id:'t5',first:'Marie',last:'Traoré',email:'marie.traore@exemple.test',department:'MAE',status:'inactive'},{id:'t6',first:'Benoît',last:'Yao',email:'benoit.yao@exemple.test',department:'MMA',status:'active'},{id:'t7',first:'Lucie',last:'Koffi',email:'lucie.koffi@exemple.test',department:'MAFIDA',status:'active'},{id:'t8',first:'Jean',last:"N'Dri",email:'jean.ndri@exemple.test',department:'MAE',status:'active'}];
+const classes=[{id:'c1',name:'MAFIDA 1A',department:'MAFIDA'},{id:'c2',name:'MMA & MAE 1B',department:'MMA'},{id:'c3',name:'Cohorte 2',department:'MAE'},{id:'c4',name:'MAFIDA 1B',department:'MAFIDA'}];
+const ues=[{id:'u1',code:'COMP-401',name:'Comptabilité financière de l’entreprise'},{id:'u2',code:'ANG-301',name:'Anglais des affaires'},{id:'u3',code:'MNG-408',name:'Management stratégique'},{id:'u4',code:'ETH-220',name:'Environnement économique de l’entreprise'},{id:'u5',code:'MTH-115',name:'Méthodologie de recherche'}];
+const sessions=[{id:'s1',date:'2026-11-09',start:'08:30',end:'10:00',ue:'u1',teacher:'t1',classe:'c1',status:'À superviser',type:'CM',desc:'Séance de cours magistral',platform:'Zoom',link:'https://exemple.test/visio-demo'},{id:'s2',date:'2026-11-09',start:'14:00',end:'15:30',ue:'u2',teacher:'t2',classe:'c2',status:'Supervisé',type:'TD',desc:'',platform:'Teams',link:''},{id:'s3',date:'2026-11-10',start:'09:00',end:'10:30',ue:'u3',teacher:'t3',classe:'c3',status:'À superviser',type:'CM',desc:'',platform:'Zoom',link:''},{id:'s4',date:'2026-11-10',start:'16:00',end:'17:00',ue:'u4',teacher:'t4',classe:'c1',status:'Annulé',type:'TP',desc:'Annulée à la demande de l’enseignant',platform:'Zoom',link:''},{id:'s5',date:'2026-11-11',start:'10:00',end:'11:30',ue:'u4',teacher:'t4',classe:'c1',status:'Supervisé',type:'CM',desc:'',platform:'Teams',link:''},{id:'s6',date:'2026-11-12',start:'14:30',end:'16:00',ue:'u5',teacher:'t5',classe:'c2',status:'À superviser',type:'TD',desc:'',platform:'Zoom',link:''},{id:'s7',date:'2026-11-13',start:'08:00',end:'09:30',ue:'u1',teacher:'t1',classe:'c3',status:'À superviser',type:'CM',desc:'',platform:'Zoom',link:''},{id:'s8',date:'2026-11-14',start:'11:00',end:'12:30',ue:null,title:'Atelier de méthodologie',teacher:'t6',classe:'c4',status:'Supervisé',type:'Atelier',desc:'Activité hors cours',platform:'Zoom',link:''}];
+const getTeacher=id=>teachers.find(t=>t.id===id);const getClass=id=>classes.find(c=>c.id===id);const getUe=id=>ues.find(u=>u.id===id);const fullName=t=>t?`${t.first} ${t.last}`:'Enseignant non renseigné';const titleOf=s=>getUe(s.ue)?.name||s.title||'Activité hors cours';const codeOf=s=>getUe(s.ue)?.code||'Hors cours';
+let page='planning',view='supervisor',week=startWeek(new Date(2026,10,9)),selectedTeacher='t1',teacherSearch='',pageTeacher=1,sortTeacher='asc',drawerMode=null,drawerId=null,form={},classQuery='',teacherQuery='',ueQuery='',toastTimer=null,confirmAction=null;
+const quickStatus=s=>`<select class="status-select ${s.status==='Supervisé'?'done':s.status==='Annulé'?'cancel':''}" data-change-status="${esc(s.id)}" aria-label="Changer le statut de la séance ${esc(titleOf(s))}"><option value="À superviser" ${s.status==='À superviser'?'selected':''}>À superviser</option><option value="Supervisé" ${s.status==='Supervisé'?'selected':''}>Supervisé</option><option value="Annulé" ${s.status==='Annulé'?'selected':''}>Annulé</option></select>`;
+const badge=s=>`<span class="status-badge ${s==='Supervisé'?'badge-done':s==='Annulé'?'badge-cancel':'badge-todo'}">${esc(s)}</span>`;
+const notify=msg=>{clearTimeout(toastTimer);$('toastText').textContent=msg;$('toast').classList.add('show');toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3400)};
+
+// Global presentation specimens: simulated, isolated from backend/data access.
+const pageDefinitions={
+ dashboard:{title:'Tableau de bord',kicker:'Vue d’ensemble',lead:'Suivez les indicateurs académiques et retrouvez rapidement les actions essentielles.',action:'Ouvrir une fiche de supervision',columns:['Indicateur','Détail','Statut','Action'],rows:[['Séances programmées','08 séances cette semaine','En cours'],['Supervisions synchrones','Fiches de suivi des visioconférences','Disponible'],['Supervisions asynchrones','Suivi des forums pédagogiques','Disponible']]},
+ visio:{title:'Fiche de supervision synchrone',kicker:'Suivi des visioconférences',lead:'Renseignez les informations de la séance et les observations de supervision.',action:'Réinitialiser',form:true},
+ forum:{title:'Fiche de supervision asynchrone',kicker:'Forum & suivi',lead:'Consignez le suivi des activités et échanges dans les forums.',action:'Réinitialiser',form:true},
+ ues:{title:'Unités d’enseignement (UE)',kicker:'Référentiel académique',lead:'Gérez les cours, leurs codes et leurs rattachements pédagogiques.',action:'Ajouter une UE',columns:['Code','Intitulé (Nom)','Parcours','Niveau','Semestre','Actions'],rows:[['COMP-401','Comptabilité financière de l’entreprise','MAFIDA','Master 1','S1'],['ANG-301','Anglais des affaires','MMA','Master 1','S1'],['MNG-408','Management stratégique','MAE','Master 2','S3'],['MTH-115','Méthodologie de recherche','MAE','Master 1','S1']]},
+ formations:{title:'Parcours',kicker:'Structure académique',lead:'Consultez les parcours et leur organisation sans modifier leurs associations.',action:'Ajouter un parcours',columns:['Parcours','Code','Niveau','Unités d’enseignement','Actions'],rows:[['Management des affaires','MAE','Master','12 UE'],['Marketing et management','MMA','Master','9 UE'],['Finance et comptabilité','MAFIDA','Master','14 UE']]},
+ classes:{title:'Gestion des classes',kicker:'Organisation académique',lead:'Gérez les classes, les effectifs et leurs parcours.',action:'Ajouter une classe',cards:true},
+ users:{title:'Gestion des utilisateurs',kicker:'Administration',lead:'Gérez les accès et les rôles des comptes de supervision.',action:'Nouvel utilisateur',columns:['Utilisateur','Rôle','Date création','Actions'],rows:[['admin@exemple.test','Administrateur','09/11/2026'],['assistant@exemple.test','Assistant','05/11/2026'],['enseignant@exemple.test','Enseignant','03/11/2026']]},
+ history:{title:'Historique de supervision',kicker:'Traçabilité',lead:'Retrouvez les interventions réalisées et les observations enregistrées.',action:'Exporter',columns:['Date','Enseignant','UE','Type','Statut','Actions'],rows:[['09/11/2026','Aminata Kouadio','Comptabilité financière','Synchrone','Complétée'],['10/11/2026','Fatou Koné','Management stratégique','Synchrone','À superviser'],['11/11/2026','Serge Kouamé','Anglais des affaires','Asynchrone','Complétée']]}
+};
+let globalFilter='',globalKind='all';
+function renderOtherPage(which){
+ const spec=pageDefinitions[which];if(!spec)return;
+ globalFilter='';globalKind='all';
+ const showButton=spec.action?`<button type="button" class="btn ${spec.action.includes('Ajouter')||spec.action.includes('Nouvel')?'primary':''}" data-global-main>${icon('plus')} ${esc(spec.action)}</button>`:'';
+ $('otherPageContent').innerHTML=`<div class="heading"><div><div class="kicker">${esc(spec.kicker)}</div><h1>${esc(spec.title)}</h1><p class="lead">${esc(spec.lead)}</p></div><div class="heading-actions">${showButton}</div></div>`+
+ (which==='dashboard'?renderDashboardSpec():spec.form?renderSupervisionSpec(which):spec.cards?renderClassesSpec():renderTableShell(which));
+ $('otherPageContent').querySelector('[data-global-main]')?.addEventListener('click',()=>{
+   if(spec.form){$('otherPageContent').querySelectorAll('input,textarea,select').forEach(el=>{if(!el.disabled){el.value=''}});notify('Formulaire réinitialisé uniquement dans le prototype.');return}
+   if(which==='dashboard'){setPage('visio');return}
+   if(which==='history'){notify('Export dans l’application réelle : conserve le comportement existant.');return}
+   openGenericDrawer(which,null);
+ });
+ if(!spec.form&&!spec.cards&&which!=='dashboard')bindGlobalTable(which);
+ if(which==='visio'||which==='forum'){bindSupervisionPreview(which)}
+ if(which==='classes')bindCardsPreview();
+}
+function renderDashboardSpec(){
+ return `<div class="global-statgrid"><div class="global-metric"><div class="k">Unités d’enseignement</div><div class="v">05</div><div class="n">Référentiel académique</div></div><div class="global-metric"><div class="k">Enseignants</div><div class="v">08</div><div class="n">Intervenants inscrits</div></div><div class="global-metric"><div class="k">Séances programmées</div><div class="v">08</div><div class="n">Semaine courante</div></div><div class="global-metric"><div class="k">Supervisions</div><div class="v">03</div><div class="n">Fiches de suivi</div></div></div>
+ <section class="global-shell-section"><div class="global-shell-head"><div><h2>Accès rapides</h2><p>Retrouvez les actions principales de supervision</p></div><span class="global-head-tag">APERÇU HARMONISÉ</span></div><div class="global-card-grid"><article class="global-card"><h3>Planning des visioconférences</h3><p>Programmez les séances et vérifiez les conflits.</p><div class="meta"><span>Planification</span><button class="btn" data-goto="planning">Ouvrir</button></div></article><article class="global-card"><h3>Supervision synchrone</h3><p>Complétez les fiches de suivi des cours.</p><div class="meta"><span>Fiche pédagogique</span><button class="btn" data-goto="visio">Ouvrir</button></div></article><article class="global-card"><h3>Forum asynchrone</h3><p>Suivez les échanges et les activités pédagogiques.</p><div class="meta"><span>Suivi asynchrone</span><button class="btn" data-goto="forum">Ouvrir</button></div></article></div></section>`;
+}
+function renderClassesSpec(){
+ const cards=classes.map((c,i)=>`<article class="global-card" data-card-filter="${esc(norm(c.name+' '+c.department))}"><h3>${esc(c.name)}</h3><p>${esc(c.department)} · Groupe académique</p><div class="meta"><span>${[34,26,31,18][i]||22} étudiants · Parcours relié</span><div class="global-cell-actions"><button data-row-edit="${esc(c.name)}" aria-label="Modifier ${esc(c.name)}">${icon('edit')}</button><button data-row-del="${esc(c.name)}" aria-label="Supprimer ${esc(c.name)}">${icon('trash')}</button></div></div></article>`).join('');
+ return `<section class="global-shell-section"><div class="global-toolbar"><div><label for="globalSearch" class="field-label">Recherche</label><div class="input-icon">${icon('search')}<input class="input" id="globalSearch" placeholder="Rechercher une classe" autocomplete="off"></div></div><div><label for="globalSelect" class="field-label">Parcours</label><select id="globalSelect" class="select"><option value="">Tous les parcours</option><option>MAFIDA</option><option>MMA</option><option>MAE</option></select></div><button class="btn" data-global-clear>${icon('refresh')} Effacer</button></div><div class="global-card-grid" id="globalResults">${cards}</div><div class="global-footer"><span id="globalCount">${classes.length} classes</span><span>Données fictives · mêmes actions conservées</span></div></section>`;
+}
+function renderSupervisionSpec(which){
+ const isForum=which==='forum';
+ return `<section class="global-shell-section"><div class="global-shell-head"><div><h2>${isForum?'Supervision asynchrone — Forums':'Supervision synchrone — Visio'}</h2><p>${isForum?'Suivi des échanges Moodle':'Suivi des séances en classe virtuelle'}</p></div><span class="global-head-tag">FICHE PÉDAGOGIQUE</span></div><div class="global-form-shell"><section class="global-form-group"><h3>1. Informations générales</h3><div class="global-form-grid"><div><label class="field-label" for="supervTeacher">Enseignant</label><div class="combobox" data-combo="superv-teacher"><div class="input-icon">${icon('search')}<input id="supervTeacher" class="input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="supervTeacherResults" placeholder="Rechercher ou choisir un enseignant" autocomplete="off"></div><div class="combo-list" id="supervTeacherResults" role="listbox"></div></div></div><div><label class="field-label" for="supervUe">UE / Module</label><select class="select" id="supervUe"><option>Sélectionner une UE</option>${ues.map(x=>`<option>${esc(x.name)}</option>`).join('')}</select></div><div><label class="field-label" for="supervDate">Date de séance</label><input class="input" id="supervDate" type="date" value="2026-11-09"></div><div><label class="field-label" for="supervClasse">Classe</label><select class="select" id="supervClasse">${classes.map(x=>`<option>${esc(x.name)}</option>`).join('')}</select></div></div></section><section class="global-form-group"><h3>2. ${isForum?'Échanges et participation':'Déroulement et présence'}</h3><div class="global-form-grid"><div><label class="field-label" for="sStart">Heure de début</label><input class="input" type="time" id="sStart" value="09:00"></div><div><label class="field-label" for="sEnd">Heure de fin</label><input class="input" type="time" id="sEnd" value="10:30"></div></div><div style="margin-top:14px"><label class="field-label" for="sObs">Observations</label><textarea class="textarea" id="sObs" style="min-height:105px" placeholder="Consignez les observations pédagogiques…"></textarea></div></section><div style="display:flex;justify-content:flex-end;gap:9px"><button class="btn" data-demo-reset>Réinitialiser</button><button class="btn primary" data-demo-submit>Enregistrer la fiche</button></div><p class="global-note">Simulation de présentation uniquement. Les champs et calculs de la fiche réelle devront être intégralement conservés par ATLAS, notamment les critères, notes, validations et impressions.</p></div></section>`;
+}
+function renderTableShell(which){
+ const spec=pageDefinitions[which];return `<section class="global-shell-section"><div class="global-toolbar"><div><label class="field-label" for="globalSearch">Recherche rapide</label><div class="input-icon">${icon('search')}<input class="input" id="globalSearch" type="search" placeholder="Rechercher par code, nom, parcours…" autocomplete="off"></div></div><div><label class="field-label" for="globalSelect">${which==='users'?'Rôle':'Filtrer'}</label><select id="globalSelect" class="select"><option value="">${which==='users'?'Tous les rôles':'Toutes les entrées'}</option>${(which==='users'?['Administrateur','Assistant','Enseignant']:which==='ues'?['MAE','MMA','MAFIDA']:which==='formations'?['Master']:['Synchrone','Asynchrone']).map(x=>`<option>${esc(x)}</option>`).join('')}</select></div><button class="btn" data-global-clear>${icon('refresh')} Effacer</button></div><div class="global-shell-head"><div><h2>${which==='ues'?'Catalogue des UE':which==='users'?'Répertoire des utilisateurs':which==='formations'?'Liste des parcours':'Journal des interventions'}</h2><p>Informations et actions regroupées, en conservant les données métiers</p></div><span class="global-head-tag" id="globalCount">${spec.rows.length} résultats</span></div><div class="global-table-wrap"><table class="global-table"><thead><tr>${spec.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody id="globalResults"></tbody></table></div><div class="global-footer"><span id="globalPageInfo">Page 1 sur 1</span><div style="display:flex;gap:7px"><button class="btn" id="globalPrev">Précédent</button><button class="btn" id="globalNext">Suivant</button></div></div></section>`;
+}
+function bindGlobalTable(which){
+ const spec=pageDefinitions[which];let current=0;const per=3;const input=$('globalSearch'),select=$('globalSelect');
+ const filtered=()=>spec.rows.filter(r=>norm(r.join(' ')).includes(norm(input.value))&&(!select.value||norm(r.join(' ')).includes(norm(select.value))));
+ const draw=()=>{
+   const rows=filtered(),pages=Math.max(1,Math.ceil(rows.length/per));
+   current=Math.min(current,pages-1);
+   $('globalCount').textContent=`${rows.length} résultat${rows.length>1?'s':''}`;
+   $('globalPageInfo').textContent=`Page ${current+1} sur ${pages}`;
+   $('globalPrev').disabled=current===0;$('globalNext').disabled=current>=pages-1;
+   const content=rows.slice(current*per,(current+1)*per).map(r=>{
+     const cells=r.map((v,j)=>{
+       const decorated=j===0?`<strong>${esc(v)}</strong>`:
+         (which==='users'&&j===1)?`<span class="global-status">${esc(v)}</span>`:
+         (which==='history'&&j===4)?`<span class="global-status ${v==='Complétée'?'green':'warn'}">${esc(v)}</span>`:
+         esc(v);
+       return `<td>${decorated}</td>`;
+     }).join('');
+     const actions=`<td><div class="global-cell-actions"><button data-view-row="${esc(r[0])}" title="Consulter">${icon('external')}</button><button data-row-edit="${esc(r[0])}" title="Modifier">${icon('edit')}</button>${which!=='history'?`<button data-row-del="${esc(r[0])}" title="Supprimer">${icon('trash')}</button>`:''}</div></td>`;
+     return `<tr>${cells}${actions}</tr>`;
+   }).join('');
+   $('globalResults').innerHTML=rows.length?content:`<tr><td colspan="${spec.columns.length}"><div class="global-empty">${icon('search')}<b>Aucun résultat</b>Modifiez vos filtres pour afficher d’autres entrées.</div></td></tr>`;
+ };
+ input.oninput=()=>{current=0;draw()};select.onchange=()=>{current=0;draw()};$('otherPageContent').querySelector('[data-global-clear]').onclick=()=>{input.value='';select.value='';current=0;draw()};$('globalPrev').onclick=()=>{current=Math.max(current-1,0);draw()};$('globalNext').onclick=()=>{current++;draw()};draw();
+ $('globalResults').onclick=e=>{const b=e.target.closest('[data-row-edit],[data-row-del],[data-view-row]');if(!b)return;if(b.hasAttribute('data-row-del')){notify('Suppression indisponible dans le prototype : confirmation conservée dans l’application.')}else openGenericDrawer(which,b.getAttribute('data-row-edit')||b.getAttribute('data-view-row'))};
+}
+function bindCardsPreview(){const input=$('globalSearch'),select=$('globalSelect');const draw=()=>{let n=0;document.querySelectorAll('[data-card-filter]').forEach(c=>{const matches=c.dataset.cardFilter.includes(norm(input.value))&&(!select.value||c.dataset.cardFilter.includes(norm(select.value)));c.classList.toggle('hide',!matches);if(matches)n++});$('globalCount').textContent=`${n} classe${n>1?'s':''}`};input.oninput=select.onchange=draw;$('otherPageContent').querySelector('[data-global-clear]').onclick=()=>{input.value='';select.value='';draw()};$('globalResults').onclick=e=>{const b=e.target.closest('[data-row-edit],[data-row-del]');if(!b)return;if(b.hasAttribute('data-row-del'))notify('La suppression conserve une confirmation dans le projet réel.');else openGenericDrawer('classes',b.dataset.rowEdit)};draw()}
+function bindSupervisionPreview(which){
+ setupCombo('supervTeacher','supervTeacherResults','teacher');
+ $('otherPageContent').querySelector('[data-demo-reset]').onclick=()=>notify('Réinitialiser : aperçus uniquement.');
+ $('otherPageContent').querySelector('[data-demo-submit]').onclick=()=>notify('Prototype sans connexion : aucune fiche enregistrée.');
+}
+function openGenericDrawer(which,id){
+ const spec=pageDefinitions[which]||{title:'Élément'};
+ drawerMode='spec';drawerId=id;
+ $('drawerEyebrow').textContent='Référentiel académique';
+ $('drawerTitle').textContent=(id?'Consulter / modifier':'Ajouter')+' · '+spec.title;
+ $('drawerSubtitle').textContent='Aperçu de la présentation, sans opération sur les données';
+ $('saveDrawerLabel').textContent='Terminer (simulation)';
+ $('drawerBody').innerHTML=`<div class="form-grid"><div class="drawer-field"><label class="field-label" for="specName">${which==='users'?'Identifiant / Nom':'Nom / Intitulé'}</label><input class="input" id="specName" placeholder="Renseigner le libellé" value="${esc(id||'')}"></div><div class="drawer-field"><label class="field-label" for="specCode">Code / Référence</label><input class="input" id="specCode" placeholder="Code du référentiel"></div></div><div class="drawer-field"><label class="field-label" for="specText">Informations complémentaires</label><textarea class="textarea" id="specText" placeholder="Saisir les informations complémentaires…"></textarea></div><div class="panel-note">Ce panneau illustre le design commun. ATLAS devra conserver tous les champs et validations du vrai formulaire de ${esc(spec.title)}.</div>`;
+ $('drawerOverlay').classList.add('open');$('drawerOverlay').setAttribute('aria-hidden','false');document.body.classList.add('modal-open');$('specName').focus();
+}
+// Global nav uses same route mapping as application; no actions against remote systems.
+document.getElementById('otherPage').addEventListener('click',e=>{
+ const b=e.target.closest('[data-goto]');if(b)setPage(b.dataset.goto)
+});
+
+function setPage(p){
+  if(p==='planner'){notify('Planner est un service externe dans le produit réel. Aucun site externe n’est ouvert depuis le prototype.');return}
+  if(p==='logout'){notify('Déconnexion : aperçu uniquement. Les sessions réelles ne sont pas modifiées.');return}
+  const allowed=['planning','teachers','dashboard','visio','forum','ues','formations','classes','users','history'];
+  if(!allowed.includes(p))return;
+  page=p;
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
+  $('planningPage').classList.toggle('hide',page!=='planning');
+  $('teachersPage').classList.toggle('hide',page!=='teachers');
+  $('otherPage').classList.toggle('hide',['planning','teachers'].includes(page));
+  const labels={planning:'Planning Visios',teachers:'Enseignants',dashboard:'Tableau de bord',visio:'Visio (Synchrone)',forum:'Forum (Asynchrone)',ues:'Unités d’enseignement',formations:'Parcours',classes:'Classes',users:'Utilisateurs',history:'Historique'};
+  $('crumbCurrent').textContent=labels[page]||'Gestion académique';
+  $('sidebar').classList.remove('open');$('mobileBack').classList.remove('open');
+  if(page==='teachers')renderTeachers();else if(page==='planning')render();else renderOtherPage(page);
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function datesWeek(){return Array.from({length:7},(_,i)=>dayOffset(week,i))}function weekText(){const ds=datesWeek();return `${frDate(ds[0],{day:'2-digit',month:'short'})} — ${frDate(ds[6],{day:'2-digit',month:'short',year:'numeric'})}`}
+function inWeek(s){const d=s.date;const ds=datesWeek();return d>=dateStr(ds[0])&&d<=dateStr(ds[6])}
+function statusFilter(){return $('statusFilter').value}function classFilter(){return view==='teacher'?$('teacherClass').value:$('classFilter').value}
+function visible(){const q=norm($('planningSearch').value.trim());return sessions.filter(s=>inWeek(s)&&(!statusFilter()||statusFilter()===s.status)&&(!classFilter()||classFilter()===s.classe)&&(view!=='teacher'||s.teacher===selectedTeacher)&&(!q||norm(`${titleOf(s)} ${codeOf(s)} ${fullName(getTeacher(s.teacher))} ${getClass(s.classe)?.name} ${s.title||''}`).includes(q))).sort((a,b)=>a.date.localeCompare(b.date)||a.start.localeCompare(b.start))}
+function render(){if(page!=='planning')return;const ss=visible();$('weekLabel').textContent=weekText();$('resultCount').textContent=`${ss.length} séance${ss.length>1?'s':''}`;if($('teacherSelectionLabel'))$('teacherSelectionLabel').textContent=`✓ Sélection : ${fullName(getTeacher(selectedTeacher))}`;document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));$('teacherExtraFilter').classList.toggle('hide',view!=='teacher');$('classFilterGroup').classList.toggle('hide',view==='teacher');$('resultTitle').textContent=view==='teacher'?`Emploi du temps · ${fullName(getTeacher(selectedTeacher))}`:view==='calendar'?'Calendrier hebdomadaire':'Séances de la semaine';$('resultSubtitle').textContent=view==='teacher'?'Séances de l’intervenant sélectionné · gestion et fiches liées':view==='calendar'?'Vue horaire des 7 jours, séances cliquables pour modification':'Vue opérationnelle regroupée par jour · les journées libres sont compactées';
+ const inWeekSessions=sessions.filter(inWeek);const k={all:inWeekSessions.length,todo:inWeekSessions.filter(s=>s.status==='À superviser').length,done:inWeekSessions.filter(s=>s.status==='Supervisé').length,cancel:inWeekSessions.filter(s=>s.status==='Annulé').length};$('stats').innerHTML=`<button class="stat ${!statusFilter()?'active':''}" data-stat=""><span class="stat-dot"></span><strong>${k.all}</strong><span>Séances cette semaine</span></button><button class="stat ${statusFilter()==='À superviser'?'active':''}" data-stat="À superviser"><span class="stat-dot todo"></span><strong>${k.todo}</strong><span>À superviser</span></button><button class="stat ${statusFilter()==='Supervisé'?'active':''}" data-stat="Supervisé"><span class="stat-dot done"></span><strong>${k.done}</strong><span>Supervisées</span></button><button class="stat ${statusFilter()==='Annulé'?'active':''}" data-stat="Annulé"><span class="stat-dot cancel"></span><strong>${k.cancel}</strong><span>Annulées</span></button>`;
+ if(view==='calendar')renderCalendar(ss);else if(view==='teacher')renderTeacherSchedule(ss);else renderSupervisor(ss)}
+function row(s){return `<div class="session-row" data-id="${esc(s.id)}"><div class="time">${icon('clock')}<span>${esc(s.start)}<br><small>${esc(s.end)}</small></span></div><div><strong class="session-title">${esc(titleOf(s))}</strong><span class="session-secondary">${esc(codeOf(s))} · ${esc(s.type)}</span></div><div class="cell classe">${esc(getClass(s.classe)?.name||'—')}<small>${esc(getClass(s.classe)?.department||'')}</small></div><div class="cell teacher">${esc(fullName(getTeacher(s.teacher)))}<small>Enseignant</small></div><div>${quickStatus(s)}</div><div class="row-actions"><button class="action-btn text" data-act="fiche" data-id="${esc(s.id)}" ${s.status==='Annulé'||!s.ue?'disabled':''} title="Ouvrir la fiche">${icon('doc')} Fiche</button><button class="action-btn" data-act="join" data-id="${esc(s.id)}" ${!s.link?'disabled':''} title="Rejoindre la visioconférence">${icon('video')}</button><button class="action-btn" data-act="edit" data-id="${esc(s.id)}" aria-label="Modifier ${esc(titleOf(s))}" title="Modifier">${icon('edit')}</button><button class="action-btn danger" data-act="delete" data-id="${esc(s.id)}" aria-label="Supprimer ${esc(titleOf(s))}" title="Supprimer">${icon('trash')}</button></div></div>`}
+function renderSupervisor(ss){const days=datesWeek();$('resultBody').className='schedule-body';$('resultBody').innerHTML=ss.length?days.map(d=>{const ds=dateStr(d),items=ss.filter(s=>s.date===ds),name=frDate(d,{weekday:'long'});return `<section class="date-group"><div class="date-header"><div class="date-square">${pad(d.getDate())}</div><strong>${name[0].toUpperCase()+name.slice(1)}</strong><small>${frDate(d,{month:'long',year:'numeric'})}</small><span class="count">${items.length} séance${items.length>1?'s':''}</span></div>${items.length?items.map(row).join(''):`<div class="empty-group">Aucune séance programmée</div>`}</section>`}).join(''):`<div class="empty-state"><div class="empty-icon">${icon('calendar')}</div><strong>Aucune séance ne correspond aux filtres</strong><p>Changez de semaine, de classe ou de statut, ou réinitialisez les filtres.</p><button class="btn" data-act="reset">Effacer les filtres</button></div>`}
+function renderTeacherSchedule(ss){$('resultBody').className='';$('resultBody').innerHTML=ss.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Heures</th><th>Classe</th><th>UE / Activité</th><th>Statut</th><th>Actions</th></tr></thead><tbody>${ss.map(s=>`<tr><td><strong>${frDate(parseDate(s.date),{weekday:'short',day:'2-digit',month:'short'})}</strong></td><td>${esc(s.start)}–${esc(s.end)}</td><td>${esc(getClass(s.classe)?.name)}</td><td><strong>${esc(titleOf(s))}</strong><br><span style="font-size:10px;color:#95a4b5">${esc(codeOf(s))}</span></td><td>${quickStatus(s)}</td><td><div class="row-actions" style="justify-content:flex-start"><button class="action-btn text" data-act="fiche" data-id="${esc(s.id)}" ${s.status==='Annulé'||!s.ue?'disabled':''}>${icon('doc')} Fiche</button><button class="action-btn" data-act="join" data-id="${esc(s.id)}" ${!s.link?'disabled':''} title="Rejoindre la visioconférence">${icon('video')}</button><button class="action-btn" data-act="edit" data-id="${esc(s.id)}" title="Modifier">${icon('edit')}</button><button class="action-btn danger" data-act="delete" data-id="${esc(s.id)}" title="Supprimer">${icon('trash')}</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><div class="empty-icon">${icon('person')}</div><strong>Aucune séance pour cet enseignant cette semaine</strong><p>Sélectionnez un autre enseignant ou une autre semaine. Votre sélection est indépendante du formulaire d’ajout.</p></div>`}
+function renderCalendar(ss){
+  $('resultBody').className=''; const days=datesWeek();
+  const mins=v=>{const p=v.split(':');return Number(p[0])*60+Number(p[1]||0)};
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  let out='<div class="calendar-scroll"><div class="calendar-grid"><div class="calendar-head">Heures</div>';
+  out+=days.map(d=>`<div class="calendar-head">${frDate(d,{weekday:'short'})}<small>${frDate(d,{day:'2-digit',month:'short'})}</small></div>`).join('');
+  out+='</div><div class="calendar-body"><div class="time-axis">'+Array.from({length:16},(_,i)=>`<div class="axis-label">${pad(i+8)}:00</div>`).join('')+'</div>';
+  for(const d of days){
+    const arr=ss.filter(s=>s.date===dateStr(d)).sort((a,b)=>a.start.localeCompare(b.start));
+    out+='<div class="calendar-day">';
+    for(const s of arr){
+      const top=clamp((mins(s.start)-480)/60*76,0,1210), height=Math.max(36,(mins(s.end)-mins(s.start))/60*76-5);
+      const cls=s.status==='Supervisé'?'done':s.status==='Annulé'?'cancel':'';
+      out+=`<button class="calendar-event ${cls}" style="top:${top}px;height:${clamp(height,36,1216-top)}px" data-act="edit" data-id="${esc(s.id)}" title="Modifier la séance ${esc(titleOf(s))}"><strong>${esc(s.start)}–${esc(s.end)}</strong><span>${esc(titleOf(s))}</span><small>${esc(getClass(s.classe)?.name)} · ${esc(s.status)}</small></button>`;
+    }
+    out+='</div>';
+  }
+  out+='</div></div><div class="divider-note" style="padding:0 15px 14px">Créneaux à l’échelle horaire (08h–24h) · cliquez sur une séance pour l’ouvrir.</div>';
+  $('resultBody').innerHTML=out;
+}
+function fillSelects(){for(const id of ['classFilter','teacherClass'])$(id).innerHTML='<option value="">Toutes les classes</option>'+classes.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');$('teacherDepartment').innerHTML='<option value="">Tous les parcours</option>'+[...new Set(teachers.map(t=>t.department).filter(Boolean))].map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+function setView(v){view=v;if(view==='teacher'){if(!getTeacher(selectedTeacher))selectedTeacher=teachers[0]?.id||'';teacherQuery=fullName(getTeacher(selectedTeacher));$('teacherViewInput').value=teacherQuery;}render()}
+function changeWeek(n){week=dayOffset(week,7*n);render()}
+function resetFilters(){for(const id of ['statusFilter','planningSearch','classFilter','teacherClass'])$(id).value='';render()}
+function renderTeachers(){const q=norm($('teacherListSearch').value.trim()),dep=$('teacherDepartment').value,status=$('teacherStatus').value;let ts=teachers.filter(t=>(!q||norm(`${t.first} ${t.last} ${t.email}`).includes(q))&&(!dep||dep===t.department)&&(!status||status===t.status)).sort((a,b)=>`${a.last} ${a.first}`.localeCompare(`${b.last} ${b.first}`,'fr')*(sortTeacher==='asc'?1:-1));const size=5,pages=Math.max(1,Math.ceil(ts.length/size));pageTeacher=Math.min(Math.max(1,pageTeacher),pages);const shown=ts.slice((pageTeacher-1)*size,pageTeacher*size);$('teacherCount').textContent=`${ts.length} enseignant${ts.length>1?'s':''}`;$('teacherTable').innerHTML=`<div class="table-wrapper"><table class="data-table"><thead><tr><th><button class="sortbtn" id="sortTeacher">Nom et prénom ${icon('sort','sm')}</button></th><th>E-mail</th><th>Parcours</th><th>Statut</th><th style="text-align:right">Actions</th></tr></thead><tbody>${shown.length?shown.map(t=>`<tr><td><div class="person"><div class="person-bubble">${esc(t.first[0]+t.last[0])}</div><div><strong>${esc(fullName(t))}</strong><small>ID ${esc(t.id)}</small></div></div></td><td>${esc(t.email||'—')}</td><td><span class="meta-pill">${esc(t.department||'—')}</span></td><td>${t.status==='active'?'<span class="status-badge badge-done">Actif</span>':'<span class="status-badge badge-cancel">Inactif</span>'}</td><td><div class="row-actions"><button class="action-btn" data-act="editTeacher" data-id="${esc(t.id)}" title="Modifier l’enseignant">${icon('edit')}</button><button class="action-btn danger" data-act="deleteTeacher" data-id="${esc(t.id)}" title="Supprimer l’enseignant">${icon('trash')}</button></div></td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:35px;color:#8799ad">Aucun enseignant trouvé. Essayez une autre recherche.</td></tr>'}</tbody></table></div>`;$('teacherPagination').innerHTML=`<span>Page <strong>${pageTeacher}</strong> sur ${pages} · ${ts.length} résultat(s)</span><div class="pages"><button class="btn icon-only" id="prevTeachers" ${pageTeacher===1?'disabled':''} aria-label="Page précédente">${icon('left')}</button><button class="btn icon-only" id="nextTeachers" ${pageTeacher===pages?'disabled':''} aria-label="Page suivante">${icon('right')}</button></div>`;$('sortTeacher').onclick=()=>{sortTeacher=sortTeacher==='asc'?'desc':'asc';pageTeacher=1;renderTeachers()};$('prevTeachers').onclick=()=>{pageTeacher--;renderTeachers()};$('nextTeachers').onclick=()=>{pageTeacher++;renderTeachers()}}
+function openDrawer(mode,id=null){drawerMode=mode;drawerId=id;const s=sessions.find(x=>x.id===id),t=teachers.find(x=>x.id===id);if(mode==='session'){form=s?{...s}:{id:'',date:'2026-11-09',start:'08:00',end:'09:30',ue:'',title:'',teacher:'',classe:'',status:'À superviser',type:'CM',desc:'',platform:'Zoom',link:'',reason:''};classQuery=getClass(form.classe)?.name||'';teacherQuery=fullName(getTeacher(form.teacher));if(!form.teacher)teacherQuery='';ueQuery=getUe(form.ue)?`${getUe(form.ue).code} — ${getUe(form.ue).name}`:'';$('drawerEyebrow').textContent='Planification';$('drawerTitle').textContent=s?'Modifier la séance':'Ajouter une séance';$('drawerSubtitle').textContent=s?'Mettez à jour les informations du créneau':'Nouvelle intervention ou activité hors cours';$('saveDrawerLabel').textContent=s?'Enregistrer les modifications':'Ajouter au planning';renderSessionForm()}else if(mode==='teacher'){form=t?{...t}:{id:'',first:'',last:'',email:'',department:'',status:'active'};$('drawerEyebrow').textContent='Référentiel académique';$('drawerTitle').textContent=t?'Modifier un enseignant':'Ajouter un enseignant';$('drawerSubtitle').textContent=t?'Mise à jour du profil de l’intervenant':'Ajout d’un nouvel intervenant';$('saveDrawerLabel').textContent=t?'Enregistrer les modifications':'Ajouter un enseignant';renderTeacherForm()}else if(mode==='fiche'){form={...s};$('drawerEyebrow').textContent='Supervision synchrone';$('drawerTitle').textContent='Fiche de supervision';$('drawerSubtitle').textContent='Informations reprises de la séance sélectionnée';$('saveDrawerLabel').textContent='Fermer la fiche';renderFicheForm()}$('drawerOverlay').classList.add('open');$('drawerOverlay').setAttribute('aria-hidden','false');document.body.classList.add('modal-open');setTimeout(()=>$('drawerBody').querySelector('input,button,select')?.focus(),60)}
+function setComboFields(){const fields=[['class','Classe *',classQuery,'Rechercher une classe…'],['ue','Matière / UE *',ueQuery,'Rechercher une UE…'],['teacher','Enseignant / Intervenant *',teacherQuery,'Rechercher un enseignant…']];return Object.fromEntries(fields.map(([k,label,val,placeholder])=>[k,`<div class="drawer-field" ${k==='ue'&&form.ue===null?'style="display:none"':''}><label class="field-label" for="combo-${k}">${esc(label)} ${k==='teacher'?'':''}</label><div class="combobox" data-combo="${k}"><div class="input-icon">${icon('search')}<input id="combo-${k}" type="search" class="input" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="results-${k}" placeholder="${esc(placeholder)}" value="${esc(val)}"></div><div class="combo-list" id="results-${k}" role="listbox"></div></div></div>`]));}
+function renderSessionForm(){const isActivity=form.ue===null;const f=setComboFields();$('drawerBody').innerHTML=`<div id="formError" class="form-error hide" role="alert"></div><div class="switch-row" role="group" aria-label="Nature de la séance"><button id="kindCourse" class="${!isActivity?'active':''}" type="button">Cours / UE</button><button id="kindActivity" class="${isActivity?'active':''}" type="button">Activité hors cours</button></div>${f.class}${isActivity?`<div class="drawer-field"><label class="field-label" for="sessionTitle">Intitulé de l'activité <span class="required">*</span></label><input class="input" id="sessionTitle" value="${esc(form.title)}" placeholder="Ex. atelier de méthodologie"></div>`:f.ue}${f.teacher}<div class="drawer-field"><label class="field-label" for="sessionDate">Date <span class="required">*</span></label><input class="input" type="date" id="sessionDate" value="${esc(form.date)}"></div><div class="form-grid"><div class="drawer-field"><label class="field-label" for="sessionStart">Heure de début <span class="required">*</span></label><input class="input" id="sessionStart" type="time" value="${esc(form.start)}"></div><div class="drawer-field"><label class="field-label" for="sessionEnd">Heure de fin <span class="required">*</span></label><input class="input" id="sessionEnd" type="time" value="${esc(form.end)}"></div></div><div class="drawer-field"><span class="field-label">Type de séance</span><div class="choice-row" id="sessionTypes">${(isActivity?['TP','TD','Exposé','Devoir','Soutenance','Examen','Autre']:['CM','TP','TD','Atelier']).map(x=>`<button type="button" class="choice ${form.type===x?'active':''}" data-type="${esc(x)}">${esc(x)}</button>`).join('')}</div></div>${drawerId?`<div class="drawer-field"><label class="field-label" for="sessionStatus">Statut</label><select class="select" id="sessionStatus"><option ${form.status==='À superviser'?'selected':''}>À superviser</option><option ${form.status==='Supervisé'?'selected':''}>Supervisé</option><option ${form.status==='Annulé'?'selected':''}>Annulé</option></select></div>`:''}<div class="drawer-field"><label class="field-label" for="sessionDesc">Détails / observations</label><textarea id="sessionDesc" class="textarea" placeholder="Informations complémentaires, lien, salle…">${esc(form.desc)}</textarea></div>${drawerId?`<div class="drawer-field"><label class="field-label" for="sessionReason">Motif du changement (historique)</label><input id="sessionReason" class="input" placeholder="Ex. report demandé par l’enseignant" value="${esc(form.reason||'')}"><p class="form-tip">Le motif accompagne les reports ou changements de statut.</p></div>`:''}`;document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{form.type=b.dataset.type;document.querySelectorAll('[data-type]').forEach(x=>x.classList.toggle('active',x.dataset.type===form.type))});$('kindCourse').onclick=()=>{saveFormValues();form.ue='';form.title='';form.type='CM';renderSessionForm()};$('kindActivity').onclick=()=>{saveFormValues();form.ue=null;form.type='TP';renderSessionForm()};['class','ue','teacher'].forEach(key=>{if(key!=='ue'||!isActivity)setupCombo(`combo-${key}`,`results-${key}`,key)})}
+function saveFormValues(){if($('sessionDate')){form.date=$('sessionDate').value;form.start=$('sessionStart').value;form.end=$('sessionEnd').value;form.desc=$('sessionDesc').value;form.status=$('sessionStatus')?.value||form.status;form.reason=$('sessionReason')?.value||form.reason;if(form.ue===null)form.title=$('sessionTitle').value}}
+function renderTeacherForm(){$('drawerBody').innerHTML=`<div id="formError" class="form-error hide" role="alert"></div><div class="form-grid"><div class="drawer-field"><label class="field-label" for="teacherFirst">Prénom <span class="required">*</span></label><input class="input" id="teacherFirst" value="${esc(form.first)}"></div><div class="drawer-field"><label class="field-label" for="teacherLast">Nom <span class="required">*</span></label><input class="input" id="teacherLast" value="${esc(form.last)}"></div></div><div class="drawer-field"><label class="field-label" for="teacherEmail">Adresse e-mail</label><input class="input" id="teacherEmail" type="email" value="${esc(form.email)}" placeholder="prenom.nom@exemple.test"></div><div class="drawer-field"><label class="field-label" for="teacherDep">Parcours</label><select class="select" id="teacherDep"><option value="">Sélectionner un parcours</option>${[...new Set(classes.map(c=>c.department))].map(x=>`<option ${form.department===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div>${drawerId?`<div class="drawer-field"><label class="field-label" for="teacherState">Statut</label><select class="select" id="teacherState"><option value="active" ${form.status==='active'?'selected':''}>Actif</option><option value="inactive" ${form.status==='inactive'?'selected':''}>Inactif</option></select></div>`:''}<div class="panel-note">Simulation uniquement : les informations ne sont pas enregistrées sur Firebase.</div>`}
+function renderFicheForm(){$('drawerBody').innerHTML=`<div class="panel-note" style="margin:0 0 18px">Exemple de préremplissage depuis le planning. Cette maquette ne remplace pas le formulaire réel de supervision.</div><div class="drawer-field"><span class="field-label">Classe</span><strong>${esc(getClass(form.classe)?.name)}</strong></div><div class="drawer-field"><span class="field-label">Module / Matière</span><strong>${esc(titleOf(form))}</strong></div><div class="drawer-field"><span class="field-label">Enseignant</span><strong>${esc(fullName(getTeacher(form.teacher)))}</strong></div><div class="form-grid"><div class="drawer-field"><span class="field-label">Date</span><strong>${esc(form.date)}</strong></div><div class="drawer-field"><span class="field-label">Horaires</span><strong>${esc(form.start)} — ${esc(form.end)}</strong></div></div><div class="drawer-field"><span class="field-label">Lien avec le planning</span><span class="meta-pill">Séance ${esc(form.id)}</span></div><div class="panel-note">Dans l'application : ouvrir/créer la fiche liée, conserver ses critères et observations, sans doublon.</div>`}
+function setupCombo(inputId,resultId,key){const inp=$(inputId),res=$(resultId);if(!inp)return;const arr=()=>key==='class'?classes.map(x=>({id:x.id,title:x.name,sub:x.department})):key==='ue'?ues.map(x=>({id:x.id,title:`${x.code} — ${x.name}`,sub:'Matière / UE'})):teachers.map(x=>({id:x.id,title:fullName(x),sub:x.department}));const show=()=>{const q=norm(inp.value.trim()),filtered=arr().filter(x=>norm(x.title+' '+x.sub).includes(q));res.innerHTML=filtered.length?filtered.map(x=>`<button type="button" class="combo-option ${inputId==='teacherViewInput'&&x.id===selectedTeacher?'is-selected':''}" role="option" aria-selected="${inputId==='teacherViewInput'&&x.id===selectedTeacher}" data-value="${esc(x.id)}"><span class="person-bubble">${esc(x.title.slice(0,2).toUpperCase())}</span><span>${esc(x.title)}<small>${esc(x.sub)}</small></span></button>`).join(''):'<div class="combo-none">Aucun résultat. Essayez un autre terme.</div>';res.classList.add('open');inp.setAttribute('aria-expanded','true');res.querySelectorAll('button').forEach(b=>b.onclick=()=>{const obj=arr().find(x=>x.id===b.dataset.value);if(!obj)return;inp.value=obj.title;if(key==='teacher'){if(inputId==='teacherViewInput'){selectedTeacher=obj.id;teacherQuery=obj.title;render()}else{form.teacher=obj.id;teacherQuery=obj.title}}else if(key==='ue'){form.ue=obj.id;ueQuery=obj.title}else{form.classe=obj.id;classQuery=obj.title}close();})};const close=()=>{res.classList.remove('open');inp.setAttribute('aria-expanded','false')};inp.addEventListener('focus',()=>{inp.select();show()});inp.addEventListener('input',()=>{/* Ne pas modifier la sélection enregistrée avant un choix explicite. */show();if(inputId==='teacherViewInput')render()});inp.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Enter'){const b=res.querySelector('button');if(b){e.preventDefault();b.click()}}if(e.key==='ArrowDown'){e.preventDefault();res.querySelector('button')?.focus()}});res.addEventListener('keydown',e=>{if(e.key==='Escape'){close();inp.focus()}if(e.key==='ArrowDown'&&e.target.nextElementSibling){e.preventDefault();e.target.nextElementSibling.focus()}if(e.key==='ArrowUp'){e.preventDefault();if(e.target.previousElementSibling)e.target.previousElementSibling.focus();else inp.focus()}});document.addEventListener('click',e=>{if(!inp.parentElement.parentElement.contains(e.target))close()})}
+function closeDrawer(){$('drawerOverlay').classList.remove('open');$('drawerOverlay').setAttribute('aria-hidden','true');document.body.classList.remove('modal-open');drawerMode=null}
+function error(msg){const el=$('formError');el.textContent=msg;el.classList.remove('hide');el.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function saveDrawer(){if(drawerMode==='spec'){closeDrawer();notify('Simulation de formulaire : aucune donnée réelle modifiée.');return}if(drawerMode==='fiche'){closeDrawer();return}if(drawerMode==='teacher'){const first=$('teacherFirst').value.trim(),last=$('teacherLast').value.trim(),email=$('teacherEmail').value.trim();if(!first||!last)return error('Le prénom et le nom sont obligatoires.');if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return error('Cette adresse e-mail est invalide.');const v={id:form.id||`t${Date.now()}`,first,last,email,department:$('teacherDep').value,status:$('teacherState')?.value||form.status||'active'};if(drawerId)Object.assign(teachers.find(t=>t.id===drawerId),v);else teachers.push(v);closeDrawer();fillSelects();renderTeachers();notify(drawerId?'Enseignant mis à jour (simulation)':'Enseignant ajouté (simulation)');return}
+ saveFormValues();if(!form.classe||(!form.ue&&!form.title)||!form.teacher||!form.date||!form.start||!form.end)return error('Renseignez la classe, l’UE ou l’activité, l’enseignant, la date et les horaires.');if(norm($('combo-class').value)!==norm(getClass(form.classe)?.name)||norm($('combo-teacher').value)!==norm(fullName(getTeacher(form.teacher)))||(form.ue!==null&&norm($('combo-ue').value)!==norm(`${getUe(form.ue)?.code} — ${getUe(form.ue)?.name}`)))return error('Choisissez la classe, l’UE et l’enseignant dans les résultats de recherche.');if(form.start>=form.end)return error('L’heure de fin doit être postérieure à l’heure de début.');if(sessions.some(s=>s.id!==drawerId&&s.status!=='Annulé'&&form.status!=='Annulé'&&s.date===form.date&&form.start<s.end&&s.start<form.end&&(s.teacher===form.teacher||s.classe===form.classe)))return error('Conflit d’horaire : cet enseignant ou cette classe a déjà une séance sur ce créneau.');const v={...form,id:drawerId||`s${Date.now()}`};if(drawerId)Object.assign(sessions.find(s=>s.id===drawerId),v);else sessions.push(v);closeDrawer();render();notify(drawerId?'Séance modifiée (simulation)':'Séance ajoutée (simulation)')}
+function confirm(title,message,yesLabel,action){$('confirmTitle').textContent=title;$('confirmDesc').textContent=message;$('confirmYes').textContent=yesLabel;confirmAction=action;$('confirmOverlay').classList.add('open')}
+function handleAction(act,id){if(act==='reset'){resetFilters();return}if(act==='edit')return openDrawer('session',id);if(act==='join'){notify('Ouverture du lien visio simulée : aucun service externe n’est contacté.');return;}if(act==='fiche')return openDrawer('fiche',id);if(act==='delete'){const s=sessions.find(s=>s.id===id);confirm('Supprimer cette séance ?',`La séance « ${titleOf(s)} » sera retirée de cette démonstration.`, 'Supprimer',()=>{sessions.splice(sessions.findIndex(x=>x.id===id),1);render();notify('Séance supprimée (simulation)')});return}if(act==='editTeacher')return openDrawer('teacher',id);if(act==='deleteTeacher'){const t=teachers.find(t=>t.id===id);confirm('Supprimer cet enseignant ?',`« ${fullName(t)} » sera retiré de cette démonstration.`, 'Supprimer',()=>{teachers.splice(teachers.findIndex(x=>x.id===id),1);renderTeachers();notify('Enseignant supprimé (simulation)')});return}}
+// Navigation and controls
+ document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>setPage(b.dataset.page));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));$('prevWeek').onclick=()=>changeWeek(-1);$('nextWeek').onclick=()=>changeWeek(1);$('thisWeek').onclick=()=>{week=startWeek(new Date());render()};$('newSession').onclick=()=>openDrawer('session');$('newTeacher').onclick=()=>openDrawer('teacher');$('printBtn').onclick=()=>window.print();$('exportBtn').onclick=()=>{notify('Maquette : dans la version finale, cet export utilisera le PDF existant. Pour prévisualiser : Imprimer → Enregistrer au format PDF.');};$('resetFilters').onclick=resetFilters;
+ ['statusFilter','classFilter','teacherClass'].forEach(id=>$(id).onchange=render);$('planningSearch').oninput=render;['teacherListSearch','teacherDepartment','teacherStatus'].forEach(id=>$(id).oninput=()=>{pageTeacher=1;renderTeachers()});$('teacherReset').onclick=()=>{['teacherListSearch','teacherDepartment','teacherStatus'].forEach(id=>$(id).value='');pageTeacher=1;renderTeachers()};$('closeDrawer').onclick=$('cancelDrawer').onclick=closeDrawer;$('saveDrawer').onclick=saveDrawer;$('drawerOverlay').addEventListener('click',e=>{if(e.target===$('drawerOverlay'))closeDrawer()});$('confirmNo').onclick=()=>{$('confirmOverlay').classList.remove('open');confirmAction=null};$('confirmYes').onclick=()=>{const fn=confirmAction;$('confirmOverlay').classList.remove('open');confirmAction=null;fn?.()};document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('confirmOverlay').classList.remove('open');if(drawerMode)closeDrawer()}});document.addEventListener('change',e=>{const sel=e.target.closest('[data-change-status]');if(!sel)return;const s=sessions.find(x=>x.id===sel.dataset.changeStatus);if(s){s.status=sel.value;render();notify('Statut modifié (simulation)')}});document.addEventListener('click',e=>{const action=e.target.closest('[data-act]');if(action&&!action.disabled)handleAction(action.dataset.act,action.dataset.id);const stat=e.target.closest('[data-stat]');if(stat){$('statusFilter').value=stat.dataset.stat;render()}});$('menuBtn').onclick=()=>{$('sidebar').classList.add('open');$('mobileBack').classList.add('open')};$('mobileBack').onclick=()=>{$('sidebar').classList.remove('open');$('mobileBack').classList.remove('open')};
+ fillSelects();setupCombo('teacherViewInput','teacherViewResults','teacher');setView('supervisor');renderTeachers();
+})();
+</script>
+</body></html>

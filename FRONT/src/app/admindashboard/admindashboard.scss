@@ -37,3 +37,83 @@
         overflow: visible !important;
     }
 }
+
+/* AURA V2.2 BLANC & SOBRE — DESIGN_VALIDATED. Shell partagé à toutes les routes /admin.
+   Aucune modification des routes, des rôles ou des données. */
+.aura-academic-shell {
+  --aura-v22-blue: #1649ab;
+  --aura-v22-blue-hover: #103c91;
+  --aura-v22-selection: #eff3ff;
+  --aura-v22-ink: #152744;
+  --aura-v22-muted: #415574;
+  --aura-v22-soft: #7587a0;
+  --aura-v22-bg: #f8fafc;
+  --aura-v22-border: #e4eaf2;
+  --aura-v22-shadow: 0 3px 15px rgba(25,49,87,.035);
+  font-family: 'Manrope', 'Inter', 'Segoe UI', Arial, sans-serif !important;
+  color: var(--aura-v22-ink) !important;
+  background: var(--aura-v22-bg) !important;
+}
+.aura-academic-shell .aura-sidebar {
+  width: 250px !important;
+  background: #fff !important;
+  border-right: 1px solid var(--aura-v22-border) !important;
+  box-shadow: none !important;
+}
+.aura-academic-shell .aura-brand { min-height: 74px; height: 74px; padding: 16px 19px; border-color: var(--aura-v22-border) !important; }
+.aura-academic-shell .aura-brand > div:first-child {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: var(--aura-v22-blue) !important;
+  box-shadow: 0 4px 12px rgba(22,73,171,.09) !important;
+}
+.aura-academic-shell .aura-brand h1 { font-size: 16px; font-weight: 800; color: var(--aura-v22-ink) !important; }
+.aura-academic-shell .aura-brand span:not(.material-symbols-outlined) { font-size: 10px; color: #8292a6 !important; letter-spacing: 1.7px; }
+.aura-academic-shell .aura-nav { padding: 20px 12px 16px; scrollbar-width: thin; scrollbar-color: #d5deec transparent; }
+.aura-academic-shell .aura-nav > div:first-child { color: #7b8ba2 !important; font-size: 10px; letter-spacing: 1.4px; font-weight: 800; margin: 0 8px 12px; }
+.aura-academic-shell .aura-nav a {
+  min-height: 41px; margin: 2px 0; padding: 9px 12px;
+  border-radius: 11px; font-size: 13px; line-height: 1.4;
+  color: #5f7089 !important; font-weight: 600;
+  border: 1px solid transparent; box-shadow: none !important;
+  transition: background .15s ease, color .15s ease;
+}
+.aura-academic-shell .aura-nav a > .material-symbols-outlined { font-size: 20px; color: #7488a4 !important; }
+.aura-academic-shell .aura-nav a:hover { background: #f5f8fc !important; color: var(--aura-v22-blue) !important; }
+.aura-academic-shell .aura-nav a[class*='!bg-'] {
+  color: var(--aura-v22-blue) !important;
+  background: var(--aura-v22-selection) !important;
+  border-color: #e2eafb !important;
+  font-weight: 750; box-shadow: inset 3px 0 var(--aura-v22-blue) !important;
+}
+.aura-academic-shell .aura-nav a[class*='!bg-'] > .material-symbols-outlined { color: var(--aura-v22-blue) !important; }
+.aura-academic-shell .aura-topbar {
+  background: #fff !important;
+  height: 68px !important;
+  border-bottom: 1px solid var(--aura-v22-border) !important;
+  box-shadow: none !important;
+}
+.aura-academic-shell .aura-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; font-size: 12px; color: #8493aa; }
+.aura-academic-shell .aura-breadcrumb strong { color: var(--aura-v22-ink); font-size: 13px; font-weight: 750; }
+.aura-academic-shell .aura-breadcrumb-slash { color: #a6b3c4; }
+.aura-academic-shell .aura-shell-main { background: var(--aura-v22-bg) !important; }
+@media(max-width:1023px) {
+  .aura-academic-shell .aura-sidebar { width: 250px !important; }
+  .aura-academic-shell .aura-topbar { height: 64px !important; }
+}
+@media(max-width:480px) {
+  .aura-academic-shell .aura-topbar { padding: 0 14px !important; }
+  .aura-academic-shell .aura-breadcrumb { gap: 7px; font-size: 11px; }
+  .aura-academic-shell .aura-breadcrumb strong { font-size: 11px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .aura-academic-shell *, .aura-academic-shell *::before, .aura-academic-shell *::after {
+    animation-duration: .01ms !important; transition-duration: .01ms !important;
+  }
+}
+
+/* AURA V2.3 non-regression: only the main content scrolls; topbar stays visible. */
+.aura-academic-shell { height:100dvh; overflow:hidden; }
+.aura-academic-shell > .aura-shell-column { min-height:0; }
+.aura-academic-shell .aura-topbar {position:sticky!important;top:0!important;z-index:45!important;flex-shrink:0!important;}
+.aura-academic-shell .aura-shell-main {min-height:0;overflow-y:auto!important;overscroll-behavior:contain;}
+@media print { .aura-academic-shell {height:auto!important;overflow:visible!important;} .aura-academic-shell .aura-topbar{position:static!important;} }

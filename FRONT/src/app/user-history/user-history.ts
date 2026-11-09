@@ -1,4 +1,6 @@
+import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { AcademicUeSelectComponent } from '../shared/components/academic-ue-select/academic-ue-select';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -10,13 +12,23 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-user-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ConfirmationModalComponent],
+  imports: [AcademicSearchSelectComponent,AcademicUeSelectComponent, CommonModule, FormsModule, RouterModule, ConfirmationModalComponent],
   templateUrl: './user-history.html',
   styleUrl: './user-history.scss',
 })
 export class UserHistoryComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription = new Subscription();
   
+  onHistoryTeacherSelected(value: string | number | null): void {
+    this.filters.teacher = String(value ?? '');
+    this.onTeacherChange();
+  }
+
+  onCourseSelected(value: string | number | null): void {
+    this.filters.course = String(value ?? '');
+    this.applyFilters();
+  }
+
   filters = {
     teacher: '',
     course: '',

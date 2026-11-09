@@ -1,4 +1,4 @@
-<div class="p-6 md:p-8 space-y-6 w-full">
+<div class="aura-uniform-page p-6 md:p-8 space-y-6 w-full">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -8,7 +8,7 @@
                 plateforme de supervision.</p>
         </div>
         <button (click)="openModal()"
-            class="flex items-center gap-2 px-4 py-2.5 font-semibold text-white transition-all rounded-xl bg-[#0f42a5] hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30">
+            class="aura-ui-primary flex items-center gap-2 px-4 py-2.5 font-semibold text-white transition-all rounded-xl bg-[#0f42a5] hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30">
             <span class="material-symbols-outlined text-[20px] lg:text-[24px]">add</span>
             Nouvel Utilisateur
         </button>
@@ -66,7 +66,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 <img loading="lazy" [src]="getAvatar(user.username)" [alt]="user.username"
-                                    class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700">
+                                    class="aura-ui-avatar w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover border border-slate-100 dark:border-slate-700">
                                 <div>
                                     <p class="font-bold text-slate-900 dark:text-white">{{ user.username }}</p>
                                     <p class="text-xs lg:text-sm text-slate-500">{{ user.email }}</p>

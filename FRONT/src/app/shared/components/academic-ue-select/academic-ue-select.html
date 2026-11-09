@@ -1,0 +1,21 @@
+<div class="academic-ue-combobox">
+  <div class="academic-ue-input-wrap">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <input type="search" [value]="query" [placeholder]="placeholder" autocomplete="off"
+      (input)="onInput($event)" (focus)="isOpen = true" (keydown)="onKeydown($event)"
+      role="combobox" [attr.aria-label]="ariaLabel" aria-autocomplete="list" aria-haspopup="listbox"
+      [attr.aria-expanded]="isOpen" [attr.aria-controls]="optionsId"
+      [attr.aria-required]="required"
+      [attr.aria-activedescendant]="isOpen && filteredOptions.length ? optionsId + '-option-' + activeIndex : null">
+    <button *ngIf="query" type="button" aria-label="Effacer la sélection d'UE" (click)="clear()"><span class="material-symbols-outlined">close</span></button>
+  </div>
+  <div *ngIf="isOpen" class="academic-ue-menu" [id]="optionsId" role="listbox">
+    <button type="button" role="option" [attr.aria-selected]="!chosen" class="academic-ue-empty-choice" (mousedown)="$event.preventDefault()" (click)="clear()">{{emptyLabel}}</button>
+    <button type="button" *ngFor="let option of filteredOptions; let i=index" role="option"
+      [id]="optionsId + '-option-' + i" [class.is-active]="i === activeIndex"
+      [attr.aria-selected]="chosen === option" (mousedown)="$event.preventDefault()" (click)="choose(option)">
+      <strong>{{optionLabel(option)}}</strong><small *ngIf="optionDetail(option)">{{optionDetail(option)}}</small>
+    </button>
+    <p *ngIf="!filteredOptions.length" role="status">Aucune UE trouvée</p>
+  </div>
+</div>

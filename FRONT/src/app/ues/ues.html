@@ -1,4 +1,4 @@
-<div class="p-6 md:p-8 space-y-6 w-full h-full overflow-y-auto">
+<div class="aura-uniform-page p-6 md:p-8 space-y-6 w-full h-full overflow-y-auto">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -6,7 +6,7 @@
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez la liste des cours et crédits.</p>
         </div>
         <button (click)="openModal()"
-            class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 transition-all">
+            class="aura-ui-primary flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0f42a5] rounded-xl hover:bg-[#1e3a8a] shadow-sm shadow-blue-500/30 focus:ring-2 focus:ring-blue-500/20 transition-all">
             <span class="material-symbols-outlined text-[20px]">add_box</span>
             Ajouter une UE
         </button>
@@ -56,7 +56,7 @@
                     </tr>
                     <tr *ngFor="let ue of paginatedUEs; trackBy: trackById"
                         class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
-                        <td class="p-4 font-mono text-sm font-bold text-[#0f42a5]">{{ ue.code }}</td>
+                        <td class="p-4 font-sans text-sm font-bold text-[#0f42a5]">{{ ue.code }}</td>
                         <td class="p-4 text-sm font-medium text-slate-900 dark:text-white">{{ ue.name }}</td>
                         <td class="p-4 text-sm text-slate-600">{{ ue.department || '-' }}</td>
                         <td class="p-4 text-center">
@@ -218,11 +218,9 @@
                         <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Parcours</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">domain</span>
-                            <select [(ngModel)]="currentUE.department" name="department"
-                                class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-[#0f42a5]/20 focus:border-[#0f42a5] transition-all">
-                                <option value="" disabled selected>Sélectionner</option>
-                                <option *ngFor="let p of parcoursList" [value]="p.name">{{ p.name }}</option>
-                            </select>
+                            <app-academic-search-select [options]="parcoursList" valueField="name"
+                              [value]="currentUE.department" emptyValue="" ariaLabel="Parcours de l'UE"
+                              placeholder="Rechercher un parcours" (valueChange)="currentUE.department = $event === null ? '' : $event.toString()"></app-academic-search-select>
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
                         </div>
                     </div>
@@ -244,15 +242,19 @@
                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Responsable enseignant</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px]">person</span>
-                        <select [(ngModel)]="currentUE.responsible" name="responsible"
-                            class="w-full h-11 pl-10 pr-10 appearance-none bg-none rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-[#0f42a5]/20 focus:border-[#0f42a5] transition-all">
-                            <option value="" disabled selected>Sélectionner un enseignant</option>
-                            <option *ngFor="let t of teachers" [value]="t.first_name + ' ' + t.last_name">
-                                {{ t.first_name }} {{ t.last_name }}
-                            </option>
-                        </select>
+                        <app-academic-search-select [options]="teachers" valueField="id"
+                          [labelFields]="['first_name','last_name']" [detailFields]="['department','email']"
+                          [value]="responsibleTeacherId" emptyValue="" ariaLabel="Responsable de l'UE"
+                          placeholder="Rechercher un enseignant" (valueChange)="onResponsibleTeacherSelected($event)"></app-academic-search-select>
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] pointer-events-none">expand_more</span>
                     </div>
+                    <p *ngIf="responsibleTeacherId" class="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-700" role="status">
+                      <span class="material-symbols-outlined text-[16px]" aria-hidden="true">check_circle</span>
+                      Enseignant sélectionné : {{ currentUE.responsible || 'Choix enregistré' }}
+                    </p>
+                    <p *ngIf="currentUE.responsible && !responsibleTeacherId" class="mt-2 text-xs text-amber-700" role="status">
+                      Responsable historique : {{ currentUE.responsible }}. Sélectionnez un enseignant pour établir un lien fiable.
+                    </p>
                 </div>
 
                 <!-- Niveau -->

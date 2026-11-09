@@ -1,11 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Firestore, collection, collectionData, doc, docData, setDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
-import { Observable, from } from 'rxjs';
-import { filter, take, switchMap, map } from 'rxjs/operators';
-import { initializeApp, deleteApp } from 'firebase/app';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Firestore, collection, collectionData, doc, docData, query, orderBy } from '@angular/fire/firestore';
+import { Observable, defer, from } from 'rxjs';
+import { filter, switchMap, map } from 'rxjs/operators';
 import { Auth, authState } from '@angular/fire/auth';
-import { getAuth, createUserWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence, inMemoryPersistence } from 'firebase/auth';
 import { environment } from '../../environments/environment';
 
 export interface User {
@@ -13,19 +11,15 @@ export interface User {
   username: string;
   email?: string;
   role: string;
-  // password intentionally omitted as it's handled by Auth
   created_at?: any;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class UserService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
   private http = inject(HttpClient);
-
-  constructor() { }
+  private readonly usersApi = `${environment.apiUrl.replace(/\/$/, '')}/users`;
 
   getAll(): Observable<User[]> {
     const colRef = collection(this.firestore, 'users');
@@ -34,75 +28,66 @@ export class UserService {
       filter(user => !!user),
       switchMap(() => collectionData(q, { idField: 'id' }) as Observable<any[]>),
       map(users => users.map(user => {
-        if (user.created_at && typeof user.created_at.toDate === 'function') {
-          user.created_at = user.created_at.toDate();
-        }
-        return user as User;
+        // Older Firestore profiles may still contain legacy password fields.
+        // Never pass those through to a UI component.
+        const { password: _password, token: _token, ...safe } = user;
+        return {
+          ...safe,
+          created_at: user.created_at?.toDate?.() || user.created_at
+        } as User;
       }))
     );
   }
 
-  // Create a new user in BOTH Firebase Auth and Firestore
-  // Uses a secondary app instance to avoid logging out the current admin
+  private async authorizationHeaders(): Promise<HttpHeaders> {
+    await this.auth.authStateReady();
+    const firebaseUser = this.auth.currentUser;
+    if (!firebaseUser) throw new Error('Une session administrateur valide est requise.');
+    // Fresh Firebase ID token: never trust role in localStorage or send a
+    // password/profile directly from the browser to Firestore.
+    const idToken = await firebaseUser.getIdToken();
+    return new HttpHeaders({ Authorization: `Bearer ${idToken}` });
+  }
+
   create(user: any): Observable<any> {
-    const creationPromise = async () => {
-        const { email, password, username, role } = user;
-        
-        // Create a unique name for the secondary app instance
-        const secondaryAppName = `secondaryApp-${Date.now()}`;
-        const secondaryApp = initializeApp(environment.firebase, secondaryAppName);
-        const secondaryAuth = getAuth(secondaryApp);
-
-        try {
-            await setPersistence(secondaryAuth, inMemoryPersistence);
-            
-            // 1. Create user in Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-            const uid = userCredential.user.uid;
-
-            // 2. Create user profile in Firestore with the same UID
-            const userDocRef = doc(this.firestore, `users/${uid}`);
-            const userData = {
-                username,
-                email,
-                role: role || 'enseignant',
-                created_at: new Date()
-            };
-            
-            await setDoc(userDocRef, userData);
-            
-            // 3. Cleanup: Sign out from the secondary app
-            await signOut(secondaryAuth);
-            
-            return { id: uid, ...userData };
-        } catch (error) {
-            console.error('Error creating user:', error);
-            throw error;
-        } finally {
-            // 4. Delete the secondary app instance to free resources
-            await deleteApp(secondaryApp);
-        }
+    const body = {
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      role: user.role
     };
-
-    return from(creationPromise());
+    return defer(() => from(this.authorizationHeaders())).pipe(
+      switchMap(headers => this.http.post(this.usersApi, body, { headers }))
+    );
   }
 
   update(id: string, user: any): Observable<void> {
-    const docRef = doc(this.firestore, `users/${id}`);
-    // Exclude password from being saved to Firestore
-    const { password, id: userId, ...updateData } = user;
-    return from(updateDoc(docRef, updateData));
+    const body = {
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      ...(user.password ? { password: user.password } : {})
+    };
+    return defer(() => from(this.authorizationHeaders())).pipe(
+      switchMap(headers => this.http.put(`${this.usersApi}/${encodeURIComponent(id)}`, body, { headers })),
+      map(() => void 0)
+    );
   }
 
-  // NOTE: This deletes the Firestore document ONLY. 
-  // It cannot delete the user from Firebase Auth without a backend or Cloud Function.
   delete(id: string): Observable<void> {
-    const docRef = doc(this.firestore, `users/${id}`);
-    return from(deleteDoc(docRef));
+    return defer(() => from(this.authorizationHeaders())).pipe(
+      switchMap(headers => this.http.delete(`${this.usersApi}/${encodeURIComponent(id)}`, { headers })),
+      map(() => void 0)
+    );
   }
 
   getById(id: string): Observable<User> {
     const docRef = doc(this.firestore, `users/${id}`);
-    return docData(docRef, { idField: 'id' }) as Observable<User>;
+    return (docData(docRef, { idField: 'id' }) as Observable<any>).pipe(
+      map(user => {
+        const { password: _password, token: _token, ...safe } = user || {};
+        return safe as User;
+      })
+    );
   }
 }

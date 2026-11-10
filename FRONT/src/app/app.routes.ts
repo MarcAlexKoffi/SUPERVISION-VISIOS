@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard'; // Import AuthGuard
+import { authGuard } from './guards/auth.guard';
+import { academicAdminGuard } from './guards/academic-admin.guard'; // Import AuthGuard
 
 export const routes: Routes = [
     {
@@ -23,6 +24,7 @@ export const routes: Routes = [
             { path: 'teachers', loadComponent: () => import('./teachers/teachers').then(m => m.TeachersComponent) },
             { path: 'ues', loadComponent: () => import('./ues/ues').then(m => m.UesComponent) },
             { path: 'plannings', loadComponent: () => import('./plannings/plannings').then(m => m.Plannings) },
+            { path: 'pilotage-academique', canActivate: [academicAdminGuard], loadComponent: () => import('./academic-pilotage/academic-pilotage').then(m => m.AcademicPilotage) },
             { path: 'formations', loadComponent: () => import('./formations/formations').then(m => m.Formations) },
             { path: 'classes', loadComponent: () => import('./classes/classes').then(m => m.ClassesComponent) },
             { path: 'history', loadComponent: () => import('./history/history').then(m => m.HistoryComponent) },

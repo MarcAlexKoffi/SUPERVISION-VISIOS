@@ -6,6 +6,7 @@ import {
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { firstConflict, isRescheduled, ScheduleSlot, SessionStatus, validateSlot } from './planning-rules';
+import { findDuplicateScheduledExam, isExamPlanning } from '../shared/utils/academic-3b';
 
 export interface Planning extends ScheduleSlot {
   id?: string;
@@ -21,6 +22,9 @@ export interface Planning extends ScheduleSlot {
   start_time?: string;
   end_time: string;
   session_type: string;
+  /** Exam-specific metadata; non-exam activities leave these null. */
+  exam_session?: string | null;
+  exam_period?: string | null;
   platform: string;
   visio_link: string;
   status: SessionStatus;
@@ -122,6 +126,16 @@ export class PlanningService {
     const error = validateSlot(candidate);
     // Status-only edits may still be needed for legacy records without start_time.
     if (error && !legacyOnly) throw new Error(error);
+    if (isExamPlanning(candidate)) {
+      if (!candidate.ue_id || !candidate.classe_id || !candidate.exam_session?.trim()) {
+        throw new Error('Un examen exige une UE, une classe identifiée et une session.');
+      }
+      const duplicate = findDuplicateScheduledExam(
+        candidate,
+        others.map((slot) => ({ ...slot, parcours: slot.parcours ?? undefined }))
+      );
+      if (duplicate) throw new Error('Cet examen est déjà programmé pour cette UE, classe, date et session.');
+    }
     const conflict = firstConflict(candidate, others);
     if (conflict) {
       const person = conflict.teacher_id === candidate.teacher_id ? 'enseignant' : 'classe';
@@ -145,8 +159,8 @@ export class PlanningService {
       const lock = await t.get(guardRef);
       const entries = (lock.data()?.['entries'] || {}) as Record<string, ScheduleSlot>;
       this.check({...entity, id:ref.id}, this.combined(sameDay, entries));
-      t.set(ref, { ...entity, created_at: new Date(), updated_at: new Date() });
-      t.set(guardRef, { entries: { ...entries, [ref.id]:this.slotOf({...entity,id:ref.id}) }, version:(lock.data()?.['version'] || 0)+1 });
+      t.set(ref, this.safeFirestoreValue({ ...entity, created_at: new Date(), updated_at: new Date() }));
+      t.set(guardRef, this.safeFirestoreValue({ entries: { ...entries, [ref.id]:this.slotOf({...entity,id:ref.id}) }, version:(lock.data()?.['version'] || 0)+1 }));
     });
     return {id:ref.id};
   }
@@ -155,8 +169,35 @@ export class PlanningService {
     return from(this.updateAtomic(id, input));
   }
 
+  /**
+   * Firestore refuse les valeurs undefined, notamment dans les anciens slots
+   * sans classe_id/start_time. Ne pas supprimer les null explicites.
+   * Copie profonde des seuls objets ordinaires; conserve Date/Timestamp/intents.
+   */
+  private safeFirestoreValue<T>(value: T): T {
+    if (Array.isArray(value)) {
+      return value.map(v => v === undefined ? null : this.safeFirestoreValue(v)) as T;
+    }
+    if (value && typeof value === 'object') {
+      const proto = Object.getPrototypeOf(value);
+      if (proto === null || Object.getPrototypeOf(proto) === null) {
+        return Object.fromEntries(
+          Object.entries(value).filter(([, v]) => v !== undefined)
+            .map(([k, v]) => [k, this.safeFirestoreValue(v)])
+        ) as T;
+      }
+    }
+    return value;
+  }
+
   private slotOf(p: Planning): ScheduleSlot {
-    return {id:p.id,date:p.date,start_time:p.start_time,end_time:p.end_time,teacher_id:p.teacher_id,classe_id:p.classe_id,parcours:p.parcours,status:p.status};
+    return this.safeFirestoreValue({
+      id:p.id,date:p.date,start_time:p.start_time,end_time:p.end_time,
+      teacher_id:p.teacher_id,classe_id:p.classe_id,parcours:p.parcours,status:p.status,
+      ...(isExamPlanning(p) ? {
+        ue_id:p.ue_id,session_type:p.session_type,exam_session:p.exam_session,exam_period:p.exam_period
+      } : {})
+    });
   }
 
   private async updateAtomic(id: string, input: Partial<Planning> & { change_reason?: string }): Promise<void> {
@@ -194,17 +235,17 @@ export class PlanningService {
       }
       if (candidate.status !== before.status) {
         candidate.status_history = [...(before.status_history || []), {
-          at:new Date().toISOString(), from:before.status, to:candidate.status, reason
+          at:new Date().toISOString(), from:before.status ?? 'Non renseigné', to:candidate.status, reason
         }];
       }
-      t.update(planRef, {...patch,
+      t.update(planRef, this.safeFirestoreValue({...patch,
         ...(candidate.reschedule_history ? {reschedule_history:candidate.reschedule_history}:{}),
         ...(candidate.status_history ? {status_history:candidate.status_history}:{}),
         updated_at: new Date()
-      });
+      }));
       if (before.date !== candidate.date) delete byDate[before.date][id];
       byDate[candidate.date][id] = this.slotOf(candidate);
-      guards.forEach((g,idx) => t.set(g, {entries:byDate[days[idx]],version:(locks[idx].data()?.['version'] || 0)+1}));
+      guards.forEach((g,idx) => t.set(g, this.safeFirestoreValue({entries:byDate[days[idx]],version:(locks[idx].data()?.['version'] || 0)+1})));
     });
   }
 
@@ -227,7 +268,7 @@ export class PlanningService {
       const entries = {...(lock.data()?.['entries'] || {})};
       delete entries[id];
       t.delete(ref);
-      t.set(guard, {entries, version:(lock.data()?.['version'] || 0)+1});
+      t.set(guard, this.safeFirestoreValue({entries, version:(lock.data()?.['version'] || 0)+1}));
     });
   }
 

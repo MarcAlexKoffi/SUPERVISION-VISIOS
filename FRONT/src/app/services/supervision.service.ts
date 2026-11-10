@@ -42,6 +42,7 @@ export class SupervisionService {
       const planning = await tx.get(planningRef);
       if (!planning.exists()) throw new Error('La séance du planning est introuvable.');
       if (planning.data()['status'] === 'Annulé') throw new Error('Une séance annulée ne peut pas être supervisée.');
+      this.validatePlanningRelation(newData, planning.data());
       if (expectedFingerprint && planningFingerprint(planning.data() as any) !== expectedFingerprint) {
         throw new Error('La séance a été reprogrammée depuis l’ouverture de la fiche. Rechargez-la avant de continuer.');
       }
@@ -52,9 +53,43 @@ export class SupervisionService {
     }));
   }
 
+  /**
+   * The status transition is atomic for both newly created AND edited linked
+   * forms. Unlinked historical forms never change an arbitrary schedule.
+   */
   update(id: string, data: any): Observable<void> {
     const docRef = doc(this.firestore, `supervisions/${id}`);
-    return from(updateDoc(docRef, data));
+    const {planning_slot_fingerprint: _fingerprint, ...fields}=data;
+    if (!fields.planning_id) return from(updateDoc(docRef, fields));
+    const planningRef=doc(this.firestore, 'plannings', fields.planning_id);
+    return from(runTransaction(this.firestore, async tx=>{
+      const existing=await tx.get(docRef);
+      const planning=await tx.get(planningRef);
+      if (!existing.exists()) throw new Error('Fiche introuvable.');
+      if (existing.data()['planning_id'] !== fields.planning_id) {
+        throw new Error('Impossible de changer la séance liée lors d’une modification de fiche.');
+      }
+      if (!planning.exists()) throw new Error('La séance liée est introuvable.');
+      if (planning.data()['status']==='Annulé') throw new Error('Une séance annulée ne peut pas être supervisée.');
+      if (planning.data()['supervision_id'] && planning.data()['supervision_id']!==id) {
+        throw new Error('Une autre fiche supervise déjà cette séance.');
+      }
+      this.validatePlanningRelation(fields,planning.data());
+      tx.update(docRef,fields);
+      tx.update(planningRef,{supervision_id:id,status:'Supervisé',updated_at:new Date()});
+    }));
+  }
+
+  private validatePlanningRelation(form:any,planning:any):void {
+    if (form.teacherId && planning['teacher_id'] && String(form.teacherId)!==String(planning['teacher_id'])) {
+      throw new Error('L’enseignant de la fiche ne correspond pas à la séance.');
+    }
+    if (form.ueId && planning['ue_id'] && String(form.ueId)!==String(planning['ue_id'])) {
+      throw new Error('L’UE de la fiche ne correspond pas à la séance.');
+    }
+    if (form.date && planning['date'] && form.date!==planning['date']) {
+      throw new Error('La date de la fiche ne correspond pas à la séance programmée.');
+    }
   }
 
   getAll(userId?: string): Observable<any[]> {

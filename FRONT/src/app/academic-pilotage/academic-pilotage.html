@@ -1,0 +1,138 @@
+<div class="pilotage-3b space-y-6 p-5 md:p-8">
+  <header class="p3b-heading">
+    <div>
+      <p class="p3b-eyebrow">UDMCI · SUIVI ACADÉMIQUE</p>
+      <h1>Pilotage académique</h1>
+      <p>Examens, avancement des UE, prévisions et alertes — données du planning et du catalogue.</p>
+      <span class="p3b-hint">Données au {{ currentDate | date:'dd/MM/yyyy' }} · Une estimation n'est pas une date officielle.</span>
+    </div>
+    <div class="p3b-actions">
+      <a routerLink="/admin/plannings" class="p3b-btn p3b-btn-light"><span class="material-symbols-outlined">calendar_month</span> Planning</a>
+      <button type="button" (click)="load()" [disabled]="loading" class="p3b-btn p3b-btn-primary"><span class="material-symbols-outlined">refresh</span> Actualiser</button>
+    </div>
+  </header>
+
+  <div *ngIf="error" class="p3b-notice p3b-error" role="alert">{{error}} <button type="button" (click)="load()">Réessayer</button></div>
+  <div *ngIf="loading" class="p3b-notice" role="status">Chargement des référentiels, séances et supervisions…</div>
+  <div *ngIf="supervisionWarning" class="p3b-notice p3b-warning" role="status">Les fiches de supervision n'ont pas pu être lues. Les séances « Supervisé » restent prises en compte, mais leur rapprochement documentaire est incomplet.</div>
+
+  <ng-container *ngIf="!loading && board as data">
+    <section class="p3b-kpis" aria-label="Synthèse du suivi">
+      <div class="p3b-kpi"><span>UE / classes suivies</span><strong>{{summary.total}}</strong><small>Après filtres</small></div>
+      <div class="p3b-kpi"><span>UE terminées</span><strong>{{summary.completed}}</strong><small>Objectif de séances atteint</small></div>
+      <div class="p3b-kpi"><span>UE en cours</span><strong>{{summary.inProgress}}</strong><small>Séances réalisées</small></div>
+      <div class="p3b-kpi"><span>Non commencées</span><strong>{{summary.notStarted}}</strong><small>Avec objectif défini</small></div>
+      <div class="p3b-kpi p3b-kpi-warning"><span>À paramétrer</span><strong>{{summary.unconfigured}}</strong><small>Objectifs de séances inconnus</small></div>
+      <div class="p3b-kpi p3b-kpi-danger"><span>Alertes critiques</span><strong>{{summary.critical}}</strong><small>Examens à risque</small></div>
+    </section>
+
+    <section class="p3b-filter-card" aria-label="Filtrer le pilotage">
+      <div class="p3b-filter-title"><div><h2>Explorer la progression</h2><p>Parcours, semestre, phase et classe</p></div>
+        <button type="button" class="p3b-link" (click)="resetFilters()">Effacer les filtres</button>
+      </div>
+      <div class="p3b-filters">
+        <label>Rechercher une UE <input type="search" [(ngModel)]="search" (ngModelChange)="resetPage()" placeholder="Code, intitulé, enseignant…" autocomplete="off"></label>
+        <label>Parcours <select [(ngModel)]="parcoursFilter" (ngModelChange)="resetPage()"><option value="">Tous</option><option *ngFor="let p of parcoursOptions" [value]="p">{{p}}</option></select></label>
+        <label>Semestre <select [(ngModel)]="semesterFilter" (ngModelChange)="resetPage()"><option value="">Tous</option><option *ngFor="let s of semesterOptions" [value]="s">{{s}}</option></select></label>
+        <label>Phase <select [(ngModel)]="phaseFilter" (ngModelChange)="resetPage()"><option value="">Toutes</option><option *ngFor="let p of phaseOptions" [value]="p">{{p}}</option></select></label>
+        <label>Classe <select [(ngModel)]="classFilter" (ngModelChange)="resetPage()"><option value="">Toutes</option><option *ngFor="let c of classOptions" [value]="c">{{c}}</option></select></label>
+        <label>Progression <select [(ngModel)]="statusFilter" (ngModelChange)="resetPage()"><option value="">Toutes</option><option value="terminee">Terminées</option><option value="en_cours">En cours</option><option value="non_commencee">Non commencées</option><option value="a_parametrer">À paramétrer</option></select></label>
+      </div>
+    </section>
+
+    <div class="p3b-two-columns">
+      <section class="p3b-panel" aria-label="Examens à venir">
+        <div class="p3b-panel-head"><div><p class="p3b-eyebrow">30 PROCHAINS JOURS</p><h2>Examens à venir</h2></div><span class="p3b-counter">{{filteredExams.length}}</span></div>
+        <div *ngIf="!filteredExams.length" class="p3b-empty">Aucun examen renseigné dans les 30 prochains jours pour ces filtres.</div>
+        <div *ngFor="let entry of examsPreview" class="p3b-exam">
+          <div class="p3b-exam-date"><strong>{{entry.exam.date | date:'dd'}}</strong><span>{{entry.exam.date | date:'MMM'}}</span></div>
+          <div><strong>{{entry.ue_name}}</strong><p>{{entry.class_name}} · {{entry.exam.session}}<span *ngIf="entry.exam.period"> · {{entry.exam.period}}</span><span *ngIf="entry.exam.start_time"> · {{entry.exam.start_time}}<span *ngIf="entry.exam.end_time">–{{entry.exam.end_time}}</span></span><span *ngIf="entry.exam.source==='planning'"> · Planning</span></p>
+            <small *ngIf="entry.remaining!==null && entry.remaining>0" class="p3b-risk">{{entry.remaining}} séance(s) encore nécessaires</small>
+            <small *ngIf="entry.remaining===null">Objectif de séances non renseigné</small>
+          </div>
+        </div>
+        <div *ngIf="filteredExams.length>examsPreview.length" class="p3b-footnote">{{filteredExams.length-examsPreview.length}} autre(s) examen(s) — affinez les filtres.</div>
+      </section>
+      <section class="p3b-panel" aria-label="Alertes académiques">
+        <div class="p3b-panel-head"><div><p class="p3b-eyebrow">À TRAITER</p><h2>Alertes académiques</h2></div><span class="p3b-counter">{{filteredAlerts.length}}</span></div>
+        <div *ngIf="!filteredAlerts.length" class="p3b-empty">Aucune alerte pour cette sélection.</div>
+        <div *ngFor="let alert of alertsPreview" class="p3b-alert" [class.critical]="alert.severity==='critique'" [class.informational]="alert.severity==='information'">
+          <span class="material-symbols-outlined">{{ alert.severity==='critique'?'warning':alert.severity==='important'?'report_problem':'info'}}</span>
+          <div><strong>{{alert.title}}</strong><p>{{alert.detail}}</p><small>UE {{alert.ue_id}}</small></div>
+        </div>
+        <div *ngIf="filteredAlerts.length>alertsPreview.length" class="p3b-footnote">{{filteredAlerts.length-alertsPreview.length}} autre(s) alerte(s) — affinez les filtres.</div>
+      </section>
+    </div>
+
+    <section class="p3b-panel p3b-table-panel" aria-label="Suivi des unités d’enseignement">
+      <div class="p3b-panel-head"><div><p class="p3b-eyebrow">COURS ET ÉCHÉANCES</p><h2>Progression des UE</h2></div><span class="p3b-counter">{{filteredRows.length}} résultat(s)</span></div>
+      <p class="p3b-explainer">« Réalisée » signifie séance supervisée ou liée à une fiche ; les séances annulées et les activités sans UE ne sont pas comptées.</p>
+      <div class="p3b-table-scroll"><table class="p3b-table">
+        <thead><tr><th>UE / parcours</th><th>Classe · Phase</th><th>Réalisées / cible</th><th>Statut</th><th>Kit</th><th>Examen</th><th>Fin prévue</th><th *ngIf="isAdmin">Actions</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let r of displayedRows; trackBy: trackById">
+            <td><strong>{{r.ue_name || r.ue_code}}</strong><small>{{r.ue_code}} · {{r.department}} · {{r.semester}}</small></td>
+            <td><span>{{r.class_name}}</span><small>Phase {{r.phase}}</small></td>
+            <td><strong>{{r.completed}} / {{r.required===null?'—':r.required}}</strong><div class="p3b-progress" *ngIf="r.progress!==null"><span [style.width.%]="r.progress"></span></div><small *ngIf="r.progress!==null">{{r.progress}} % · {{r.scheduledFuture}} future(s)</small><small *ngIf="r.progress===null">Objectif inconnu</small></td>
+            <td><span class="p3b-status" [ngClass]="r.status">{{statusLabel(r)}}</span></td>
+            <td><span class="p3b-kit" [ngClass]="r.kit">{{kitLabel(r)}}</span></td>
+            <td>{{r.exam ? (r.exam.date | date:'dd/MM/yyyy') : '—'}}<small *ngIf="r.exam">{{r.exam.session}}</small></td>
+            <td><span>{{r.forecastDate ? (r.forecastDate | date:'dd/MM/yyyy') : 'Indisponible'}}</span><small>{{forecastLabel(r)}}</small></td>
+            <td *ngIf="isAdmin"><button type="button" class="p3b-edit" (click)="openEditor(r)" [attr.aria-label]="'Paramétrer l’UE '+r.ue_name">Paramétrer</button></td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div *ngIf="!filteredRows.length" class="p3b-empty">Aucune UE ne correspond à la sélection.</div>
+      <div class="p3b-pagination"><span>Page {{currentPage}} / {{pageCount}}</span>
+        <div><button type="button" (click)="changePage(-1)" [disabled]="currentPage<=1">Précédent</button><button type="button" (click)="changePage(1)" [disabled]="currentPage>=pageCount">Suivant</button></div>
+      </div>
+    </section>
+
+    <div class="p3b-two-columns">
+      <section class="p3b-panel" aria-label="Prévisions par phase">
+        <div class="p3b-panel-head"><div><p class="p3b-eyebrow">SYNTHÈSE</p><h2>Fin prévisionnelle des phases</h2></div></div>
+        <p class="p3b-explainer">Une date n'est affichée que si toutes les UE concernées disposent d'une prévision.</p>
+        <div class="p3b-table-scroll"><table class="p3b-table p3b-mini"><thead><tr><th>Parcours / classe</th><th>Phase</th><th>UE terminées</th><th>Fin</th></tr></thead>
+          <tbody><tr *ngFor="let g of filteredGroups"><td><strong>{{g.department}}</strong><small>{{g.class_name}} · {{g.semester}}</small></td><td>{{g.phase}}</td><td>{{g.completed}} / {{g.total}}</td><td>{{g.forecastDate ? (g.forecastDate | date:'dd/MM/yyyy') : 'Indisponible'}}</td></tr></tbody>
+        </table></div><div *ngIf="!filteredGroups.length" class="p3b-empty">Aucune phase disponible.</div>
+      </section>
+      <section class="p3b-panel" aria-label="Prévisions par semestre">
+        <div class="p3b-panel-head"><div><p class="p3b-eyebrow">SYNTHÈSE</p><h2>Fin prévisionnelle des semestres</h2></div></div>
+        <p class="p3b-explainer">La prévision du semestre correspond à la plus tardive des fins des UE, si toutes sont calculables.</p>
+        <div class="p3b-table-scroll"><table class="p3b-table p3b-mini"><thead><tr><th>Parcours / classe</th><th>Semestre</th><th>UE terminées</th><th>Fin</th></tr></thead>
+          <tbody><tr *ngFor="let g of filteredSemesters"><td><strong>{{g.department}}</strong><small>{{g.class_name}}</small></td><td>{{g.semester}}</td><td>{{g.completed}} / {{g.total}}</td><td>{{g.forecastDate ? (g.forecastDate | date:'dd/MM/yyyy') : 'Indisponible'}}</td></tr></tbody>
+        </table></div><div *ngIf="!filteredSemesters.length" class="p3b-empty">Aucun semestre disponible.</div>
+      </section>
+    </div>
+  </ng-container>
+
+  <!-- Dialogue applicatif : aucune boîte native Chrome. -->
+  <div *ngIf="editor && editorUe" class="p3b-modal-backdrop" role="presentation" (click)="closeEditor()">
+    <section class="p3b-modal" role="dialog" aria-modal="true" aria-labelledby="p3b-dialog-title" (click)="$event.stopPropagation()" (keydown.escape)="closeEditor()">
+      <header class="p3b-modal-head"><div><p class="p3b-eyebrow">PARAMÉTRAGE ACADÉMIQUE</p><h2 id="p3b-dialog-title">{{editorUe.name}}</h2><span>{{editorUe.code}} · {{editorUe.department}}</span></div><button type="button" (click)="closeEditor()" [disabled]="saving" aria-label="Fermer" class="p3b-x">×</button></header>
+      <div class="p3b-modal-body">
+        <div class="p3b-fields"><label>Nombre de séances exigées <input type="number" min="1" max="500" step="1" [(ngModel)]="editor.required_sessions" placeholder="À renseigner"></label>
+        <label>Cadence (séances / semaine) <input type="number" min="0.1" max="14" step="0.5" [(ngModel)]="editor.cadence_per_week" placeholder="Estimation automatique si possible"></label><label>Date de fin cible (facultative) <input type="date" [(ngModel)]="editor.target_end_date"></label></div>
+        <p class="p3b-explainer">Les crédits de l’UE ne sont pas assimilés au nombre de séances. La cadence est facultative : sans historique suffisant ou cadence, une date estimée n’est pas inventée.</p>
+        <div class="p3b-modal-section"><h3>Classes concernées</h3><p>Choisir les classes même lorsqu’aucune séance n’a encore été programmée.</p>
+          <label class="p3b-class-search">Rechercher une classe <input type="search" [(ngModel)]="classSearch" placeholder="Classe ou filière…"></label>
+          <div class="p3b-class-choices"><label *ngFor="let c of matchingClasses"><input type="checkbox" [checked]="hasClass(c.id || '')" (change)="toggleClass(c.id || '', $any($event.target).checked)"> {{c.name}}</label></div>
+          <small *ngIf="!sourceClasses.length">Aucune classe référencée.</small>
+        </div>
+        <div class="p3b-modal-section"><h3>Examens par UE / session</h3>
+          <p class="p3b-explainer">Les examens enregistrés dans le Planning apparaissent automatiquement ici. Pour les déplacer, annuler ou supprimer, modifiez la séance dans le Planning.</p>
+          <div *ngFor="let ex of plannedEditorExams" class="p3b-exam-edit"><div><strong>{{ex.date | date:'dd/MM/yyyy'}}</strong><span>{{ex.session}} · {{ex.period || 'Période non précisée'}} · Examen du Planning</span></div><a routerLink="/admin/plannings" (click)="closeEditor()" class="p3b-btn p3b-btn-light">Ouvrir le Planning</a></div>
+          <div *ngFor="let ex of editor.exams" class="p3b-exam-edit"><div><strong>{{ex.date | date:'dd/MM/yyyy'}}</strong><span>{{ex.session}} · {{ex.period || 'Période non précisée'}}<span *ngIf="ex.class_id"> · {{ex.class_id}}</span></span></div><button type="button" (click)="removeExam(ex.id)" aria-label="Supprimer cette date d'examen">Retirer</button></div>
+          <div class="p3b-exam-fields"><label>Date <input type="date" [(ngModel)]="editorExamDate"></label><label>Session <select [(ngModel)]="editorExamSession"><option>Session ordinaire</option><option>Deuxième session</option><option>Rattrapage</option></select></label><label>Période <input type="text" [(ngModel)]="editorExamPeriod" placeholder="Ex. Phase 4"></label><label>Classe <select [(ngModel)]="editorExamClass"><option value="">Toutes les classes</option><option *ngFor="let c of sourceClasses" [value]="c.id">{{c.name}}</option></select></label><button type="button" (click)="addExam()" class="p3b-btn p3b-btn-light">Ajouter</button></div>
+        </div>
+        <div class="p3b-modal-section"><h3>Kit de démarrage</h3><p>Les pièces ci-dessous sont proposées comme référence initiale ; leur contenu définitif doit être validé par la direction académique.</p>
+          <div class="p3b-kit-edit" *ngFor="let item of editor.kit_items; trackBy: kitTrack"><label><input type="checkbox" [(ngModel)]="item.required"> {{item.label}}</label><div class="p3b-kit-actions"><select [(ngModel)]="item.status" [attr.aria-label]="'État de '+item.label"><option *ngFor="let status of kitStatusOptions" [value]="status.value">{{status.label}}</option></select><button type="button" (click)="removeKitItem(item.key)" [attr.aria-label]="'Retirer '+item.label">Retirer</button></div></div>
+          <div class="p3b-kit-add"><input type="text" [(ngModel)]="newKitName" placeholder="Autre pièce du kit" aria-label="Nouvelle pièce du kit"><button type="button" class="p3b-btn p3b-btn-light" (click)="addKitItem()">Ajouter la pièce</button></div>
+        </div>
+        <div *ngIf="saveError" class="p3b-notice p3b-error" role="alert">{{saveError}}</div>
+      </div>
+      <footer class="p3b-modal-actions"><button type="button" class="p3b-btn p3b-btn-light" (click)="closeEditor()" [disabled]="saving">Annuler</button><button type="button" class="p3b-btn p3b-btn-primary" (click)="save()" [disabled]="saving">{{saving?'Enregistrement…':'Enregistrer les paramètres'}}</button></footer>
+    </section>
+  </div>
+  <div *ngIf="saveSuccess && !editor" class="p3b-toast" role="status">{{saveSuccess}} <button type="button" (click)="saveSuccess=''" aria-label="Fermer">×</button></div>
+</div>

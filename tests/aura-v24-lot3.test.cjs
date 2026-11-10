@@ -44,7 +44,7 @@ test('V2.4: deadline-only sessions keep a one-hour fallback',()=>{
  assert.deepEqual(util.edtHourRange([{end_time:'20:30'}]),{startHour:19,endHour:21});
 });
 test('V2.4: class and teacher share the same Angular calendar',()=>{
- assert.match(planningHtml,/currentView === 'calendar' \|\| currentView === 'teacher'/);
+ assert.match(planningHtml,/currentView === 'calendar' \|\| \(currentView === 'teacher' && !!selectedTeacherForSchedule\)/);
  assert.match(planningHtml,/getTimetableForDay\(day\)/);
  assert.doesNotMatch(planningHtml,/table class="w-full text-sm text-left"/);
 });

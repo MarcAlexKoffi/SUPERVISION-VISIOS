@@ -34,3 +34,17 @@
         border-radius: 0 !important;
     }
 }
+
+/* Choix multi-classes, compatible avec le gabarit de la fiche existante. */
+.supervision-class-toggle{width:100%;min-height:48px;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #d9e4f1;border-radius:12px;color:#14335d;font:600 13px Manrope,Arial,sans-serif;text-align:left}
+.supervision-class-toggle:focus-visible,.supervision-class-choice input:focus-visible{outline:3px solid #83a8ed;outline-offset:2px}
+.supervision-class-toggle .material-symbols-outlined{font-size:20px;color:#4777b5}
+.supervision-class-picker{margin-top:8px;padding:10px;border:1px solid #d9e4f1;border-radius:12px;background:#fbfdff;box-shadow:0 8px 22px rgba(30,57,91,.05)}
+.supervision-class-picker>input{width:100%;padding:10px 12px;border:1px solid #d9e4f1;border-radius:9px;background:white;font-size:13px}
+.supervision-class-list{max-height:215px;overflow:auto;margin-top:8px;display:grid;gap:2px}
+.supervision-class-choice{display:flex;gap:10px;align-items:center;min-height:41px;padding:7px 9px;border-radius:8px;color:#1d3754;font:600 12px Manrope,Arial,sans-serif;cursor:pointer}
+.supervision-class-choice:hover{background:#eef4fc}
+.supervision-class-choice input{accent-color:#1649ab;width:16px;height:16px}
+.supervision-class-choice small{margin-left:auto;color:#70839a;font-size:11px;white-space:nowrap}
+.supervision-class-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.supervision-class-chips span{padding:5px 9px;border-radius:7px;border:1px solid #d5e5f9;background:#eff5ff;color:#214c89;font-size:11px;font-weight:700}

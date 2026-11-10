@@ -58,8 +58,12 @@ export class UeService {
 
   update(id: string, ue: any): Observable<void> {
     const docRef = doc(this.firestore, `ues/${id}`);
-    // Exclude fields that shouldn't be updated if necessary
-    return from(updateDoc(docRef, ue));
+    // LOT 3B : le formulaire UE classique ne peut pas écraser des paramètres
+    // de suivi modifiés par un autre admin. Ils ont leur propre transaction.
+    const { id: _id, academic3b: _tracking, academic3b_revision: _revision,
+      academic3b_updated_at: _updatedAt, academic3b_updated_by: _updatedBy,
+      ...businessFields } = ue;
+    return from(updateDoc(docRef, businessFields));
   }
 
   delete(id: string): Observable<void> {

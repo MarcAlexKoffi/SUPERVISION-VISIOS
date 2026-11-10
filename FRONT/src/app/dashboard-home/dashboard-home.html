@@ -1,116 +1,98 @@
 <div class="p-6 md:p-8 space-y-6 w-full">
 
-    <!-- AURA V2.3 — tableau de bord opérationnel, données réelles et portée temporelle explicite. -->
-    <section *ngIf="isAdmin" class="aura-dash-v23" aria-label="Tableau de bord de supervision">
-      <header class="aura-dash-heading">
-        <div><div class="aura-dash-eyebrow">PILOTAGE ACADÉMIQUE</div>
+    <!-- AURA PREMIUM : accueil synthétique, données réelles, sans catalogues ni panneaux décoratifs. -->
+    <section *ngIf="isAdmin" class="aura-dash-v23 premium-dashboard" aria-label="Tableau de bord de supervision">
+      <header class="aura-dash-heading premium-heading">
+        <div>
+          <span class="aura-dash-eyebrow">SUPERVISION ACADÉMIQUE</span>
           <h1>Tableau de bord</h1>
-          <p>Organisez les prochaines séances, suivez vos supervisions et accédez aux actions utiles.</p>
+          <p>Les informations essentielles pour organiser et suivre les visios.</p>
         </div>
-        <a routerLink="/admin/plannings" [queryParams]="{add:1}" class="aura-dash-primary"><span class="material-symbols-outlined">add_circle</span> Planifier une séance</a>
+        <a routerLink="/admin/plannings" [queryParams]="{add:1}" class="aura-dash-primary"><span class="material-symbols-outlined">add</span> Planifier une séance</a>
       </header>
-              <!-- Restore Banner -->
-        <div *ngIf="localUEsCount > 0"
-            class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-amber-600">history</span>
-                </div>
-                <div>
-                    <h3 class="font-bold text-amber-900">Données locales détectées</h3>
-                    <p class="text-amber-700 text-sm mt-1">
-                        Nous avons trouvé {{ localUEsCount }} unités d'enseignement sauvegardées dans votre navigateur.
-                        Voulez-vous les importer dans la nouvelle base de données ?
-                    </p>
-                </div>
-            </div>
-            <button (click)="restoreLocalUEs()" [disabled]="isRestoring"
-                class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
-                {{ isRestoring ? 'Importation...' : 'Restaurer les données' }}
-            </button>
+
+      <div *ngIf="localUEsCount > 0" class="premium-restore" role="status">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span>{{localUEsCount}} UE locales à restaurer.</span>
+        <button type="button" (click)="restoreLocalUEs()" [disabled]="isRestoring">{{isRestoring ? 'Restauration…' : 'Restaurer'}}</button>
+      </div>
+
+      <div class="premium-overview">
+        <div class="premium-week">
+          <span class="material-symbols-outlined">calendar_today</span>
+          <div><strong>Vue d'ensemble</strong><span>Semaine du {{dashboardWeekLabel}}</span></div>
         </div>
-
-
-      <div class="aura-dash-period">
-        <div><strong>Vue hebdomadaire</strong><span>Indicateurs des séances du {{dashboardWeekLabel}}</span></div>
         <div class="aura-dash-week-actions">
           <button type="button" (click)="dashboardMoveWeek(-1)" aria-label="Semaine précédente"><span class="material-symbols-outlined">chevron_left</span></button>
-          <span>{{dashboardWeekLabel}}</span>
           <button type="button" (click)="dashboardMoveWeek(1)" aria-label="Semaine suivante"><span class="material-symbols-outlined">chevron_right</span></button>
           <button type="button" class="aura-dash-today" (click)="dashboardToday()">Cette semaine</button>
         </div>
       </div>
-      <div *ngIf="dashboardLoadState==='error'" class="aura-dash-alert" role="alert">
-        Impossible de récupérer les séances. Vérifiez votre connexion ; les indicateurs ne sont pas remplacés par de faux zéros.
+
+      <div *ngIf="dashboardLoadState==='error'" class="premium-error" role="alert">
+        <span class="material-symbols-outlined">wifi_off</span>
+        <div><strong>Impossible de charger les séances.</strong><p>Les indicateurs ne sont pas remplacés par des valeurs fictives.</p></div>
         <button type="button" (click)="retryDashboardPlanning()">Réessayer</button>
       </div>
-      <div class="aura-dash-metrics">
-        <a routerLink="/admin/plannings" [queryParams]="{week:dateKeyForPlanning}" class="aura-dash-metric"><span class="aura-dash-metric-icon blue"><span class="material-symbols-outlined">calendar_month</span></span>
-          <span class="aura-dash-metric-title">Séances programmées</span><strong>{{dashboardLoadState==='ready'? dashboardPlannedCount : '—'}}</strong><small>Sur la semaine sélectionnée <span class="material-symbols-outlined">arrow_outward</span></small></a>
-        <a routerLink="/admin/plannings" [queryParams]="{status:'À superviser',week:dateKeyForPlanning}" class="aura-dash-metric"><span class="aura-dash-metric-icon amber"><span class="material-symbols-outlined">schedule</span></span>
-          <span class="aura-dash-metric-title">À superviser</span><strong>{{dashboardLoadState==='ready'? dashboardPendingCount : '—'}}</strong><small>Séances en attente <span class="material-symbols-outlined">arrow_outward</span></small></a>
-        <a routerLink="/admin/plannings" [queryParams]="{status:'Supervisé',week:dateKeyForPlanning}" class="aura-dash-metric"><span class="aura-dash-metric-icon green"><span class="material-symbols-outlined">task_alt</span></span>
-          <span class="aura-dash-metric-title">Statut supervisé</span><strong>{{dashboardLoadState==='ready'? dashboardSupervisedCount : '—'}}</strong><small>Statut de séance, pas validation de fiche <span class="material-symbols-outlined">arrow_outward</span></small></a>
-        <a routerLink="/admin/plannings" [queryParams]="{status:'Annulé',week:dateKeyForPlanning}" class="aura-dash-metric"><span class="aura-dash-metric-icon rose"><span class="material-symbols-outlined">event_busy</span></span>
-          <span class="aura-dash-metric-title">Annulées</span><strong>{{dashboardLoadState==='ready'? dashboardCancelledCount : '—'}}</strong><small>Séances annulées <span class="material-symbols-outlined">arrow_outward</span></small></a>
+      <div *ngIf="dashboardLoadState==='loading'" class="premium-loading" role="status" aria-live="polite">
+        <span class="material-symbols-outlined">progress_activity</span> Chargement des séances de la semaine…
       </div>
-      <div class="aura-dash-columns">
-        <section class="aura-dash-card aura-dash-priorities">
-          <div class="aura-dash-section-heading"><div><span class="aura-dash-eyebrow">À TRAITER</span><h2>Prochaines actions</h2><p>Séances en attente, avec priorité aux retards.</p></div>
+
+      <div class="premium-kpis" aria-label="Indicateurs de pilotage">
+        <a class="premium-kpi" routerLink="/admin/plannings" [queryParams]="{week:dateKeyForPlanning}">
+          <span class="premium-kpi-label">Séances prévues <span class="material-symbols-outlined">calendar_month</span></span>
+          <strong>{{dashboardLoadState==='ready'? dashboardPlannedCount : '—'}}</strong>
+          <small>Visios actives · semaine sélectionnée</small>
+        </a>
+        <a class="premium-kpi" routerLink="/admin/plannings" [queryParams]="{status:'À superviser'}">
+          <span class="premium-kpi-label">À régulariser <span class="material-symbols-outlined">pending_actions</span></span>
+          <strong>{{dashboardLoadState==='ready' ? dashboardOverdueCount : '—'}}</strong>
+          <small>Supervisions en retard · à ce jour</small>
+        </a>
+        <a class="premium-kpi" routerLink="/admin/pilotage-academique">
+          <span class="premium-kpi-label">Alertes actives <span class="material-symbols-outlined">notification_important</span></span>
+          <strong>{{dashboard3bBoard ? dashboardActiveAlerts.length : '—'}}</strong>
+          <small>Anomalies du pilotage académique</small>
+        </a>
+      </div>
+
+      <div class="premium-columns">
+        <section class="premium-panel" aria-labelledby="premiumActionsTitle">
+          <div class="premium-panel-heading"><div><span class="aura-dash-eyebrow">PRIORITÉS</span><h2 id="premiumActionsTitle">À traiter</h2></div>
             <a routerLink="/admin/plannings">Voir le planning <span class="material-symbols-outlined">arrow_forward</span></a></div>
-          <div *ngIf="dashboardLoadState==='loading'" class="aura-dash-empty" role="status">Chargement des prochaines séances…</div>
-          <div *ngIf="dashboardLoadState==='ready' && !dashboardPriorities.length" class="aura-dash-empty"><span class="material-symbols-outlined">event_available</span><strong>Aucune séance en attente</strong><p>Aucune action de supervision planifiée à traiter.</p></div>
-          <div *ngFor="let plan of dashboardPriorities" class="aura-dash-priority">
-            <div class="aura-dash-date"><strong>{{plan.date | date:'dd'}}</strong><small>{{plan.date | date:'MMM'}}</small></div>
-            <div class="aura-dash-priority-main"><strong>{{plan.ue_name || plan.title || 'Séance'}}</strong>
-              <span>{{plan.classe_name || plan.parcours || 'Classe non précisée'}} · {{plan.start_time || 'Horaire non précisé'}}<span *ngIf="plan.teacher_first_name || plan.teacher_last_name"> · {{plan.teacher_first_name}} {{plan.teacher_last_name}}</span></span>
-              <small [class.is-late]="dashboardIsOverdue(plan)">{{dashboardIsOverdue(plan) ? 'En retard' : 'À superviser'}}</small></div>
-            <a *ngIf="plan.ue_id" [routerLink]="['/admin/supervision-form']" [queryParams]="plan.supervision_id ? {id:plan.supervision_id} : {planningId:plan.id}" class="aura-dash-priority-action" aria-label="Ouvrir la fiche liée à cette séance">Fiche <span class="material-symbols-outlined">arrow_forward</span></a>
-            <a *ngIf="!plan.ue_id" routerLink="/admin/plannings" class="aura-dash-priority-action">Planning <span class="material-symbols-outlined">arrow_forward</span></a>
+          <p class="premium-panel-note">Retards et anomalies réelles nécessitant une intervention.</p>
+          <div *ngIf="dashboardLoadState==='ready' && dashboard3bBoard && !dashboardUrgentPlans.length && !dashboardActiveAlerts.length" class="premium-empty">
+            <span class="material-symbols-outlined">task_alt</span><strong>Rien d'urgent à traiter</strong><p>Aucune anomalie ou supervision en retard détectée.</p>
+          </div>
+          <div *ngFor="let plan of dashboardUrgentPlans" class="premium-action-row">
+            <span class="premium-action-icon"><span class="material-symbols-outlined">schedule</span></span>
+            <div><strong>{{plan.ue_name || plan.title || 'Séance'}}</strong>
+              <small>{{plan.date | date:'dd/MM/yyyy'}} · {{plan.classe_name || plan.parcours || 'Classe non renseignée'}} · {{plan.teacher_first_name}} {{plan.teacher_last_name}}</small></div>
+            <a routerLink="/admin/plannings" [queryParams]="{planningId:plan.id,week:plan.date}" [attr.aria-label]="'Examiner la séance du '+plan.date"><span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+          <div *ngFor="let alert of dashboardActiveAlerts.slice(0, Math.max(0, 5-dashboardUrgentPlans.length))" class="premium-action-row">
+            <span class="premium-action-icon"><span class="material-symbols-outlined">error_outline</span></span>
+            <div><strong>{{alert.title}}</strong><small>{{alert.detail}}</small></div>
+            <a routerLink="/admin/pilotage-academique" [attr.aria-label]="'Consulter l’alerte '+alert.title"><span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+          <p *ngIf="dashboardLoadState==='ready' && !dashboard3bBoard && !dashboardUrgentPlans.length" class="premium-panel-note">{{dashboardUesLoadFailed ? 'Alertes académiques indisponibles. Consulter le pilotage détaillé.' : 'Vérification des alertes académiques en cours…'}}</p>
+          <a class="premium-panel-footer" routerLink="/admin/pilotage-academique">Pilotage académique détaillé <span class="material-symbols-outlined">arrow_forward</span></a>
+        </section>
+
+        <section class="premium-panel" aria-labelledby="premiumUpcomingTitle">
+          <div class="premium-panel-heading"><div><span class="aura-dash-eyebrow">AGENDA</span><h2 id="premiumUpcomingTitle">Prochaines séances</h2></div>
+            <a routerLink="/admin/plannings">Calendrier <span class="material-symbols-outlined">arrow_forward</span></a></div>
+          <p class="premium-panel-note">Les cinq prochaines visioconférences programmées.</p>
+          <div *ngIf="dashboardLoadState==='ready' && !dashboardUpcoming.length" class="premium-empty"><span class="material-symbols-outlined">event_available</span><strong>Aucune séance à venir</strong><p>Le Planning permet d'ajouter la prochaine intervention.</p></div>
+          <div *ngFor="let plan of dashboardUpcoming" class="premium-upcoming-row">
+            <span class="premium-date"><strong>{{plan.date | date:'dd'}}</strong><small>{{dashboardMonthLabel(plan.date)}}</small></span>
+            <div><strong>{{plan.ue_name || plan.title || 'Séance'}}</strong>
+              <small>{{plan.start_time || 'Horaire à préciser'}} · {{plan.teacher_first_name}} {{plan.teacher_last_name}}</small>
+              <span>{{plan.classe_name || plan.parcours || 'Classe non renseignée'}}</span></div>
+            <a routerLink="/admin/plannings" [queryParams]="{planningId:plan.id,week:plan.date}" [attr.aria-label]="'Ouvrir la séance du '+plan.date"><span class="material-symbols-outlined">north_east</span></a>
           </div>
         </section>
-        <aside class="aura-dash-side">
-          <section class="aura-dash-card aura-dash-progress"><div class="aura-dash-section-heading"><div><span class="aura-dash-eyebrow">SUIVI DE LA SEMAINE</span><h2>Progression</h2></div></div>
-            <div class="aura-dash-progress-value">{{dashboardLoadState==='ready' && dashboardProgressPercent!==null ? (dashboardProgressPercent+' %') : '—'}}</div>
-            <p>Statuts « Supervisé » parmi les séances actives (annulations exclues).</p>
-            <div class="aura-dash-progress-track" role="progressbar" [attr.aria-valuenow]="dashboardProgressPercent" aria-valuemin="0" aria-valuemax="100" aria-label="Part des séances au statut supervisé"><span [style.width.%]="dashboardProgressPercent || 0"></span></div>
-            <small *ngIf="dashboardLoadState==='ready' && dashboardProgressPercent===null">Aucune séance active cette semaine.</small>
-          </section>
-          <section class="aura-dash-card aura-dash-shortcuts"><div class="aura-dash-section-heading"><div><span class="aura-dash-eyebrow">ACCÈS RAPIDES</span><h2>Raccourcis</h2></div></div>
-            <a routerLink="/admin/supervision-form"><span class="material-symbols-outlined">video_call</span> Fiche synchrone <span class="material-symbols-outlined">arrow_forward</span></a>
-            <a routerLink="/admin/async-supervision"><span class="material-symbols-outlined">forum</span> Fiche asynchrone <span class="material-symbols-outlined">arrow_forward</span></a>
-            <a routerLink="/admin/history"><span class="material-symbols-outlined">history</span> Historique <span class="material-symbols-outlined">arrow_forward</span></a>
-            <a routerLink="/admin/teachers"><span class="material-symbols-outlined">school</span> Enseignants <span class="material-symbols-outlined">arrow_forward</span></a>
-          </section>
-        </aside>
       </div>
-      <section class="aura-dash-card aura-dash-sessions">
-        <div class="aura-dash-section-heading"><div><span class="aura-dash-eyebrow">RECHERCHE RAPIDE</span><h2>Séances de la semaine</h2><p>Filtrez les séances pour retrouver rapidement une intervention.</p></div>
-          <a routerLink="/admin/plannings">Planning complet <span class="material-symbols-outlined">arrow_forward</span></a></div>
-        <div class="aura-dash-filter-row">
-          <div class="aura-dash-filter"><label for="dashboardQuickSearch">Recherche</label><input id="dashboardQuickSearch" type="search" [(ngModel)]="dashboardSearch" placeholder="UE, enseignant, activité…"/></div>
-          <div class="aura-dash-filter"><label>Classe</label><app-academic-search-select [options]="dashboardClasses" valueField="name" [value]="dashboardClass" emptyValue="" emptyLabel="Toutes les classes" ariaLabel="Filtrer par classe" placeholder="Rechercher une classe" (valueChange)="dashboardSelectClass($event)"></app-academic-search-select></div>
-          <div class="aura-dash-filter"><label>UE</label><app-academic-search-select [options]="ues" valueField="id" [detailFields]="['code']" [value]="dashboardUe" emptyValue="" emptyLabel="Toutes les UE" ariaLabel="Filtrer par UE" placeholder="Rechercher une UE" (valueChange)="dashboardSelectUe($event)"></app-academic-search-select></div>
-          <div class="aura-dash-filter"><label>Enseignant</label><app-academic-search-select [options]="dashboardTeachers" valueField="id" [labelFields]="['first_name','last_name']" [value]="dashboardTeacher" emptyValue="" emptyLabel="Tous les enseignants" ariaLabel="Filtrer par enseignant" placeholder="Rechercher un enseignant" (valueChange)="dashboardSelectTeacher($event)"></app-academic-search-select></div>
-          <button class="aura-dash-clear" type="button" (click)="dashboardResetFilters()" [disabled]="!dashboardHasFilters">Effacer</button>
-        </div>
-        <div *ngIf="dashboardLoadState==='ready' && !dashboardQuickRows.length" class="aura-dash-empty"><strong>Aucune séance ne correspond à la sélection.</strong><p>Essayez une autre semaine ou modifiez vos filtres.</p></div>
-        <div *ngIf="dashboardLoadState==='loading'" class="aura-dash-empty" role="status">Chargement des séances…</div>
-        <div class="aura-dash-list" *ngIf="dashboardQuickRows.length && dashboardLoadState==='ready'">
-          <div *ngFor="let plan of dashboardQuickRows" class="aura-dash-list-row"><span>{{plan.date | date:'dd/MM'}} · {{plan.start_time || '—'}}</span>
-            <strong>{{plan.ue_name || plan.title || 'Séance'}}</strong><span>{{plan.classe_name || plan.parcours || '—'}}</span>
-            <small [class.is-done]="plan.status==='Supervisé'" [class.is-cancelled]="plan.status==='Annulé'">{{plan.status}}</small>
-          </div>
-        </div>
-        <p *ngIf="dashboardFilteredPlans.length>8" class="aura-dash-list-more">8 résultats affichés sur {{dashboardFilteredPlans.length}}. Consultez le Planning pour la liste complète.</p>
-      </section>
-      <section class="aura-dash-card aura-dash-activities">
-        <div class="aura-dash-section-heading"><div><span class="aura-dash-eyebrow">JOURNAL</span><h2>Activités récentes</h2></div><a routerLink="/admin/history">Voir l'historique <span class="material-symbols-outlined">arrow_forward</span></a></div>
-        <div *ngIf="activityLoadState==='loading'" class="aura-dash-empty" role="status">Chargement des activités…</div>
-        <div *ngIf="activityLoadState==='error'" class="aura-dash-empty" role="alert">Journal des activités indisponible.</div>
-        <div *ngIf="activityLoadState==='ready' && recentActivities.length===0" class="aura-dash-empty">Aucune activité récente disponible.</div>
-        <div *ngFor="let act of recentActivities" class="aura-dash-activity"><span class="material-symbols-outlined">history</span><div><strong>{{act.action}}</strong><p>{{act.details}}</p><small>{{act.user_name || 'Auteur non renseigné'}} · {{act.parsedDate ? (act.parsedDate | date:'dd/MM/yyyy HH:mm') : 'Date non renseignée'}}</small></div></div>
-      </section>
     </section>
 
     <section *ngIf="!isAdmin" class="aura-dash-v23 aura-dash-user">
@@ -127,7 +109,7 @@
     </section>
 
     <!-- Existing UE inspection and activity section retained without altering actions / APIs. -->
-    <details class="aura-dash-legacy"><summary>Consulter le catalogue des UE et les anciens panneaux <span class="material-symbols-outlined">expand_more</span></summary>
+    <ng-container *ngIf="!isAdmin"><details class="aura-dash-legacy"><summary>Consulter le catalogue des UE et les anciens panneaux <span class="material-symbols-outlined">expand_more</span></summary>
     <!-- COMMON: UE MANAGEMENT -->
     <!-- Two Column Grid -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -250,7 +232,7 @@
         </div>
     </div>
 
-    </details>
+    </details></ng-container>
 
     <!-- Original closing container for Admin was here, removed to keep table common -->
     <!-- Original User View was here, removed to avoid duplication/confusion -->

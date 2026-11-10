@@ -9,7 +9,8 @@ const get = relative => fs.readFileSync(path.join(base, relative), 'utf8');
 const hash = s => crypto.createHash('sha256').update(s.replace(/\r\n/g, '\n')).digest('hex');
 const original = {"ues": "f86efe17791787d3232a3a3fb97a866a6c7b6399bbe67c92aad1cb6b3e5290e7", "users": "61a9d4e8ecd4039ea9093f50f23de673458c92a349c90f16f2fe2a4e2e6591a9", "formations": "45825fccdd75a4b1fb94405eefe04d999507395dc814da402d31a8c2683589fd", "classes": "3186b2f36134ecc7bb210b0ce444a8ff67d0df841f7c40e5c69de170a814ffe9", "history": "bd49316b25c1a42b792de27dcf9229c45e97c459bf9da230115c6132aee7bca9", "user-history": "deb783cdfd8d668c1f3e52f76679920f30eb4a5c86cdd0d37a8e684c464fcce8", "honoraires": "da042f982f0bfb1c82bb31478a63f5ccb5ea870fe195349cc4c1fee4c79a5e68", "user-dashboard": "191a5c0e75b60ef0e6f3473c8c3c67e41cdbbd8562de95ce6bf0d0fcea15ad77", "supervision-form": "874276b895372468c5e555a3180f8e12f194b5046b6018b22d4431468a044de9", "async-supervision-form": "dd110e1481ad09c08b969621187cc7ab233002e2a23749b4b319f1fb48343d1e"};
 const tokens = ["aura-uniform-page ", "aura-form-page ", "aura-ui-primary ", "aura-ui-secondary ", "aura-ui-card ", "aura-ui-avatar "];
-const screens = ['ues', 'users', 'formations', 'classes', 'history', 'user-history', 'honoraires', 'user-dashboard'];
+// LOT 4 owns the honoraires template: tested by lot4-documents.test.cjs.
+const screens = ['ues', 'users', 'formations', 'classes', 'history', 'user-history', 'user-dashboard'];
 const forms = ['supervision-form','async-supervision-form'];
 
 test('Toutes les rubriques secondaires utilisent un gabarit visuel harmonise', () => {
@@ -21,6 +22,19 @@ test('Seules des classes de style ont ete ajoutees aux templates : bindings et f
     let now = get(`app/${name}/${name}.html`);
     // The UE selector is deliberately upgraded in AURA V2.4 (stable teacher ID).
     // Keep the V2.3.1 visual shell check, delegate new behavior to V2.4 tests.
+    if (name === 'supervision-form') {
+      // Nouvelle fonctionnalite confirmee : selection de plusieurs classes et rang automatique.
+      assert.match(now, /supervision-class-picker/);
+      assert.match(now, /sessionNumber/);
+      assert.match(now, /saveForm\(\)/);
+      continue;
+    }
+    if (name === 'honoraires') {
+      // Functional LOT 4 revision: its bindings differ intentionally from V2.3.1.
+      assert.match(now, /class="lot4-page"/);
+      assert.match(now, /\*ngFor="let line of rows"/);
+      continue;
+    }
     if (name === 'ues') {
       assert.match(now, /aura-uniform-page/);
       assert.match(now, /onResponsibleTeacherSelected\(\$event\)/);

@@ -50,6 +50,16 @@
                 Planning Visios
             </a>
 
+            <!-- LOT 3B: accès administrateur, gabarit AURA V2.4 conservé. -->
+            <a *ngIf="isAdmin" (click)="closeSidebar()"
+                class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+                routerLink="/admin/pilotage-academique"
+                routerLinkActive="!bg-[#eef2ff] !text-[#0f42a5] shadow-sm ring-1 ring-[#e0e7ff]"
+                #rlaPilotage="routerLinkActive">
+                <span class="material-symbols-outlined text-[20px] lg:text-[24px] text-slate-500" [class.!text-[#0f42a5]]="rlaPilotage.isActive">insights</span>
+                Pilotage académique
+            </a>
+
             <a (click)="closeSidebar()"
                 class="flex items-center gap-3 px-4 py-3 text-sm lg:text-base font-medium rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white transition-all group"
                 routerLink="/admin/supervision-form"

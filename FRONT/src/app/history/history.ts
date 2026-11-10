@@ -1,4 +1,5 @@
 import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
+import { historyTeacherScope, firstTeacherHistoryCourse } from '../shared/utils/history-teacher-scope';
 import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { combineLatest, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -6,7 +7,7 @@ import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirm
 import { AcademicUeSelectComponent } from '../shared/components/academic-ue-select/academic-ue-select';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { SupervisionService } from '../services/supervision.service';
 import { AsyncSupervisionService } from '../services/async-supervision.service'; // Import Service
 import { AuthService } from '../services/auth.service';
@@ -59,18 +60,33 @@ export class HistoryComponent implements OnInit, OnDestroy {
   // Filters Options
   teachers: string[] = [];
   courses: string[] = [];
-  private coursesCache: { courses: string[]; ues: any[]; options: {name:string;code:string}[] } | null = null;
+  private coursesCache: {
+    teacher: string; courses: string[]; ues: any[]; sync: any[]; async: any[];
+    options: {name:string;code:string}[]
+  } | null = null;
+  private scopeForTeacher(teacher: string) {
+    return historyTeacherScope(
+      teacher, this.supervisions, this.asyncSupervisions,
+      item => this.getAsyncTeacherName(item),
+      item => this.getAsyncUeName(item)
+    );
+  }
   get searchableCourses(): {name:string; code:string}[] {
-    if (this.coursesCache?.courses === this.courses && this.coursesCache.ues === this.uesData) {
-      return this.coursesCache.options;
+    const teacher = this.filters.teacher;
+    const cache = this.coursesCache;
+    if (cache && cache.teacher === teacher && cache.courses === this.courses &&
+        cache.ues === this.uesData && cache.sync === this.supervisions && cache.async === this.asyncSupervisions) {
+      return cache.options;
     }
+    // Teacher => show ONLY UEs found in that teacher's history (sync + async).
+    const scopedNames = teacher ? this.scopeForTeacher(teacher).courses : this.courses;
     const codes = new Map(this.uesData.map(u => [String(u.name ?? ''), String(u.code ?? '')]));
-    const options = this.courses.map(name => ({name,code:codes.get(name) || ''}));
-    this.coursesCache = { courses: this.courses, ues: this.uesData, options };
+    const options = scopedNames.map(name => ({name, code: codes.get(name) || ''}));
+    this.coursesCache = {teacher, courses:this.courses, ues:this.uesData,
+      sync:this.supervisions, async:this.asyncSupervisions, options};
     return options;
   }
 
-  
   // Teachers data for email lookup
   teachersData: any[] = [];
   uesData: any[] = [];
@@ -106,6 +122,13 @@ export class HistoryComponent implements OnInit, OnDestroy {
   isLoading = true;
   currentUser: any = null;
   private subscriptions: Subscription = new Subscription();
+  private pendingSupervisionId='';
+  returnHonorairesFilters:{teacher:string;ue:string;start:string;end:string}|null=null;
+  backToHonoraires():void {
+    if(!this.returnHonorairesFilters)return;
+    const f=this.returnHonorairesFilters;
+    this.router.navigate(['/admin/honoraires'],{queryParams:{teacher:f.teacher,course:f.ue,start:f.start,end:f.end}});
+  }
 
   trackById(index: number, item: any): any {
     return item?.id || index;
@@ -119,10 +142,19 @@ export class HistoryComponent implements OnInit, OnDestroy {
     private ueService: UeService,
     private toastService: ToastService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
+    const params=this.route.snapshot.queryParamMap;
+    const requestedId=params.get('supervisionId')||'';
+    if(/^[a-zA-Z0-9_-]{1,128}$/.test(requestedId))this.pendingSupervisionId=requestedId;
+    if(params.get('fromHonoraires')==='1'){
+      this.returnHonorairesFilters={teacher:params.get('honorairesTeacher')||'',
+        ue:params.get('honorairesUe')||'',start:params.get('honorairesStart')||'',
+        end:params.get('honorairesEnd')||''};
+    }
     this.currentUser = this.authService.currentUserValue;
     this.isAdmin = this.currentUser?.role === 'admin';
     this.loadAllData();
@@ -164,6 +196,10 @@ export class HistoryComponent implements OnInit, OnDestroy {
           // Now safely update filters & views
           this.updateFilters();
           this.applyFilters();
+          if(this.pendingSupervisionId){
+            const found=this.supervisions.find(s=>s.id===this.pendingSupervisionId);
+            if(found){this.pendingSupervisionId='';this.viewDetails(found);}
+          }
           this.isLoading = false;
           this.cdr.detectChanges();
         },
@@ -734,8 +770,17 @@ export class HistoryComponent implements OnInit, OnDestroy {
   }
 
   onTeacherChange() {
-    this.filters.course = '';
+    // Selecting a teacher selects the FIRST UE in the displayed, teacher-scoped
+    // list. Never keep the previous teacher's UE or invent an unavailable UE.
+    const scope = this.filters.teacher ? this.scopeForTeacher(this.filters.teacher) : null;
+    this.coursesCache = null;
+    this.filters.course = firstTeacherHistoryCourse(scope);
+    // Dates are the teacher's complete observed span, even if their first UE
+    // has a narrower period; both dates remain manually adjustable.
+    this.filters.startDate = scope?.startDate ?? '';
+    this.filters.endDate = scope?.endDate ?? '';
     this.applyFilters();
+    this.cdr.markForCheck();
   }
 
   applyFilters() {
@@ -1099,6 +1144,7 @@ export class HistoryComponent implements OnInit, OnDestroy {
     this.showModal = false;
     this.selectedSupervision = null;
     this.filteredHistoryForUE = [];
+    if(this.returnHonorairesFilters) this.backToHonoraires();
   }
 
   printSupervision(supervision: any) {

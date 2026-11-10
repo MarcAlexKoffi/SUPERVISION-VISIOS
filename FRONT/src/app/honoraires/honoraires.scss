@@ -1,6 +1,57 @@
-@media print {
-  @page {
-    margin: 1cm;
-    size: A4 portrait;
-  }
-}
+:host{display:block;background:#f8fafc;min-height:100%;color:#14263e}
+.lot4-page{max-width:1500px;margin:auto;padding:clamp(16px,2.7vw,36px);font-family:inherit}
+.lot4-header,.lot4-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.eyebrow{letter-spacing:.12em;color:#5274a2;font-size:.73rem;font-weight:800;margin:0 0 8px}
+h1{font-size:clamp(1.6rem,2.7vw,2.25rem);letter-spacing:-.04em;line-height:1.1;font-weight:800;margin:0 0 8px}
+h2{font-size:1.13rem;font-weight:800;margin:0 0 5px}.muted{color:#65758e;margin:0;font-size:.9rem}
+.banner{border:1px solid #dbe4f0;background:#eef4fb;color:#2c4f7e;padding:13px 16px;margin:20px 0;border-radius:12px;font-size:.9rem;line-height:1.5}
+.banner-warning{border-color:#f5dca5;background:#fff9ea;color:#80600b}.banner-danger{border-color:#f2c5c5;background:#fff1f0;color:#962c2b}.banner-success{border-color:#b9dbc7;background:#effaf3;color:#24623d}
+.lot4-filters{display:grid;grid-template-columns:repeat(2,minmax(200px,1fr)) repeat(2,minmax(135px,.55fr));gap:13px;padding:20px;background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 4px 18px #102a4309}
+.lot4-filters label{font-size:.79rem;font-weight:750;color:#435574;display:flex;flex-direction:column;gap:8px}
+.lot4-filters select,.lot4-filters input{width:100%;height:43px;border:1px solid #cdd8e6;border-radius:10px;padding:0 12px;background:#fff;color:#173452;font-size:.87rem}
+.lot4-filters input:focus,.lot4-filters select:focus{outline:2px solid #94bff0;outline-offset:1px}
+.lot4-statistics{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:14px;margin:16px 0 25px}
+.lot4-stat{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:18px 19px;display:flex;flex-direction:column;gap:8px}
+.lot4-stat span{color:#5d6c84;font-weight:700;font-size:.82rem}.lot4-stat strong{font-size:1.7rem;line-height:1.1;color:#1b3e70;font-weight:850}.lot4-stat small{font-size:.73rem;color:#8290a3}.lot4-stat-attention strong{color:#ab6630}
+.lot4-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.lot4-checkbox{font-size:.83rem;color:#546882;display:flex;align-items:center;gap:7px;margin-right:8px}
+.btn{border:1px solid #cdd8e6;background:#fff;border-radius:10px;padding:10px 14px;font-size:.83rem;font-weight:800;cursor:pointer}.btn-outline{color:#244f83}.btn-primary{background:#154e9e;border-color:#154e9e;color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed}
+.lot4-alerts{border:1px solid #f1d4a1;background:#fffaf1;border-radius:12px;padding:14px 18px;margin:15px 0;color:#705020;font-size:.84rem}.lot4-alerts ul{margin:7px 0 0;padding-left:20px}
+.lot4-table-container{margin-top:16px;background:#fff;border:1px solid #e0e7f1;border-radius:16px;overflow:auto}
+.lot4-table{border-collapse:collapse;width:100%;min-width:980px;font-size:.81rem}.lot4-table thead{background:#f0f5fb;color:#38506d}.lot4-table th{text-align:left;padding:14px 13px;font-size:.73rem;text-transform:uppercase;letter-spacing:.03em;font-weight:800}.lot4-table td{border-top:1px solid #edf1f6;padding:12px 13px;vertical-align:top;line-height:1.4}.lot4-table tbody tr:hover{background:#fbfdff}.lot4-code{font-size:.73rem;font-weight:800;color:#25558f;display:block}
+.lot4-pill{display:inline-block;border-radius:100px;padding:4px 9px;background:#edf2f7;color:#566478;font-size:.73rem;font-weight:800;white-space:nowrap}.lot4-pill.ok{background:#e6f6ed;color:#236b45}.lot4-pill.review{background:#fff2d5;color:#835500}.lot4-pill.excluded{background:#f1f2f5;color:#737d8c}.lot4-reason{display:block;color:#78859b;font-size:.71rem;max-width:210px;margin-top:5px}.lot4-empty{text-align:center;padding:30px!important;color:#7b8799}
+.lot4-footer{margin-top:20px;font-size:.78rem;color:#7b8a9d}
+@media(max-width:1024px){.lot4-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.lot4-statistics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.lot4-filters{grid-template-columns:1fr}.lot4-statistics{grid-template-columns:1fr 1fr}.lot4-header{align-items:flex-start}.lot4-stat{padding:13px}.lot4-stat strong{font-size:1.3rem}}
+@media print{.lot4-header .btn,.lot4-filters,.lot4-actions,.lot4-alerts{display:none!important}.lot4-page{padding:4mm}.lot4-table-container{overflow:visible}.lot4-table{min-width:0}}
+
+/* Simplicite quotidienne : les analyses secondaires restent accessibles sur demande. */
+.lot4-compact-summary{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:14px 0;padding:12px 16px;background:#f5f8fc;border-radius:12px;color:#42526c;font-size:.88rem}
+.lot4-compact-summary strong{color:#132a4d;font-size:1rem}
+.lot4-main-action{margin:18px 0 22px;align-items:center}
+.lot4-main-action .muted{max-width:560px}
+.lot4-main-action .btn{padding:12px 18px}
+.lot4-diagnostics{border:1px solid #e2e8f0;background:#fff;border-radius:14px;padding:0 18px 16px;margin-top:20px}
+.lot4-diagnostics>summary{cursor:pointer;padding:17px 0;color:#29445f;font-size:.9rem;font-weight:700}
+.lot4-diagnostics>summary:focus-visible{outline:2px solid #154e9e;outline-offset:4px}
+.lot4-diagnostics .lot4-statistics{margin:12px 0}
+.lot4-secondary-actions{display:flex;gap:16px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+@media(max-width:650px){.lot4-main-action{align-items:stretch}.lot4-main-action .btn{width:100%}}
+
+/* Choix explicite uniquement lorsque plusieurs fiches restent possibles. */
+.lot4-manual-match {margin-top: .55rem;}
+.lot4-manual-match label {display: grid; gap: .3rem; font-size: .78rem;}
+.lot4-manual-match select {max-width: min(22rem, 100%); width: 100%; padding: .35rem;}
+.lot4-manual-reset {margin-top: .4rem; font-size: .72rem; padding: .2rem .45rem;}
+
+/* Navigation ciblee : replier les actions pour ne pas encombrer la table. */
+.lot4-inspect{display:block;margin-top:.5rem;padding:.25rem 0;border:0;background:transparent;color:#154e9e;text-decoration:underline;font:inherit;font-weight:700;cursor:pointer}
+.lot4-inspect:focus-visible{outline:2px solid #154e9e;outline-offset:3px}
+.lot4-inspect-panel{display:grid;gap:.45rem;max-width:260px;padding:.7rem;margin-top:.5rem;background:#f5f8fc;border:1px solid #d8e4f1;border-radius:10px}
+.lot4-inspect-panel p{margin:0;color:#455b73;font-size:.75rem}
+.lot4-inspect-panel .btn{text-align:left;padding:.4rem .6rem;font-size:.74rem}
+
+/* Filtres AURA homogènes avec Planning (sélecteurs consultables par recherche). */
+.lot4-filters .lot4-search-field {min-width:0;display:flex;flex-direction:column;gap:8px}
+.lot4-filters .lot4-search-field>label {font-size:.79rem;font-weight:750;color:#435574}
+.lot4-filters app-academic-search-select {width:100%;min-width:0;display:block}
+.lot4-filters input[type=date] {min-height:44px}

@@ -5,6 +5,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { planningFingerprint } from '../services/planning-rules';
 import { PlanningService, Planning } from '../services/planning.service';
+import { numberedCourseSequence } from '../shared/utils/supervision-sequence';
+import { combinedEnrollment } from '../shared/utils/supervision-class-attendance';
+import { firstValueFrom, take } from 'rxjs';
 import { SupervisionService } from '../services/supervision.service';
 import { UeService } from '../services/ue.service';
 import { TeacherService } from '../services/teacher.service';
@@ -49,6 +52,49 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   classesList: any[] = [];
   selectedUECode: string = '';
   selectedTeacherId: string | null = null;
+  // Les tableaux multi-classes s'ajoutent aux champs historiques sans remplacer level.
+  selectedClassIds: string[] = [];
+  classQuery = '';
+  classPickerOpen = false;
+  linkedPrimaryClassId: string | null = null;
+  linkedPrimaryClassName = '';
+  sequenceError = '';
+  get selectedClasses(): any[] {
+    return this.classesList.filter(c => !!c.id && this.selectedClassIds.includes(String(c.id)));
+  }
+  get filteredFormClasses(): any[] {
+    const q = this.classQuery.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    return this.classesList.filter(c => !q || String(c.name || '').normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(q)).slice(0, 35);
+  }
+  get classEffectifIncomplete(): boolean {
+    return combinedEnrollment(this.classesList, this.selectedClassIds).missing.length > 0;
+  }
+  classSelectionChange(classe: any, checked: boolean): void {
+    const id = String(classe.id || '');
+    if (!id || (!checked && (this.linkedPrimaryClassId === id ||
+      (!!this.linkedPrimaryClassName && classe.name === this.linkedPrimaryClassName)))) return;
+    this.selectedClassIds = checked ? [...new Set([...this.selectedClassIds, id])] :
+      this.selectedClassIds.filter(x => x !== id);
+    if (!this.selectedClassIds.length && !this.linkedPrimaryClassId) { this.formData.level = ''; this.formData.totalStudents = 0; }
+    this.onClassChange();
+  }
+  private restorePrimaryClassSelection(): void {
+    if (this.selectedClassIds.length) return;
+    const matches = this.classesList.filter(c => c.name === this.formData.level && !!c.id);
+    if (matches.length === 1) this.selectedClassIds = [String(matches[0].id)];
+  }
+  private recalculateSelectedClasses(): void {
+    this.restorePrimaryClassSelection();
+    const selected = this.selectedClasses;
+    if (!selected.length) return; // Ancien libellé absent du référentiel: ne pas inventer l'effectif.
+    const primary = selected.find(c => c.id === this.linkedPrimaryClassId ||
+      (!!this.linkedPrimaryClassName && c.name === this.linkedPrimaryClassName)) || selected[0];
+    this.formData.level = primary.name;
+    this.formData.totalStudents = combinedEnrollment(this.classesList, this.selectedClassIds).total;
+    this.checkPresentCount();
+  }
+
 
   formData = {
     teacherId: null as string | null,
@@ -142,7 +188,11 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
       next: data => {
         if (!data) {this.prefillError = 'Fiche introuvable.'; return;}
         this.originalSupervision = data;
+        this.selectedClassIds = Array.isArray(data.classIds) ? data.classIds.map(String) :
+          (Array.isArray(data.class_ids) ? data.class_ids.map(String) : []);
+
         this.linkedPlanningId = data.planning_id || null;
+        this.linkedPrimaryClassName = this.linkedPlanningId ? (data.level || data.session?.level || '') : '';
         this.selectedTeacherId = String(data.teacherId || data.teacher_id || data.teacher?.id || '') || null;
         this.formData = {
           teacherId:this.selectedTeacherId,
@@ -163,6 +213,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
           supervisorName:data.supervisorName || data.supervisor?.name || this.authService.currentUserValue?.username || ''
         };
         this.syncSelections();
+        this.recalculateSelectedClasses();
         const supervisorSig = data.supervisorSignature || data.signatures?.supervisor;
         const teacherSig = data.teacherSignature || data.signatures?.teacher;
         if (supervisorSig) this.loadSignature('supervisor',supervisorSig);
@@ -194,6 +245,13 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
           this.ues = [...this.ues, {id:planning.ue_id,code:planning.ue_code,name:planning.ue_name || planning.ue_code}];
         }
         this.formData.level = planning.classe_name || planning.parcours;
+        this.linkedPrimaryClassId = planning.classe_id || null;
+        this.linkedPrimaryClassName = planning.classe_name || planning.parcours || '';
+        this.selectedClassIds = planning.classe_id ? [String(planning.classe_id)] : [];
+        this.formData.sessionNumber = 0;
+        // Rang chronologique du cours pour la même UE, classe et enseignant.
+        // Un enregistrement annulé ne consomme pas un numéro.
+        void this.populateSessionNumber(planning);
         if (this.formData.level && !this.classesList.some(c => c.name === this.formData.level)) {
           this.classesList = [...this.classesList, {id:planning.classe_id,name:this.formData.level,effectif:0}];
         }
@@ -208,6 +266,20 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
       },
       error: () => this.prefillError = 'Impossible de préremplir la séance.'
     });
+  }
+
+  private async populateSessionNumber(planning: Planning): Promise<void> {
+    try {
+      const all = await firstValueFrom(this.planningService.getPlannings().pipe(take(1)));
+      if (this.linkedPlanningId !== planning.id || this.editingId) return;
+      const number = numberedCourseSequence(all, planning);
+      if (number !== null) this.formData.sessionNumber = number;
+      else this.sequenceError = 'Numérotation indisponible : vérifiez l’UE, la classe et la programmation.';
+      this.cdr.detectChanges();
+    } catch {
+      this.sequenceError = 'Impossible de calculer le numéro de séance depuis le Planning.';
+      this.cdr.detectChanges();
+    }
   }
 
   private syncSelections() {
@@ -231,7 +303,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     this.classeService.getAll().subscribe({
       next: (data) => {
         this.classesList = [...data, ...this.classesList.filter(c => c.name === this.formData.level && !data.some(d => d.name === c.name))];
-        this.onClassChange();
+        this.restorePrimaryClassSelection();
+        this.recalculateSelectedClasses();
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error loading classes', err)
@@ -281,11 +354,7 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
   }
 
   onClassChange() {
-    const selectedClass = this.classesList.find(c => c.name === this.formData.level);
-    if (selectedClass) {
-      this.formData.totalStudents = selectedClass.effectif || 0;
-      this.checkPresentCount();
-    }
+    this.recalculateSelectedClasses();
   }
 
   checkPresentCount() {
@@ -310,6 +379,8 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
       try {
         const data = JSON.parse(saved);
         this.formData = { ...this.formData, ...data };
+        this.selectedClassIds = Array.isArray(data.classIds) ? data.classIds.map(String) : [];
+        this.recalculateSelectedClasses();
         delete (this.formData as any).signatures;
 
         if (data.signatures) {
@@ -480,7 +551,9 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
         module: this.formData.module, // ue name
         ueId: this.formData.ueId,
         
-        level: this.formData.level,
+        level: this.formData.level, // classe principale maintenue pour compatibilité
+        classIds: this.selectedClasses.map(c => String(c.id)),
+        classNames: this.selectedClasses.map(c => String(c.name)),
         sessionNumber: this.formData.sessionNumber,
         platform: this.formData.platform,
         
@@ -594,6 +667,10 @@ export class SupervisionForm implements AfterViewInit, OnInit, OnDestroy {
     
     localStorage.removeItem('supervisionFormData');
 
+    this.selectedClassIds = [];
+    this.linkedPrimaryClassId = null;
+    this.linkedPrimaryClassName = '';
+    this.classPickerOpen = false;
     this.formData = {
         teacherId: null,
         ueId: null,

@@ -1,6 +1,6 @@
 import { AcademicSearchSelectComponent } from '../shared/components/academic-search-select/academic-search-select';
 import { normalizeAcademicSearch, filterAcademicUes } from '../shared/utils/academic-search';
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlanningService, Planning } from '../services/planning.service';
@@ -11,7 +11,7 @@ import { ParcoursService } from '../services/parcours.service';
 import { ClasseService } from '../services/classe.service';
 import { NotificationService } from '../services/notification.service';
 import { ActivityService } from '../services/activity.service';
-import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay } from 'date-fns';
+import { startOfWeek, endOfWeek, addWeeks, subWeeks, format, parseISO, isSameDay, startOfMonth, addDays, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -21,7 +21,9 @@ import { SupervisionService } from '../services/supervision.service';
 import { sortedTeacherSchedule, validateSlot } from '../services/planning-rules';
 import { parseDate } from '../shared/utils/date.utils';
 import { activeEdtSessions, edtHourRange, dayKey } from '../shared/utils/edt-week';
+import { isExamPlanning } from '../shared/utils/academic-3b';
 import { exportWeeklyTimetablePdf } from '../shared/utils/edt-pdf';
+import { WeekPickerOverlay } from '../shared/utils/week-picker-overlay';
 
 @Component({
   selector: 'app-plannings',
@@ -43,6 +45,83 @@ export class Plannings implements OnInit, OnDestroy {
   currentDate = new Date();
   weekStart = startOfWeek(this.currentDate, { weekStartsOn: 1 });
   weekEnd = endOfWeek(this.currentDate, { weekStartsOn: 1 });
+  get todayDate(): Date { return new Date(); }
+  weekPickerOpen = false;
+  pickerMonth = startOfMonth(new Date());
+  readonly pickerWeekdayLabels = ['L','M','M','J','V','S','D'];
+  @ViewChild('weekPickerTrigger') weekPickerTrigger?: ElementRef<HTMLButtonElement>;
+  private weekPopup: WeekPickerOverlay | null = null;
+  private readonly repositionPopupOnScroll = () => this.weekPopup?.position();
+  get pickerMonthLabel(): string { return format(this.pickerMonth,'MMMM yyyy',{locale:fr}); }
+  get pickerDays(): Date[] {
+    const first = startOfWeek(startOfMonth(this.pickerMonth),{weekStartsOn:1});
+    return Array.from({length:42},(_,i)=>addDays(first,i));
+  }
+  isPickerToday(day: Date): boolean { return isSameDay(day, new Date()); }
+  isPickerMonth(day: Date): boolean { return day.getMonth()===this.pickerMonth.getMonth() && day.getFullYear()===this.pickerMonth.getFullYear(); }
+  isPickerWeek(day: Date): boolean { return day>=this.weekStart && day<=this.weekEnd; }
+
+  openWeekPicker(): void {
+    if (this.weekPickerOpen) { this.closeWeekPicker(); return; }
+    const trigger = this.weekPickerTrigger?.nativeElement;
+    if (!trigger) return;
+    this.pickerMonth = startOfMonth(this.weekStart);
+    // A native DOM-owned popup avoids relocating Angular-owned template nodes:
+    // its handlers run through NgZone and the week label is updated synchronously.
+    this.weekPopup = new WeekPickerOverlay(trigger, {
+      monthLabel: () => this.pickerMonthLabel,
+      days: () => this.pickerDays,
+      isOutsideMonth: day => !this.isPickerMonth(day),
+      isInSelectedWeek: day => this.isPickerWeek(day),
+      isToday: day => this.isPickerToday(day),
+      onChangeMonth: delta => this.zone.run(() => this.movePickerMonth(delta)),
+      onSelectDay: day => this.zone.run(() => this.jumpToWeek(day)),
+      onToday: () => this.zone.run(() => this.jumpToWeek(this.todayDate))
+    });
+    this.weekPickerOpen = true;
+    this.weekPopup.open();
+    this.cdr.detectChanges();
+  }
+  private closeWeekPicker(returnFocus = false): void {
+    this.weekPopup?.close();
+    this.weekPopup = null;
+    this.weekPickerOpen = false;
+    if (returnFocus) this.weekPickerTrigger?.nativeElement.focus({preventScroll:true});
+    this.cdr.markForCheck();
+  }
+  movePickerMonth(delta: number): void {
+    this.pickerMonth = startOfMonth(addMonths(this.pickerMonth,delta));
+    this.weekPopup?.render();
+  }
+  jumpToWeek(day: Date): void {
+    const selected = new Date(day);
+    if (Number.isNaN(selected.getTime())) return;
+    this.currentDate = selected;
+    this.weekStart = startOfWeek(selected,{weekStartsOn:1});
+    this.weekEnd = endOfWeek(selected,{weekStartsOn:1});
+    this.closeWeekPicker(true);
+    this.updateDaysOfWeek();
+    // Previous popup could trigger an async load without immediately updating
+    // the displayed week. Update it NOW, independently of Firestore latency.
+    this.cdr.detectChanges();
+    this.loadPlannings();
+  }
+  @HostListener('window:resize')
+  onWeekPickerResize(): void { this.weekPopup?.position(); }
+  @HostListener('document:keydown.escape')
+  closeWeekPickerOnEscape(): void {
+    if (!this.weekPickerOpen) return;
+    this.closeWeekPicker(true);
+    this.cdr.detectChanges();
+  }
+  @HostListener('document:pointerdown',['$event'])
+  closeWeekPickerOnOutside(event: PointerEvent): void {
+    if (!this.weekPickerOpen || !(event.target instanceof Node)) return;
+    const target = event.target;
+    if (this.weekPickerTrigger?.nativeElement.contains(target) || this.weekPopup?.contains(target)) return;
+    this.closeWeekPicker();
+    this.cdr.detectChanges();
+  }
 
   // Data
   plannings: Planning[] = [];
@@ -51,6 +130,14 @@ export class Plannings implements OnInit, OnDestroy {
   databaseClasses: any[] = [];
   
   private planningsSubscription: Subscription | null = null;
+  private pendingPlanningId='';
+  private targetLookupStarted=false;
+  returnHonorairesFilters:{teacher:string;ue:string;start:string;end:string}|null=null;
+  backToHonoraires():void {
+    if(!this.returnHonorairesFilters)return;
+    const f=this.returnHonorairesFilters;
+    this.router.navigate(['/admin/honoraires'],{queryParams:{teacher:f.teacher,course:f.ue,start:f.start,end:f.end}});
+  }
 
   // View State
   currentView: 'supervisor' | 'calendar' | 'teacher' = 'supervisor';
@@ -76,6 +163,24 @@ export class Plannings implements OnInit, OnDestroy {
   modalUeActiveIndex = 0;
   private modalTrigger: HTMLElement | null = null;
   @ViewChild('planningDialog') planningDialog?: ElementRef<HTMLElement>;
+  @ViewChild('planningDrawerBody') planningDrawerBody?: ElementRef<HTMLElement>;
+
+  // Le panneau doit appartenir au viewport, et non au conteneur central
+  // qui defile dans le shell admin. Ne deplacer que le noeud DOM : Angular
+  // conserve ses bindings, evenements, focus et cycle de vie.
+  private planningOverlayElement: HTMLElement | null = null;
+  @ViewChild('planningOverlay')
+  set planningOverlay(ref: ElementRef<HTMLElement> | undefined) {
+    const element = ref?.nativeElement ?? null;
+    if (!element) {
+      this.planningOverlayElement = null;
+      return;
+    }
+    this.planningOverlayElement = element;
+    if (typeof document !== 'undefined' && element.parentElement !== document.body) {
+      document.body.appendChild(element);
+    }
+  }
 
   private normalizeSearch(value: unknown): string {
     return normalizeAcademicSearch(value);
@@ -262,9 +367,6 @@ export class Plannings implements OnInit, OnDestroy {
   }
   changeView(next: 'supervisor' | 'calendar' | 'teacher') {
     this.currentView = next;
-    if (next === 'teacher' && !this.selectedTeacherForSchedule && this.teachers.length) {
-      this.selectTeacherForSchedule(this.teachers[0]);
-    }
     this.loadPlannings();
   }
 
@@ -301,7 +403,43 @@ export class Plannings implements OnInit, OnDestroy {
   // Modal State
   isAddModalOpen = false;
   isEditMode = false;
-  isActivityMode = false; // New flag
+  isActivityMode = false; // Existing planning modes
+  get isExamMode(): boolean { return this.isActivityMode && this.modalData.session_type === 'Examen'; }
+
+  setActivityMode(activity: boolean): void {
+    this.isActivityMode = activity;
+    this.modalData.ue_id = null;
+    this.ueSearch = '';
+    this.modalUeOpen = false;
+    this.modalData.title = activity ? '' : undefined;
+    this.modalData.exam_session = null;
+    this.modalData.exam_period = null;
+    this.modalData.session_type = activity ? 'Autre' : 'CM';
+    // Changing the mode changes the fields above the fold: start at the form top.
+    const body = this.planningDrawerBody?.nativeElement;
+    if (body && typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => { if (body.isConnected) body.scrollTop = 0; });
+    }
+  }
+
+  onSessionTypeSelected(value: string): void {
+    // La selection du type ne doit jamais faire defiler le panneau lui-meme.
+    // Le navigateur gere la visibilite du radio dans le corps defilant.
+    // Retirer la compensation manuelle de position qui deplacait
+    // le contenu lors de l'insertion des champs conditionnels "Examen".
+    this.modalData.session_type = value;
+    if (this.isExamMode) {
+      this.modalData.exam_session ||= 'Session ordinaire';
+      this.modalData.title = undefined;
+    } else {
+      this.modalData.exam_session = null;
+      this.modalData.exam_period = null;
+      if (this.isActivityMode) {
+        this.modalData.ue_id = null;
+        this.ueSearch = '';
+      }
+    }
+  }
   modalData: Partial<Planning> = this.getEmptyPlanning();
 
   daysOfWeek: Date[] = [];
@@ -320,12 +458,20 @@ export class Plannings implements OnInit, OnDestroy {
     private supervisionService: SupervisionService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) {}
 
   ngOnInit() {
     // Deep links from operational dashboard are explicit, validated filters.
     const params = this.route.snapshot.queryParamMap;
+    const requestedId=params.get('planningId')||'';
+    if (/^[a-zA-Z0-9_-]{1,128}$/.test(requestedId)) this.pendingPlanningId=requestedId;
+    if(params.get('fromHonoraires')==='1') {
+      this.returnHonorairesFilters={teacher:params.get('honorairesTeacher')||'',
+        ue:params.get('honorairesUe')||'',start:params.get('honorairesStart')||'',
+        end:params.get('honorairesEnd')||''};
+    }
     const status = params.get('status');
     if (status && ['À superviser','Supervisé','Annulé'].includes(status)) this.selectedStatus = status;
     const week = params.get('week');
@@ -337,6 +483,7 @@ export class Plannings implements OnInit, OnDestroy {
         this.weekEnd = endOfWeek(parsed, {weekStartsOn:1});
       }
     }
+    if (typeof document !== 'undefined') document.addEventListener('scroll', this.repositionPopupOnScroll, true);
     this.updateDaysOfWeek();
     this.loadUesAndTeachers();
     this.loadParcours();
@@ -345,6 +492,14 @@ export class Plannings implements OnInit, OnDestroy {
   }
   
   ngOnDestroy() {
+      if (typeof document !== 'undefined') document.removeEventListener('scroll', this.repositionPopupOnScroll, true);
+      this.weekPopup?.close();
+      this.weekPopup = null;
+      this.weekPickerOpen = false;
+      // Protection si la route est quittee pendant qu'un panneau est ouvert.
+      // Aucun element de l'ancien ecran ne doit rester dans document.body.
+      this.planningOverlayElement?.remove();
+      this.planningOverlayElement = null;
       if (this.planningsSubscription) { this.planningsSubscription.unsubscribe(); }
       this.subscriptions.unsubscribe();
   }
@@ -384,7 +539,7 @@ export class Plannings implements OnInit, OnDestroy {
     );
     this.subscriptions.add(
       this.teacherService.getAll().subscribe({
-        next: (data) => { this.teachers = data; if (!this.selectedTeacherForSchedule && data.length) this.selectTeacherForSchedule(data[0]); this.cdr.detectChanges(); },
+        next: (data) => { this.teachers = data; this.cdr.detectChanges(); },
         error: () => this.toastService.error('Erreur de chargement des enseignants'),
       })
     );
@@ -411,7 +566,28 @@ export class Plannings implements OnInit, OnDestroy {
     };
 
     this.planningsSubscription = this.planningService.getPlannings(filters).subscribe({
-      next: (data) => { this.plannings = data; this.isScheduleLoading = false; this.cdr.detectChanges(); },
+      next: (data) => {
+        this.plannings = data; this.isScheduleLoading = false;
+        if(this.pendingPlanningId){
+          const target=data.find(p=>p.id===this.pendingPlanningId);
+          if(target){this.pendingPlanningId='';this.openEditModal(target);}
+          else if(!this.targetLookupStarted){
+            this.targetLookupStarted=true;
+            const id=this.pendingPlanningId;
+            this.subscriptions.add(this.planningService.getById(id).subscribe({
+              next:plan=>{
+                if(this.pendingPlanningId!==id)return;
+                this.pendingPlanningId='';
+                if(plan)this.openEditModal(plan);
+                else this.toastService.error('Séance ciblée introuvable dans le Planning.');
+                this.cdr.detectChanges();
+              },
+              error:()=>{this.pendingPlanningId='';this.toastService.error('Impossible d’ouvrir la séance ciblée.');}
+            }));
+          }
+        }
+        this.cdr.detectChanges();
+      },
       error: () => {this.isScheduleLoading = false; this.scheduleError = 'Erreur lors du chargement des plannings'; this.toastService.error(this.scheduleError); this.cdr.detectChanges();},
     });
   }
@@ -496,6 +672,9 @@ export class Plannings implements OnInit, OnDestroy {
     this.isActivityMode = true;
     this.modalData = this.getEmptyPlanning();
     this.modalData.ue_id = null; // Explicitly null
+    this.modalData.session_type = 'Autre';
+    this.modalClassId = this.databaseClasses.find(c => c.name === this.selectedParcours)?.id || '';
+    this.onModalClassChange();
     this.modalData.date = format(
       this.weekStart <= new Date() && this.weekEnd >= new Date() ? new Date() : this.weekStart,
       'yyyy-MM-dd',
@@ -511,7 +690,7 @@ export class Plannings implements OnInit, OnDestroy {
     this.modalData = { ...planning };
     this.modalClassId = planning.classe_id || this.databaseClasses.find(c => c.name === planning.parcours)?.id || '';
     // Determine mode based on data
-    this.isActivityMode = !this.modalData.ue_id && !!this.modalData.title;
+    this.isActivityMode = this.modalData.session_type === 'Examen' || (!this.modalData.ue_id && !!this.modalData.title);
     
     // Cut off seconds from time if it exists (e.g. HH:MM:SS -> HH:MM)
     if (this.modalData.start_time && this.modalData.start_time.length > 5) {
@@ -542,28 +721,38 @@ export class Plannings implements OnInit, OnDestroy {
   }
 
   savePlanning() {
-    // Validate either UE or Title provided
-    if ((!this.modalData.ue_id && !this.modalData.title) || 
-        !this.modalData.teacher_id || 
-        !this.modalData.date || 
-        !this.modalData.start_time || 
-        !this.modalData.end_time ||
-        !this.modalData.parcours) {
-      this.toastService.error('Veuillez remplir tous les champs obligatoires (UE/Titre, Date, Heures).');
+    // Un examen est une activité associée à une UE, jamais une séance de cours.
+    const requiresUe = !this.isActivityMode || this.isExamMode;
+    if ((requiresUe && !this.modalData.ue_id) ||
+        (!requiresUe && !this.modalData.title?.trim()) ||
+        !this.modalData.teacher_id || !this.modalClassId ||
+        !this.modalData.date || !this.modalData.start_time ||
+        !this.modalData.end_time || !this.modalData.parcours) {
+      this.toastService.error('Renseignez la classe, l’UE ou le titre, l’intervenant, la date et les horaires.');
       return;
     }
-
+    if (this.isExamMode && !this.modalData.exam_session?.trim()) {
+      this.toastService.error('Sélectionnez une session d’examen.');
+      return;
+    }
     const error = validateSlot(this.modalData as Planning);
     if (error) {this.toastService.error(error); return;}
     if (this.isSavingPlanning) return;
+    // Nettoyage explicite : pas d'UE involontaire sur une activité ordinaire.
+    const payload = {
+      ...this.modalData,
+      ue_id: requiresUe ? this.modalData.ue_id : null,
+      exam_session: this.isExamMode ? this.modalData.exam_session?.trim() : null,
+      exam_period: this.isExamMode ? (this.modalData.exam_period?.trim() || '') : null
+    };
     this.isSavingPlanning = true;
     if (this.isEditMode && this.modalData.id) {
       this.subscriptions.add(
-      this.planningService.updatePlanning(this.modalData.id, {...this.modalData, change_reason:this.changeReason}).subscribe({
+      this.planningService.updatePlanning(this.modalData.id, {...payload, change_reason:this.changeReason}).subscribe({
         next: () => {
           this.isSavingPlanning = false;
           this.toastService.success('Séance mise à jour');
-          const ueName = this.modalData.title || 'Inconnue';
+          const ueName = this.selectedModalUe?.name || this.modalData.title || 'Activité';
           this.activityService.logActivity('Mise à jour de séance', `Le planning de "${ueName}" a été mis à jour.`, 'Planning');
           this.notificationService.createNotification({
             title: 'Séance modifiée',
@@ -579,11 +768,11 @@ export class Plannings implements OnInit, OnDestroy {
       );
     } else {
       this.subscriptions.add(
-      this.planningService.createPlanning(this.modalData as Planning).subscribe({
+      this.planningService.createPlanning(payload as Planning).subscribe({
         next: () => {
           this.isSavingPlanning = false;
           this.toastService.success('Séance ajoutée au planning');
-          const ueName = this.modalData.title || 'Inconnue';
+          const ueName = this.selectedModalUe?.name || this.modalData.title || 'Activité';
           this.activityService.logActivity('Nouvelle séance planifiée', `Une séance "${ueName}" a été ajoutée.`, 'Planning');
           this.notificationService.createNotification({
             title: 'Nouvelle séance',
@@ -670,6 +859,7 @@ export class Plannings implements OnInit, OnDestroy {
   }
 
   async openSupervision(planning: Planning) {
+    if (isExamPlanning(planning)) { this.toastService.error('Un examen se suit dans le pilotage académique, pas dans une fiche de cours.'); return; }
     if (planning.status === 'Annulé') { this.toastService.error('Impossible de superviser une séance annulée.'); return; }
     if (!planning.id) return;
     if (planning.supervision_id) {this.router.navigate(['/admin/supervision-form'],{queryParams:{id:planning.supervision_id}}); return;}

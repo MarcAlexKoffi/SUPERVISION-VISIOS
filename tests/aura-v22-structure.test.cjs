@@ -28,9 +28,12 @@ test('V2.2->V2.3: free UE text invalidates an old selected ID', () => {
   assert.match(search, /if \(this\.chosen && next !== previousLabel\)/);
   assert.match(search, /this\.valueChange\.emit\(this\.emptyValue\)/);
 });
-test('V2.2: extra-curricular activity mode still does not require UE', () => {
-  assert.match(planning, /isActivityMode = true; modalData\.ue_id = null;/);
-  assert.match(planning, /\*ngIf="!isActivityMode"/);
+test('V2.2: extra-curricular activities stay independent; exams are the explicit exception', () => {
+  assert.match(planning, /\(click\)="setActivityMode\(true\)"/);
+  assert.match(planningTs, /setActivityMode\(activity: boolean\)/);
+  assert.match(planningTs, /this\.modalData\.ue_id = null;/);
+  assert.match(planning, /\*ngIf="!isActivityMode \|\| isExamMode"/);
+  assert.match(planning, /\*ngIf="isActivityMode && !isExamMode"/);
 });
 test('V2.2: complete administrative shell remains enabled', () => {
   const html = read('FRONT/src/app/admindashboard/admindashboard.html');

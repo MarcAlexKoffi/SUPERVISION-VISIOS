@@ -82,6 +82,7 @@ export class Admindashboard implements OnInit, OnDestroy {
     const segment = this.router.url.split('?')[0].split('/')[2] || 'dashboard';
     const titles: Record<string, string> = {
       dashboard: 'Tableau de bord', plannings: 'Planning Visios',
+      'pilotage-academique': 'Pilotage académique',
       'supervision-form': 'Visio (Synchrone)', 'async-supervision': 'Forum (Asynchrone)',
       teachers: 'Enseignants', ues: "Unités d'enseignement",
       formations: 'Parcours', classes: 'Classes', users: 'Utilisateurs',

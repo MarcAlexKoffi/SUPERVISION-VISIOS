@@ -6,7 +6,7 @@ import { UeService } from '../services/ue.service';
 import { SupervisionService } from '../services/supervision.service';
 import { AsyncSupervisionService } from '../services/async-supervision.service';
 import { combineLatest, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 import { ClasseService } from '../services/classe.service';
 import { AuthService } from '../services/auth.service';
 import { ParcoursService } from '../services/parcours.service';
@@ -16,8 +16,10 @@ import { parseDate } from '../shared/utils/date.utils';
 import { ActivityService } from '../services/activity.service';
 import { PlanningService, Planning } from '../services/planning.service';
 import { TeacherService } from '../services/teacher.service';
-import { startOfWeek, endOfWeek, addWeeks, format } from 'date-fns';
+import { startOfWeek, endOfWeek, addWeeks, format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { normalizeAcademicSearch } from '../shared/utils/academic-search';
+import { AcademicBoard, buildAcademicBoard } from '../shared/utils/academic-3b';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,9 +40,23 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   // AURA V2.3: admin-only, period-scoped, based on actual planning documents.
   dashboardPlans: Planning[] = [];
+  dashboard3bBoard: AcademicBoard | null = null;
+  private dashboardUesReady = false;
+  dashboardUesLoadFailed = false;
+  private dashboardPlansReady = false;
+  private updateAcademicPreview(): void {
+    if (!this.isAdmin || !this.dashboardUesReady || !this.dashboardPlansReady) return;
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    this.dashboard3bBoard = buildAcademicBoard({ues:this.ues,plannings:this.dashboardPlans,classes:this.dashboardClasses,today});
+    this.cdr.markForCheck();
+  }
+
   dashboardClasses: any[] = [];
   dashboardTeachers: any[] = [];
   dashboardLoadState: 'loading' | 'ready' | 'error' = 'loading';
+  private dashboardPlanningSub?: Subscription;
+  
   dashboardWeekStart = startOfWeek(new Date(), {weekStartsOn: 1});
   dashboardSearch = '';
   dashboardClass = '';
@@ -51,8 +67,9 @@ export class DashboardHome implements OnInit, OnDestroy {
   get dashboardWeekEnd(): Date { return endOfWeek(this.dashboardWeekStart, {weekStartsOn: 1}); }
   get dateKeyForPlanning(): string { return this.dateKey(this.dashboardWeekStart); }
   get dashboardWeekLabel(): string {
-    return `${format(this.dashboardWeekStart,'dd/MM/yyyy')} – ${format(this.dashboardWeekEnd,'dd/MM/yyyy')}`;
+    return `${format(this.dashboardWeekStart,'d MMMM',{locale:fr})} au ${format(this.dashboardWeekEnd,'d MMMM yyyy',{locale:fr})}`;
   }
+  dashboardMonthLabel(date: string): string { return format(parseISO(date),'MMM',{locale:fr}); }
   dashboardMoveWeek(delta: number): void {
     this.dashboardWeekStart = addWeeks(this.dashboardWeekStart, delta);
   }
@@ -62,7 +79,27 @@ export class DashboardHome implements OnInit, OnDestroy {
     const to = this.dateKey(this.dashboardWeekEnd);
     return this.dashboardPlans.filter(p => p.date >= from && p.date <= to);
   }
-  get dashboardPlannedCount(): number { return this.dashboardWeekPlans.length; }
+  private dashboardIsVisio(p: Planning): boolean {
+    return p.status !== 'Annulé' && p.session_type !== 'Examen' && !!p.ue_id;
+  }
+  get dashboardPlannedCount(): number { return this.dashboardWeekPlans.filter(p=>this.dashboardIsVisio(p)).length; }
+  get dashboardOverdueCount(): number {
+    return this.dashboardPlans.filter(p => p.status === 'À superviser' && this.dashboardIsVisio(p) && this.dashboardIsOverdue(p)).length;
+  }
+  get dashboardActiveAlerts() {
+    return (this.dashboard3bBoard?.alerts || []).filter(a => a.severity === 'critique' || a.severity === 'important');
+  }
+  get dashboardUrgentPlans(): Planning[] {
+    return this.dashboardPlans.filter(p => p.status === 'À superviser' && this.dashboardIsVisio(p) && this.dashboardIsOverdue(p))
+      .sort((a,b) => a.date.localeCompare(b.date) || String(a.start_time).localeCompare(String(b.start_time))).slice(0,5);
+  }
+  get dashboardUpcoming(): Planning[] {
+    const today = this.dateKey(new Date());
+    const time = format(new Date(),'HH:mm');
+    return this.dashboardPlans.filter(p => this.dashboardIsVisio(p) &&
+      (p.date > today || (p.date === today && (!!p.start_time ? p.start_time >= time : !!p.end_time && p.end_time >= time))))
+      .sort((a,b) => a.date.localeCompare(b.date) || String(a.start_time || '').localeCompare(String(b.start_time || ''))).slice(0,5);
+  }
   get dashboardPendingCount(): number { return this.dashboardWeekPlans.filter(p => p.status === 'À superviser').length; }
   get dashboardSupervisedCount(): number { return this.dashboardWeekPlans.filter(p => p.status === 'Supervisé').length; }
   get dashboardCancelledCount(): number { return this.dashboardWeekPlans.filter(p => p.status === 'Annulé').length; }
@@ -106,10 +143,12 @@ export class DashboardHome implements OnInit, OnDestroy {
   retryDashboardPlanning(): void { this.loadDashboardPlanning(); }
   private loadDashboardPlanning(): void {
     this.dashboardLoadState = 'loading';
-    this.subscriptions.add(this.planningService.getPlannings().subscribe({
-      next: rows => { this.dashboardPlans = rows; this.dashboardLoadState='ready'; this.cdr.markForCheck(); },
-      error: err => { console.error('Planning dashboard non disponible',err); this.dashboardLoadState='error'; this.cdr.markForCheck(); }
-    }));
+    this.dashboardPlanningSub?.unsubscribe();
+    this.dashboardPlansReady=false;
+    this.dashboardPlanningSub = this.planningService.getPlannings().pipe(timeout({first:15000})).subscribe({
+      next: rows => { this.dashboardPlans = rows; this.dashboardPlansReady=true; this.dashboardLoadState='ready'; this.updateAcademicPreview(); this.cdr.markForCheck(); },
+      error: err => { console.error('Planning dashboard non disponible',err); this.dashboardLoadState='error'; this.dashboardPlansReady=false; this.cdr.markForCheck(); }
+    });
     this.subscriptions.add(this.teacherService.getAll().subscribe({
       next: rows => { this.dashboardTeachers = rows; this.cdr.markForCheck(); },
       error: err => console.error('Enseignants indisponibles sur le dashboard',err)
@@ -205,6 +244,8 @@ export class DashboardHome implements OnInit, OnDestroy {
           this.loadStats(); // Loads !isAdmin context correctly based on logic
       }
 
+      if (this.isAdmin) { this.activityLoadState='ready'; return; }
+
       // Confidentiality: absence of an authenticated user ID must never fall back
       // to an unfiltered activities collection for non-admin users.
       const activityUserId = this.currentUser?.uid || this.currentUser?.id;
@@ -285,16 +326,18 @@ export class DashboardHome implements OnInit, OnDestroy {
 
   loadStats() {
      // 1. Fetch UEs
-     this.subscriptions.add(this.ueService.getAll().subscribe({
+     this.subscriptions.add(this.ueService.getAll().pipe(timeout({first:15000})).subscribe({
          next: (uesData) => {
              this.ues = uesData;
+             this.dashboardUesReady=true;
+             this.updateAcademicPreview();
              const totalUEs = uesData.length;
              this.userDashboardStats.ueCount = totalUEs;
              this.stats[0].value = totalUEs.toString();
              this.stats[0].subtext = 'Gérées sur la plateforme';
              this.cdr.markForCheck();
          },
-         error: (err) => console.error('Failed to load UEs for stats', err)
+         error: (err) => { this.dashboardUesLoadFailed = true; console.error('Failed to load UEs for stats', err); this.cdr.markForCheck(); }
      }));
 
      // 2. Fetch Supervisions
@@ -322,6 +365,7 @@ export class DashboardHome implements OnInit, OnDestroy {
      this.subscriptions.add(this.classeService.getAll().subscribe({
        next: (classes) => {
          this.dashboardClasses = classes;
+         this.updateAcademicPreview();
          const totalClasses = classes.length;
          let totalStudents = 0;
          classes.forEach((c: any) => {
@@ -509,6 +553,7 @@ export class DashboardHome implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.dashboardPlanningSub?.unsubscribe();
     this.subscriptions.unsubscribe();
   }
 

@@ -24,10 +24,10 @@ test('V2.3: dashboard uses true planning data, period-scoped KPIs and a visible 
  assert.match(dashHtml,/dashboardLoadState==='error'/);
  assert.match(dashHtml,/dashboardLoadState==='ready'\? dashboardPlannedCount : '—'/);
 });
-test('V2.3: dashboard provides actionable priorities, search and links without writes', () => {
- assert.match(dashHtml,/Prochaines actions/);
- assert.match(dashHtml,/dashboardPriorities/);
- assert.match(dashHtml,/dashboardSearch/);
+test('Premium: dashboard is focused on decisions, urgent actions and next sessions', () => {
+ assert.match(dashHtml,/À traiter/);
+ assert.match(dashHtml,/dashboardUrgentPlans/);
+ assert.match(dashHtml,/dashboardUpcoming/);
  assert.match(dashHtml,/routerLink="\/admin\/plannings"/);
  assert.match(dashHtml,/\[queryParams\]="\{add:1\}"/);
 });

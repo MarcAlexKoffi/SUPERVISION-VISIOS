@@ -6,6 +6,7 @@
       <p>Planifiez les interventions, contrôlez les séances et retrouvez les fiches de supervision.</p>
     </div>
     <div class="aura-heading-actions">
+      <button *ngIf="returnHonorairesFilters" type="button" class="aura-btn" (click)="backToHonoraires()">Retour aux honoraires</button>
       <button type="button" class="aura-btn" (click)="exportPDF()"><span class="material-symbols-outlined">description</span>Exporter PDF</button>
       <button type="button" class="aura-btn" (click)="printSchedule()"><span class="material-symbols-outlined">print</span>Imprimer</button>
       <button type="button" class="aura-btn aura-btn-primary" (click)="openAddModal()"><span class="material-symbols-outlined">add</span>Ajouter une séance</button>
@@ -29,7 +30,14 @@
         </div>
         <div class="aura-week-control" aria-label="Navigation hebdomadaire">
           <button type="button" class="aura-icon-button" aria-label="Semaine précédente" (click)="previousWeek()"><span class="material-symbols-outlined">chevron_left</span></button>
-          <div class="aura-week-copy"><strong>{{getWeekLabel()}}</strong><small>Planning hebdomadaire</small></div>
+          <div class="aura-week-calendar">
+            <button #weekPickerTrigger type="button" class="aura-week-picker-button" (click)="openWeekPicker()" [attr.aria-expanded]="weekPickerOpen" aria-controls="aura-planning-week-popup" aria-haspopup="dialog" aria-label="Choisir une semaine dans le calendrier">
+              <span class="material-symbols-outlined">calendar_month</span>
+              <span><strong>{{getWeekLabel()}}</strong><small>Choisir une date ou un mois</small></span>
+              <span class="material-symbols-outlined">expand_more</span>
+            </button>
+            <!-- Popup is DOM-owned by WeekPickerOverlay, outside the scrolling shell. -->
+          </div>
           <button type="button" class="aura-icon-button" aria-label="Semaine suivante" (click)="nextWeek()"><span class="material-symbols-outlined">chevron_right</span></button>
           <button type="button" class="aura-week-today" (click)="todayWeek()">Aujourd'hui</button>
         </div>
@@ -63,7 +71,7 @@
           <label>Enseignant concerné</label>
           <app-academic-search-select [options]="teachers" valueField="id"
             [labelFields]="['first_name','last_name']" [detailFields]="['department','email']"
-            [value]="selectedTeacherForSchedule" [required]="true"
+            [value]="selectedTeacherForSchedule" [required]="false" emptyLabel="Aucun enseignant sélectionné"
             ariaLabel="Enseignant concerné" placeholder="Rechercher un enseignant"
             (valueChange)="onViewTeacherSelected($event)"></app-academic-search-select>
         </div>
@@ -86,13 +94,14 @@
             <div class="aura-session-status">
               <small *ngIf="plan.status === 'Annulé' && getCancellationReason(plan)" class="block mb-1 text-xs text-rose-700" [title]="getCancellationReason(plan)">Motif : {{getCancellationReason(plan)}}</small>
               <label [attr.for]="'auraStatus'+plan.id" class="aura-sr-only">Statut</label><select [id]="'auraStatus'+plan.id" [ngModel]="plan.status" (change)="changeStatus(plan, $event)" [class.aura-status-done]="plan.status === 'Supervisé'" [class.aura-status-cancel]="plan.status === 'Annulé'"><option value="À superviser">À superviser</option><option value="Supervisé">Supervisé</option><option value="Annulé">Annulé</option></select></div>
-            <div class="aura-session-actions"><button type="button" (click)="openEditModal(plan)" aria-label="Modifier la séance" title="Modifier"><span class="material-symbols-outlined">edit</span></button><button type="button" (click)="deletePlanning(plan.id!)" aria-label="Supprimer la séance" title="Supprimer"><span class="material-symbols-outlined">delete</span></button><button *ngIf="plan.status !== 'Annulé' && plan.ue_id" type="button" (click)="openSupervision(plan)" title="Fiche de supervision" aria-label="Fiche de supervision"><span class="material-symbols-outlined">assignment</span></button><a *ngIf="plan.visio_link" [href]="plan.visio_link" target="_blank" rel="noopener noreferrer" title="Rejoindre la visioconférence" aria-label="Rejoindre la visioconférence"><span class="material-symbols-outlined">videocam</span></a></div>
+            <div class="aura-session-actions"><button type="button" (click)="openEditModal(plan)" aria-label="Modifier la séance" title="Modifier"><span class="material-symbols-outlined">edit</span></button><button type="button" (click)="deletePlanning(plan.id!)" aria-label="Supprimer la séance" title="Supprimer"><span class="material-symbols-outlined">delete</span></button><button *ngIf="plan.status !== 'Annulé' && plan.ue_id && plan.session_type !== 'Examen'" type="button" (click)="openSupervision(plan)" title="Fiche de supervision" aria-label="Fiche de supervision"><span class="material-symbols-outlined">assignment</span></button><a *ngIf="plan.visio_link" [href]="plan.visio_link" target="_blank" rel="noopener noreferrer" title="Rejoindre la visioconférence" aria-label="Rejoindre la visioconférence"><span class="material-symbols-outlined">videocam</span></a></div>
           </div>
         </section>
       </div>
     </div>
+  <div *ngIf="currentView === 'teacher' && !selectedTeacherForSchedule" class="aura-empty aura-teacher-empty" role="status"><span class="material-symbols-outlined">person_search</span><strong>Choisissez un enseignant</strong><p>Son emploi du temps s’affichera ici, sans sélection automatique.</p></div>
   <!-- Calendar View (Student Timetable) -->
-  <div *ngIf="currentView === 'calendar' || currentView === 'teacher'" class="aura-calendar-surface bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-4" #calendarPdfArea>
+  <div *ngIf="currentView === 'calendar' || (currentView === 'teacher' && !!selectedTeacherForSchedule)" class="aura-calendar-surface bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-4" #calendarPdfArea>
     <div class="px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white">
       <div>
         <strong class="block text-base font-bold text-slate-900">{{ currentView === 'teacher' ? 'Emploi du temps : ' + teacherScheduleName : 'Emploi du temps : ' + (selectedParcours || 'Toutes les classes') }}</strong>
@@ -202,16 +211,16 @@
 </div>
 
 <!-- Modal: Ajouter/Modifier une Séance -->
-<div *ngIf="isAddModalOpen" class="aura-planning-modal" (click)="onModalBackdropClick($event)">
+<div *ngIf="isAddModalOpen" #planningOverlay class="aura-planning-modal" (click)="onModalBackdropClick($event)">
   <div #planningDialog tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="auraSessionDialogTitle" class="aura-planning-drawer">
     <!-- Header -->
     <div class="aura-planning-drawer-header px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-white relative">
       <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-600"></div>
       <div>
         <h2 id="auraSessionDialogTitle" class="text-xl font-extrabold text-slate-800 tracking-tight">
-          {{ isEditMode ? 'Modifier' : 'Ajouter' }} {{ isActivityMode ? 'une activité' : 'une séance' }}
+          {{ isEditMode ? 'Modifier' : 'Ajouter' }} {{ isExamMode ? 'un examen' : isActivityMode ? 'une activité' : 'une séance' }}
         </h2>
-        <p class="text-sm text-slate-500 font-medium mt-0.5">Planifiez {{ isActivityMode ? 'une activité pédagogique' : 'une visioconférence' }}</p>
+        <p class="text-sm text-slate-500 font-medium mt-0.5">Planifiez {{ isExamMode ? 'une épreuve liée à une UE et à une session' : isActivityMode ? 'une activité pédagogique' : 'une visioconférence' }}</p>
       </div>
       <button (click)="closeModal()" aria-label="Fermer la fenêtre" class="text-slate-400 hover:text-slate-800 hover:bg-slate-100 p-2 rounded-full transition-all flex items-center justify-center">
         <span class="material-symbols-outlined text-[22px]">close</span>
@@ -219,16 +228,16 @@
     </div>
 
     <!-- Body -->
-    <div class="aura-planning-drawer-body p-8 space-y-6 overflow-y-auto">
+    <div #planningDrawerBody class="aura-planning-drawer-body p-8 space-y-6 overflow-y-auto">
 
       <!-- Toggle Type (Only in Add Mode to switch easily if mistaken) -->
       <div *ngIf="!isEditMode" class="flex p-1 bg-slate-100 rounded-xl">
-        <button (click)="isActivityMode = false; clearModalUe(); modalUeOpen = false; modalData.title = undefined" 
+        <button (click)="setActivityMode(false)" 
           [class.bg-white]="!isActivityMode" [class.shadow-sm]="!isActivityMode" [class.text-slate-800]="!isActivityMode"
           class="flex-1 py-1.5 text-sm font-bold text-slate-500 rounded-lg transition-all">
           Cours / UE
         </button>
-        <button (click)="isActivityMode = true; modalData.ue_id = null; ueSearch = ''; modalUeOpen = false; modalData.title = ''" 
+        <button (click)="setActivityMode(true)" 
           [class.bg-white]="isActivityMode" [class.shadow-sm]="isActivityMode" [class.text-slate-800]="isActivityMode"
           class="flex-1 py-1.5 text-sm font-bold text-slate-500 rounded-lg transition-all">
           Activité Hors Cours
@@ -243,7 +252,7 @@
             (valueChange)="onModalClassSelected($event)"></app-academic-search-select>
       </div>
 
-      <div class="space-y-1.5" *ngIf="!isActivityMode">
+      <div class="space-y-1.5" *ngIf="!isActivityMode || isExamMode">
         <label for="auraModalUe" class="flex items-center gap-1.5 text-sm font-bold text-slate-700">Matière / UE <span class="text-rose-500">*</span></label>
         <app-academic-search-select inputId="auraModalUe" [options]="ues" valueField="id" [value]="modalData.ue_id"
           [detailFields]="['code']" [required]="true" emptyValue=""
@@ -252,9 +261,9 @@
         <small class="aura-modal-selection" *ngIf="selectedModalUe"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>UE sélectionnée : {{selectedModalUeLabel}}</small>
       </div>
 
-      <div class="space-y-1.5" *ngIf="isActivityMode">
+      <div class="space-y-1.5" *ngIf="isActivityMode && !isExamMode">
         <label class="flex items-center gap-1.5 text-sm font-bold text-slate-700">Titre de l'activité <span class="text-rose-500">*</span></label>
-        <input type="text" [(ngModel)]="modalData.title" placeholder="Ex: Soutenance de stage, Réunion de rentrée..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm">
+        <input type="text" [(ngModel)]="modalData.title" placeholder="Ex: Soutenance de stage, Réunion de rentrée..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:border-blue-500 focus:bg-white transition-all shadow-sm">
       </div>
 
       <div class="space-y-1.5">
@@ -284,14 +293,31 @@
         </div>
       </div>
 
-      <div class="space-y-2">
+      <div #sessionTypeSelector class="space-y-2">
         <label class="flex items-center gap-1.5 text-sm font-bold text-slate-700">Type de séance</label>
         <div class="flex gap-3 flex-wrap">
           <label *ngFor="let type of (isActivityMode ? ['TP', 'TD', 'Exposé', 'Devoir', 'Soutenance', 'Examen', 'Autre'] : ['CM', 'TP', 'TD', 'Atelier'])" class="flex-1 min-w-[20%] cursor-pointer">
-            <input type="radio" name="sessionType" [value]="type" [(ngModel)]="modalData.session_type" class="peer sr-only">
+            <input type="radio" name="sessionType" [value]="type" [(ngModel)]="modalData.session_type" (ngModelChange)="onSessionTypeSelected($event)" class="peer sr-only">
             <div class="text-center py-2.5 border-2 border-slate-100 bg-white rounded-xl text-sm font-semibold text-slate-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 peer-checked:border-blue-500 transition-all hover:border-slate-300 shadow-sm peer-checked:shadow-md">
               {{ type }}
             </div>
+          </label>
+        </div>
+      </div>
+
+      <div *ngIf="isExamMode" class="space-y-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4" aria-label="Informations de l'examen">
+        <p class="text-sm font-semibold text-blue-900">Examen académique · lié au pilotage 3B</p>
+        <p class="text-xs text-slate-600">L'UE, la classe, la session et la date sont obligatoires. L'épreuve ne sera pas comptée parmi les séances de cours réalisées.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="text-sm font-bold text-slate-700">Session <span class="text-rose-500">*</span>
+            <select [(ngModel)]="modalData.exam_session" aria-label="Session de l'examen" required class="mt-1 w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-blue-500/50">
+              <option value="Session ordinaire">Session ordinaire</option>
+              <option value="Deuxième session">Deuxième session</option>
+              <option value="Rattrapage">Rattrapage</option>
+            </select>
+          </label>
+          <label class="text-sm font-bold text-slate-700">Période (facultatif)
+            <input type="text" [(ngModel)]="modalData.exam_period" placeholder="Ex. Phase 4" maxlength="80" class="mt-1 w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-blue-500/50">
           </label>
         </div>
       </div>
